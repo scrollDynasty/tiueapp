@@ -1,3 +1,4 @@
+import { useResponsive } from '@/hooks/useResponsive';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import React from 'react';
@@ -25,6 +26,7 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
   const scale = useSharedValue(1);
   const pressed = useSharedValue(0);
   const hovered = useSharedValue(0);
+  const { isSmallScreen, fontSize } = useResponsive();
 
   const handlePressIn = () => {
     'worklet';
@@ -32,7 +34,7 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
       damping: 18,
       stiffness: 220,
       mass: 1,
-    });
+    }); 
     pressed.value = withTiming(1, { duration: 160 });
     runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light);
   };
@@ -104,8 +106,10 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
       onHoverOut={handleHoverOut}
       style={[
         {
-          width: 160,
-          height: 180,
+          flex: 1,
+          minWidth: 150,
+          maxWidth: 180,
+          height: 160,
           borderRadius: 20,
           borderWidth: 1,
           shadowColor: '#000',
@@ -135,15 +139,15 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
         <Animated.View style={iconStyle}>
           <Ionicons 
             name={icon} 
-            size={28} 
+            size={isSmallScreen ? 24 : 28} 
             color="#007BFF"
           />
         </Animated.View>
         
         <ThemedText
           style={{
-            fontSize: 13,
-            lineHeight: 18,
+            fontSize: fontSize.small,
+            lineHeight: fontSize.small * 1.4,
             fontWeight: '500',
             color: '#6C757D',
             letterSpacing: 0.5,

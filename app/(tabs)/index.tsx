@@ -4,6 +4,7 @@ import { CustomRefreshControl } from '@/components/CustomRefreshControl';
 import { NewsCard } from '@/components/NewsCard';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Spacing } from '@/constants/DesignTokens';
+import { useResponsive } from '@/hooks/useResponsive';
 import React from 'react';
 import { ScrollView, View } from 'react-native';
 import Animated, {
@@ -19,6 +20,7 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 export default function HomeScreen() {
   const scrollY = useSharedValue(0);
   const [refreshing, setRefreshing] = React.useState(false);
+  const { horizontalPadding, cardGap, cardWidth, cardHeight } = useResponsive();
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -68,14 +70,14 @@ export default function HomeScreen() {
         onNotificationPress={() => console.log('Notifications pressed')}
       />
 
-      <AnimatedScrollView
+              <AnimatedScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         refreshControl={
           <CustomRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         contentContainerStyle={{
-          paddingHorizontal: 20,
+          paddingHorizontal: horizontalPadding,
           paddingBottom: 100,
         }}
       >
@@ -91,28 +93,32 @@ export default function HomeScreen() {
               flexDirection: 'row',
               flexWrap: 'wrap',
               justifyContent: 'space-between',
-              gap: 12,
+              gap: cardGap,
             }}
           >
             <ActionCard
               title="COURSES"
               icon="book-outline"
               onPress={() => console.log('Courses pressed')}
+              style={{ width: cardWidth, height: cardHeight }}
             />
             <ActionCard
               title="SCHEDULE"
               icon="calendar-outline"
               onPress={() => console.log('Schedule pressed')}
+              style={{ width: cardWidth, height: cardHeight }}
             />
             <ActionCard
               title="ASSIGNMENTS"
               icon="list-outline"
               onPress={() => console.log('Assignments pressed')}
+              style={{ width: cardWidth, height: cardHeight }}
             />
             <ActionCard
               title="GRADES"
               icon="analytics-outline"
               onPress={() => console.log('Grades pressed')}
+              style={{ width: cardWidth, height: cardHeight }}
             />
           </View>
         </Animated.View>
