@@ -4,6 +4,7 @@ import { CustomRefreshControl } from '@/components/CustomRefreshControl';
 import { NewsCard } from '@/components/NewsCard';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Spacing } from '@/constants/DesignTokens';
+import { useAppSelector } from '@/hooks/redux';
 import { useResponsive } from '@/hooks/useResponsive';
 import React from 'react';
 import { ScrollView, View } from 'react-native';
@@ -21,6 +22,7 @@ export default function HomeScreen() {
   const scrollY = useSharedValue(0);
   const [refreshing, setRefreshing] = React.useState(false);
   const { horizontalPadding, cardGap, cardWidth, cardHeight } = useResponsive();
+  const { user } = useAppSelector((state) => state.auth);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -30,41 +32,20 @@ export default function HomeScreen() {
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    // Имитация загрузки данных
+    // Здесь будет загрузка данных с сервера
     setTimeout(() => {
       setRefreshing(false);
     }, 2000);
   }, []);
 
-  const newsData = [
-    {
-      id: 1,
-      title: "Новая система электронного обучения",
-      subtitle: "Запуск современной LMS платформы для всех студентов",
-      date: "15 мин назад",
-      icon: "school-outline" as const,
-    },
-    {
-      id: 2,
-      title: "Стипендиальная программа",
-      subtitle: "Открыт приём заявок на повышенную академическую стипендию",
-      date: "2 часа назад", 
-      icon: "trophy-outline" as const,
-    },
-    {
-      id: 3,
-      title: "Научная конференция",
-      subtitle: "25-27 сентября состоится международная студенческая конференция",
-      date: "1 день назад",
-      icon: "people-outline" as const,
-    },
-  ];
+  // Получаем новости из Redux store
+  const { items: newsData } = useAppSelector((state) => state.news);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.surface }}>
       {/* Верхняя панель */}
       <AnimatedHeader 
-        userName="Emily"
+        userName={user?.first_name || user?.username || 'Пользователь'}
         notificationCount={3}
         onAvatarPress={() => console.log('Avatar pressed')}
         onNotificationPress={() => console.log('Notifications pressed')}
@@ -139,17 +120,42 @@ export default function HomeScreen() {
           </ThemedText>
 
           <View style={{ gap: 12 }}>
-            {newsData.map((news, index) => (
-              <NewsCard
-                key={news.id}
-                title={news.title}
-                subtitle={news.subtitle}
-                date={news.date}
-                icon={news.icon}
-                index={index}
-                onPress={() => console.log(`News ${news.id} pressed`)}
-              />
-            ))}
+            {newsData.length > 0 ? (
+              newsData.map((news, index) => (
+                <NewsCard
+                  key={news.id}
+                  title={news.title}
+                  subtitle={news.subtitle}
+                  date={news.date}
+                  icon={news.icon}
+                  index={index}
+                  onPress={() => console.log(`News ${news.id} pressed`)}
+                />
+              ))
+            ) : (
+              <View style={{
+                backgroundColor: '#F5F7FB',
+                borderRadius: 16,
+                padding: 24,
+                alignItems: 'center',
+              }}>
+                <ThemedText style={{
+                  fontSize: 16,
+                  color: '#475569',
+                  textAlign: 'center',
+                }}>
+                  Новостей пока нет
+                </ThemedText>
+                <ThemedText style={{
+                  fontSize: 14,
+                  color: '#94A3B8',
+                  textAlign: 'center',
+                  marginTop: 4,
+                }}>
+                  Администратор может добавить новости
+                </ThemedText>
+              </View>
+            )}
           </View>
         </Animated.View>
 

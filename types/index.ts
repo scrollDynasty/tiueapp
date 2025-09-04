@@ -2,13 +2,31 @@ export type UserRole = 'student' | 'professor' | 'admin';
 
 export interface User {
   id: string;
-  name: string;
+  username: string;
   email: string;
+  first_name: string;
+  last_name: string;
   avatar?: string;
   role: UserRole;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  // Связанные объекты
+  student?: {
+    group?: {
+      name: string;
+      course?: number;
+    };
+    course?: number;
+    average_grade?: number;
+  };
+  professor?: {
+    department?: string;
+    title?: string;
+  };
+  admin?: {
+    permissions?: string[];
+  };
 }
 
 export interface Student extends User {
@@ -112,10 +130,12 @@ export interface Grade {
 export interface News {
   id: string;
   title: string;
+  subtitle: string;
   content: string;
   author: string;
   date: string;
   category: 'announcement' | 'news' | 'academic' | 'events';
+  icon: 'school-outline' | 'trophy-outline' | 'people-outline' | 'megaphone-outline' | 'calendar-outline';
   image?: string;
   isImportant: boolean;
 }
