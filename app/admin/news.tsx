@@ -1,18 +1,19 @@
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { addNews } from '@/store/slices/newsSlice';
+import { addNews, createNews } from '@/store/slices/newsSlice';
+import { News } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
-import { Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function NewsManagementScreen() {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
-  const { items: news } = useAppSelector((state) => state.news);
+  const { items: news, isLoading } = useAppSelector((state) => state.news);
   
   const [title, setTitle] = React.useState('');
   const [subtitle, setSubtitle] = React.useState('');
@@ -55,33 +56,61 @@ export default function NewsManagementScreen() {
     { value: 'calendar-outline', label: 'Календарь' },
   ] as const;
 
-  const handleAddNews = () => {
+  const handleAddNews = async () => {
     if (!title.trim() || !subtitle.trim() || !content.trim()) {
       Alert.alert('Ошибка', 'Заполните все поля');
       return;
     }
 
-    const newNews = {
-      id: Date.now().toString(),
+    const newNewsData = {
       title: title.trim(),
       subtitle: subtitle.trim(),
       content: content.trim(),
-      author: `${user.first_name} ${user.last_name}`.trim() || user.username,
-      date: 'только что',
       category: 'announcement' as const,
       icon: selectedIcon,
-      isImportant: false,
+      is_important: false,
     };
 
-    dispatch(addNews(newNews));
-    
-    // Очищаем форму
-    setTitle('');
-    setSubtitle('');
-    setContent('');
-    setSelectedIcon('megaphone-outline');
-    
-    Alert.alert('Успешно', 'Новость добавлена');
+    try {
+      // Добавляем логирование для отладки
+      console.log('Sending news data:', newNewsData);
+      
+      // Сначала пытаемся сохранить через API
+      await dispatch(createNews(newNewsData)).unwrap();
+      
+      // Очищаем форму
+      setTitle('');
+      setSubtitle('');
+      setContent('');
+      setSelectedIcon('megaphone-outline');
+      
+      Alert.alert('Успешно', 'Новость добавлена и сохранена в базе данных');
+    } catch (error) {
+      console.error('API Error:', error);
+      
+      // Если API не работает, сохраняем локально
+      const fallbackNews: News = {
+        id: Date.now().toString(),
+        title: title.trim(),
+        subtitle: subtitle.trim(),
+        content: content.trim(),
+        category: 'announcement' as const,
+        icon: selectedIcon,
+        author: `${user.first_name} ${user.last_name}`.trim() || user.username,
+        date: 'только что',
+        isImportant: false,
+      };
+      
+      dispatch(addNews(fallbackNews));
+      
+      // Очищаем форму
+      setTitle('');
+      setSubtitle('');
+      setContent('');
+      setSelectedIcon('megaphone-outline');
+      
+      Alert.alert('Внимание', 'Новость добавлена локально. Проверьте подключение к серверу для синхронизации с базой данных.');
+    }
   };
 
   return (
@@ -234,15 +263,29 @@ export default function NewsManagementScreen() {
           {/* Кнопка добавления */}
           <Pressable
             onPress={handleAddNews}
+            disabled={isLoading}
             style={{
-              backgroundColor: Colors.brandPrimary,
+              backgroundColor: isLoading ? Colors.strokeSoft : Colors.brandPrimary,
               paddingVertical: Spacing.m,
               borderRadius: 12,
               alignItems: 'center',
+              flexDirection: 'row',
+              justifyContent: 'center',
             }}
           >
-            <ThemedText style={{ ...Typography.body, color: Colors.surface, fontWeight: '600' }}>
-              Добавить новость
+            {isLoading && (
+              <ActivityIndicator 
+                size="small" 
+                color={Colors.textSecondary} 
+                style={{ marginRight: Spacing.s }} 
+              />
+            )}
+            <ThemedText style={{ 
+              ...Typography.body, 
+              color: isLoading ? Colors.textSecondary : Colors.surface, 
+              fontWeight: '600' 
+            }}>
+              {isLoading ? 'Добавляем...' : 'Добавить новость'}
             </ThemedText>
           </Pressable>
         </Animated.View>
@@ -250,20 +293,20 @@ export default function NewsManagementScreen() {
         {/* Список новостей */}
         <Animated.View entering={FadeInDown.duration(500).delay(400)}>
           <ThemedText style={{ ...Typography.titleH2, color: Colors.textPrimary, marginBottom: Spacing.m }}>
-            Существующие новости ({news.length})
+            Существующие новости ({Array.isArray(news) ? news.length : 0})
           </ThemedText>
           
-          {news.length === 0 ? (
+          {!Array.isArray(news) || news.length === 0 ? (
             <View style={{
               backgroundColor: Colors.surface,
-              borderRadius: 16,
+              borderRadius: 12,
               padding: Spacing.l,
               alignItems: 'center',
               ...Shadows.card,
             }}>
               <Ionicons name="newspaper-outline" size={48} color={Colors.textSecondary} />
               <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginTop: Spacing.s }}>
-                Новостей пока нет
+                Новости пока не созданы
               </ThemedText>
             </View>
           ) : (

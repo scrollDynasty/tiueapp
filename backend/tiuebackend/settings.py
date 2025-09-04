@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'users',
     'groups',
     'schedule',
+    'news',
 ]
 
 MIDDLEWARE = [
