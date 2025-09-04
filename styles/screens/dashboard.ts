@@ -11,24 +11,21 @@ export const dashboardStyles = StyleSheet.create({
     paddingBottom: SPACING.xl,
   },
   header: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.light.background,
     paddingTop: SPACING.xl * 1.5,
     paddingBottom: SPACING.xl,
     paddingHorizontal: SPACING.containerHorizontal,
-    borderBottomLeftRadius: SIZES.border.large,
-    borderBottomRightRadius: SIZES.border.large,
-    ...SHADOWS.medium,
   },
   greeting: {
     ...TYPOGRAPHY.h1,
-    color: '#ffffff',
+    color: Colors.light.text,
     fontWeight: '800',
     letterSpacing: -0.5,
     marginBottom: SPACING.xs,
   },
   subtitle: {
     ...TYPOGRAPHY.body1,
-    color: 'rgba(255, 255, 255, 0.85)',
+    color: Colors.light.textSecondary,
     fontWeight: '500',
   },
   headerRow: {
@@ -40,6 +37,7 @@ export const dashboardStyles = StyleSheet.create({
     width: SIZES.avatar.medium,
     height: SIZES.avatar.medium,
     borderRadius: SIZES.avatar.medium / 2,
+    backgroundColor: Colors.light.primary,
     ...LAYOUT.center,
   },
   avatarText: {

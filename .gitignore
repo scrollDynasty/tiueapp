@@ -36,4 +36,7 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# MCP configuration with API keys
+.vscode/mcp.json
+
 app-example
