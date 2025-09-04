@@ -1,9 +1,23 @@
+import * as NavigationBar from 'expo-navigation-bar';
+import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export function useSystemBars() {
   const insets = useSafeAreaInsets();
 
-  // Возвращаем простые безопасные отступы
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      // Скрываем системную навигацию полностью
+      NavigationBar.setVisibilityAsync('hidden');
+      // Делаем её прозрачной
+      NavigationBar.setBackgroundColorAsync('transparent');
+      // Настраиваем поведение - показывается по свайпу
+      NavigationBar.setBehaviorAsync('overlay-swipe');
+    }
+  }, []);
+
+  // Возвращаем безопасные отступы
   return {
     top: insets.top,
     bottom: insets.bottom,
