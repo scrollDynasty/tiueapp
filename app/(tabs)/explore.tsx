@@ -1,147 +1,164 @@
-import { UniversityCard } from '@/components/ui/UniversityCard';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, View, TextInput } from 'react-native';
+import Animated, { FadeInDown, SlideInRight } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { ThemedText } from '@/components/ThemedText';
+import { ActionCard } from '@/components/ActionCard';
+import { Colors, Spacing, Typography, Shadows } from '@/constants/DesignTokens';
 
 export default function ExploreScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const [searchQuery, setSearchQuery] = React.useState('');
+
+  const categories = [
+    { title: "БИБЛИОТЕКА", icon: "library-outline" as const },
+    { title: "ЛАБОРАТОРИИ", icon: "flask-outline" as const },
+    { title: "КАФЕДРЫ", icon: "school-outline" as const },
+    { title: "СПОРТ", icon: "fitness-outline" as const },
+    { title: "СТУДСОВЕТ", icon: "people-outline" as const },
+    { title: "МЕРОПРИЯТИЯ", icon: "calendar-outline" as const },
+  ];
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>Исследовать</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Откройте для себя возможности университета
-          </Text>
-        </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.surface }}>
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: Spacing.l,
+          paddingBottom: 100,
+        }}
+      >
+        {/* Заголовок */}
+        <Animated.View 
+          entering={SlideInRight.duration(400)}
+          style={{ paddingVertical: Spacing.l }}
+        >
+          <ThemedText
+            style={{
+              ...Typography.displayH1,
+              color: Colors.textPrimary,
+              marginBottom: Spacing.s,
+            }}
+          >
+            Поиск
+          </ThemedText>
+          <ThemedText
+            style={{
+              ...Typography.body,
+              color: Colors.textSecondary,
+            }}
+          >
+            Найдите всё, что нужно для учёбы
+          </ThemedText>
+        </Animated.View>
 
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Категории</Text>
-          
-          <View style={styles.categoriesGrid}>
-            <UniversityCard
-              title="Факультеты"
-              icon="school"
-              gradient="primary"
-              size="medium"
-              style={styles.categoryCard}
-            />
-            
-            <UniversityCard
-              title="Библиотека"
-              icon="library"
-              gradient="accent"
-              size="medium"
-              style={styles.categoryCard}
-            />
-          </View>
+        {/* Поиск */}
+        <Animated.View 
+          entering={FadeInDown.delay(200)}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: Colors.surfaceSubtle,
+            borderRadius: 16,
+            paddingHorizontal: Spacing.m,
+            paddingVertical: Spacing.s,
+            marginBottom: Spacing.xl,
+            ...Shadows.card,
+          }}
+        >
+          <Ionicons 
+            name="search-outline" 
+            size={20} 
+            color={Colors.textSecondary} 
+            style={{ marginRight: Spacing.s }}
+          />
+          <TextInput
+            placeholder="Поиск по университету..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            style={{
+              flex: 1,
+              fontSize: 16,
+              color: Colors.textPrimary,
+            }}
+            placeholderTextColor={Colors.textSecondary}
+          />
+        </Animated.View>
 
-          <View style={styles.categoriesGrid}>
-            <UniversityCard
-              title="Спорт"
-              icon="fitness"
-              gradient="secondary"
-              size="medium"
-              style={styles.categoryCard}
-            />
-            
-            <UniversityCard
-              title="Клубы"
-              icon="people"
-              gradient="purple"
-              size="medium"
-              style={styles.categoryCard}
-            />
-          </View>
-        </View>
+        {/* Категории */}
+        <Animated.View entering={FadeInDown.delay(400)}>
+          <ThemedText
+            style={{
+              ...Typography.titleH2,
+              color: Colors.textPrimary,
+              marginBottom: Spacing.m,
+            }}
+          >
+            Категории
+          </ThemedText>
 
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Новости университета</Text>
-          
-          <View style={[styles.newsCard, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.newsTitle, { color: colors.text }]}>
-              Открытие новой лаборатории
-            </Text>
-            <Text style={[styles.newsText, { color: colors.textSecondary }]}>
-              В университете открылась современная лаборатория искусственного интеллекта
-            </Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              gap: Spacing.m,
+            }}
+          >
+            {categories.map((category, index) => (
+              <ActionCard
+                key={category.title}
+                title={category.title}
+                icon={category.icon}
+                onPress={() => console.log(`${category.title} pressed`)}
+                style={{ 
+                  width: '48%',
+                  marginBottom: Spacing.m,
+                }}
+              />
+            ))}
           </View>
+        </Animated.View>
 
-          <View style={[styles.newsCard, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.newsTitle, { color: colors.text }]}>
-              Студенческий фестиваль
-            </Text>
-            <Text style={[styles.newsText, { color: colors.textSecondary }]}>
-              25 октября состоится ежегодный студенческий фестиваль науки и искусства
-            </Text>
+        {/* Популярные запросы */}
+        <Animated.View 
+          entering={FadeInDown.delay(600)}
+          style={{ marginTop: Spacing.l }}
+        >
+          <ThemedText
+            style={{
+              ...Typography.titleH2,
+              color: Colors.textPrimary,
+              marginBottom: Spacing.m,
+            }}
+          >
+            Популярные запросы
+          </ThemedText>
+
+          <View style={{ gap: Spacing.s }}>
+            {['Расписание экзаменов', 'Электронная библиотека', 'Стипендия', 'Общежитие'].map((query, index) => (
+              <Animated.View
+                key={query}
+                entering={FadeInDown.delay(700 + index * 100)}
+                style={{
+                  backgroundColor: Colors.chipBg,
+                  borderRadius: 12,
+                  paddingHorizontal: Spacing.m,
+                  paddingVertical: Spacing.s,
+                }}
+              >
+                <ThemedText
+                  style={{
+                    fontSize: 14,
+                    color: Colors.brandPrimary,
+                  }}
+                >
+                  {query}
+                </ThemedText>
+              </Animated.View>
+            ))}
           </View>
-        </View>
+        </Animated.View>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  header: {
-    padding: 20,
-    paddingTop: 10,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    opacity: 0.7,
-  },
-  section: {
-    padding: 20,
-    paddingTop: 0,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  categoriesGrid: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  categoryCard: {
-    flex: 1,
-  },
-  newsCard: {
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  newsTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  newsText: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-});

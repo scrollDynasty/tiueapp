@@ -2,63 +2,90 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
 
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import {
+  HomeTabIcon,
+  MessagesTabIcon,
+  ScheduleTabIcon,
+  SearchTabIcon,
+  SettingsTabIcon
+} from '@/components/AnimatedTabIcons';
+import { Colors, Shadows } from '@/constants/DesignTokens';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: Colors.brandPrimary,
+        tabBarInactiveTintColor: Colors.tabInactive,
         headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {},
-        }),
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          backgroundColor: Colors.surface,
+          borderTopWidth: 0,
+          height: 82,
+          paddingBottom: Platform.OS === 'ios' ? 25 : 12,
+          paddingTop: 8,
+          ...Shadows.tab,
+        },
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Главная',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Home',
+          tabBarIcon: ({ focused }) => (
+            <HomeTabIcon 
+              focused={focused} 
+              onPress={() => {}} 
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="explore"
+        options={{
+          title: 'Search',
+          tabBarIcon: ({ focused }) => (
+            <SearchTabIcon 
+              focused={focused} 
+              onPress={() => {}} 
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="schedule"
         options={{
-          title: 'Расписание',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="calendar" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="tasks"
-        options={{
-          title: 'Задачи',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="checkmark.circle" color={color} />,
+          title: 'Schedule',
+          tabBarIcon: ({ focused }) => (
+            <ScheduleTabIcon 
+              focused={focused} 
+              onPress={() => {}} 
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="events"
         options={{
-          title: 'События',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="star.fill" color={color} />,
+          title: 'Messages',
+          tabBarIcon: ({ focused }) => (
+            <MessagesTabIcon 
+              focused={focused} 
+              onPress={() => {}} 
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Профиль',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
+          title: 'Settings',
+          tabBarIcon: ({ focused }) => (
+            <SettingsTabIcon 
+              focused={focused} 
+              onPress={() => {}} 
+            />
+          ),
         }}
       />
     </Tabs>
