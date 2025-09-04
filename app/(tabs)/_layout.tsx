@@ -1,6 +1,5 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
 
 import {
   HomeTabIcon,
@@ -22,23 +21,22 @@ export default function TabLayout() {
           headerShown: false,
           tabBarShowLabel: false,
           tabBarStyle: {
-            backgroundColor: Colors.surface,
-            // Убираем стандартную тень и границы
-            elevation: 0,
-            shadowOpacity: 0.1,
-            borderTopWidth: 0,
-            // Добавляем небольшую высоту для лучшей видимости
-            height: Platform.OS === 'android' ? 65 : 80,
-            paddingBottom: Platform.OS === 'android' ? 10 : 20,
-            paddingTop: 10,
-            // Добавляем небольшую тень сверху
-            shadowColor: '#000',
-            shadowOffset: {
-              width: 0,
-              height: -2,
-            },
-            shadowRadius: 3,
-          },
+          backgroundColor: '#FFFFFF',
+          borderTopWidth: 1,
+          borderTopColor: '#E5E7EB',
+          height: 65,
+          paddingBottom: 8,
+          paddingTop: 8,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          // Убираем все тени для быстрой отзывчивости
+          elevation: 0,
+          shadowOpacity: 0,
+          // Добавляем дополнительные стили для лучшего прижатия к низу
+          zIndex: 1000,
+        },
         }}>
       <Tabs.Screen
         name="index"

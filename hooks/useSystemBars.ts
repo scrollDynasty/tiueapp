@@ -1,30 +1,34 @@
 import * as NavigationBar from 'expo-navigation-bar';
 import * as StatusBar from 'expo-status-bar';
 import { useCallback, useEffect, useRef } from 'react';
-import { AppState, AppStateStatus, BackHandler, Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AppState, AppStateStatus, Platform } from 'react-native';
 import SystemNavigationBar from 'react-native-system-navigation-bar';
 
 export const useImmersiveMode = () => {
   const appState = useRef(AppState.currentState);
   const isImmersiveActive = useRef(false);
+  const autoHideTimer = useRef<any>(null);
+  const navigationVisibilityListener = useRef<any>(null);
 
   // Функция для включения immersive режима
   const enableImmersiveMode = useCallback(async () => {
     if (Platform.OS !== 'android') return;
 
     try {
+      // Очищаем таймер если есть
+      if (autoHideTimer.current) {
+        clearTimeout(autoHideTimer.current);
+        autoHideTimer.current = null;
+      }
+
       // Используем react-native-system-navigation-bar для максимальной совместимости
       await SystemNavigationBar.immersive();
       
       // Дополнительно используем expo-navigation-bar
       await NavigationBar.setVisibilityAsync('hidden');
-      await NavigationBar.setBehaviorAsync('overlay-swipe');
-      await NavigationBar.setBackgroundColorAsync('#00000000');
       
       // Настраиваем статус бар
       StatusBar.setStatusBarStyle('light');
-      StatusBar.setStatusBarTranslucent(true);
       
       isImmersiveActive.current = true;
       console.log('✅ Immersive mode activated');
@@ -34,12 +38,25 @@ export const useImmersiveMode = () => {
       // Fallback для старых версий Android
       try {
         await NavigationBar.setVisibilityAsync('hidden');
-        await NavigationBar.setBehaviorAsync('overlay-swipe');
       } catch (fallbackError) {
         console.warn('❌ Fallback также не сработал:', fallbackError);
       }
     }
   }, []);
+
+  // Функция для автоскрытия через 3 секунды
+  const scheduleAutoHide = useCallback(() => {
+    console.log('🔄 Запуск таймера автоскрытия (3 сек)');
+    
+    if (autoHideTimer.current) {
+      clearTimeout(autoHideTimer.current);
+    }
+    
+    autoHideTimer.current = setTimeout(() => {
+      console.log('⏰ Таймер сработал - скрываем навигацию');
+      enableImmersiveMode();
+    }, 3000); // 3 секунды
+  }, [enableImmersiveMode]);
 
   // Функция для отключения immersive режима
   const disableImmersiveMode = useCallback(async () => {
@@ -48,81 +65,88 @@ export const useImmersiveMode = () => {
     try {
       await SystemNavigationBar.navigationShow();
       await NavigationBar.setVisibilityAsync('visible');
+      
       isImmersiveActive.current = false;
       console.log('✅ Immersive mode deactivated');
+      
+      // Запускаем таймер автоскрытия
+      scheduleAutoHide();
     } catch (error) {
       console.warn('❌ Ошибка деактивации immersive режима:', error);
     }
-  }, []);
+  }, [scheduleAutoHide]);
 
-  // Функция для переактивации режима (при возврате из фона)
-  const reactivateImmersiveMode = useCallback(() => {
-    // Небольшая задержка для стабильности
-    setTimeout(enableImmersiveMode, 100);
+  // Обработчик изменения состояния приложения
+  const handleAppStateChange = useCallback((nextAppState: AppStateStatus) => {
+    console.log('📱 App state changed:', appState.current, '->', nextAppState);
+    
+    if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+      // Приложение стало активным - включаем immersive режим через небольшую задержку
+      setTimeout(() => {
+        enableImmersiveMode();
+      }, 500);
+    }
+    appState.current = nextAppState;
   }, [enableImmersiveMode]);
 
+  // Слушатель изменения видимости навигации
   useEffect(() => {
-    // Активируем immersive режим при монтировании компонента
-    enableImmersiveMode();
+    if (Platform.OS !== 'android') return;
 
-    // Обработчик изменения состояния приложения
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      console.log('📱 App state changed:', appState.current, '->', nextAppState);
-      
-      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-        // Приложение вернулось из фона - переактивируем immersive режим
-        reactivateImmersiveMode();
+    let lastVisibility = 'hidden';
+    
+    const handleNavigationVisibilityChange = async () => {
+      try {
+        const visibility = await NavigationBar.getVisibilityAsync();
+        
+        // Логируем только при изменении состояния
+        if (visibility !== lastVisibility) {
+          console.log('🔍 Navigation visibility changed:', lastVisibility, '->', visibility);
+          lastVisibility = visibility;
+          
+          if (visibility === 'visible' && isImmersiveActive.current) {
+            // Навигация стала видимой - запускаем таймер автоскрытия
+            isImmersiveActive.current = false;
+            scheduleAutoHide();
+          }
+        }
+      } catch (error) {
+        // Убираем логирование ошибок для уменьшения спама
       }
-      
-      appState.current = nextAppState;
     };
 
-    // Обработчик кнопки "Назад" для предотвращения выхода из immersive режима
-    const handleBackPress = () => {
-      if (isImmersiveActive.current) {
-        // Если immersive режим активен, переактивируем его после нажатия "Назад"
-        setTimeout(enableImmersiveMode, 50);
-      }
-      return false; // Позволяем стандартное поведение кнопки "Назад"
-    };
+    // Уменьшаем частоту проверки до 500мс
+    const checkInterval = setInterval(handleNavigationVisibilityChange, 500);
 
-    // Подписываемся на события
-    const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
-    const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
-
-    // Дополнительная переактивация через интервал (для особо упрямых случаев)
-    const interval = setInterval(() => {
-      if (appState.current === 'active' && !isImmersiveActive.current) {
-        enableImmersiveMode();
-      }
-    }, 3000);
-
-    // Cleanup функция
     return () => {
-      clearInterval(interval);
-      appStateSubscription?.remove();
-      backHandler?.remove();
-      // При размонтировании показываем системную навигацию обратно
-      disableImmersiveMode();
+      clearInterval(checkInterval);
     };
-  }, [enableImmersiveMode, disableImmersiveMode, reactivateImmersiveMode]);
+  }, [scheduleAutoHide]);
+
+  // Основной useEffect для настройки immersive режима
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    
+    // Активируем immersive режим при запуске с задержкой
+    setTimeout(() => {
+      enableImmersiveMode();
+    }, 1000);
+
+    // Cleanup
+    return () => {
+      subscription?.remove();
+      if (autoHideTimer.current) {
+        clearTimeout(autoHideTimer.current);
+      }
+    };
+  }, [enableImmersiveMode, handleAppStateChange]);
 
   return {
     enableImmersiveMode,
     disableImmersiveMode,
-    reactivateImmersiveMode,
-    isImmersiveActive: isImmersiveActive.current
+    reactivateImmersiveMode: scheduleAutoHide,
+    isImmersiveActive: isImmersiveActive.current,
   };
 };
-
-export function useSystemBars() {
-  const insets = useSafeAreaInsets();
-
-  // Возвращаем безопасные отступы
-  return {
-    top: insets.top,
-    bottom: insets.bottom,
-    left: insets.left,
-    right: insets.right,
-  };
-}
