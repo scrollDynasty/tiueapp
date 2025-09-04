@@ -262,3 +262,109 @@ export const createGlobalStyles = (colors: typeof Colors.light) => StyleSheet.cr
     fontWeight: '600',
   },
 });
+
+// Утилиты для адаптивного дизайна
+export const LAYOUT = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  row: {
+    flexDirection: 'row',
+  },
+  column: {
+    flexDirection: 'column',
+  },
+  center: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  spaceBetween: {
+    justifyContent: 'space-between',
+  },
+  spaceAround: {
+    justifyContent: 'space-around',
+  },
+  spaceEvenly: {
+    justifyContent: 'space-evenly',
+  },
+  alignCenter: {
+    alignItems: 'center',
+  },
+  alignStart: {
+    alignItems: 'flex-start',
+  },
+  alignEnd: {
+    alignItems: 'flex-end',
+  },
+  justifyCenter: {
+    justifyContent: 'center',
+  },
+  justifyStart: {
+    justifyContent: 'flex-start',
+  },
+  justifyEnd: {
+    justifyContent: 'flex-end',
+  },
+  flex1: {
+    flex: 1,
+  },
+  flex2: {
+    flex: 2,
+  },
+  flex3: {
+    flex: 3,
+  },
+  // Адаптивные контейнеры
+  containerPadding: {
+    paddingHorizontal: SPACING.containerHorizontal,
+    paddingVertical: SPACING.containerVertical,
+  },
+  screenPadding: {
+    paddingHorizontal: SPACING.containerHorizontal,
+  },
+  sectionSpacing: {
+    marginBottom: SPACING.sectionSpacing,
+  },
+  cardSpacing: {
+    marginBottom: SPACING.md,
+  },
+});
+
+// Responsive helpers
+export const RESPONSIVE = {
+  // Width percentages
+  w10: wp(10),
+  w20: wp(20),
+  w25: wp(25),
+  w30: wp(30),
+  w40: wp(40),
+  w50: wp(50),
+  w60: wp(60),
+  w70: wp(70),
+  w75: wp(75),
+  w80: wp(80),
+  w90: wp(90),
+  w100: wp(100),
+  
+  // Height percentages
+  h10: hp(10),
+  h20: hp(20),
+  h25: hp(25),
+  h30: hp(30),
+  h40: hp(40),
+  h50: hp(50),
+  h60: hp(60),
+  h70: hp(70),
+  h75: hp(75),
+  h80: hp(80),
+  h90: hp(90),
+  h100: hp(100),
+  
+  // Screen dimensions
+  screenWidth: SCREEN_WIDTH,
+  screenHeight: SCREEN_HEIGHT,
+  
+  // Is small screen?
+  isSmallScreen: SCREEN_WIDTH < BREAKPOINTS.md,
+  isLargeScreen: SCREEN_WIDTH > BREAKPOINTS.lg,
+};

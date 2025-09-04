@@ -1,16 +1,16 @@
 import { StyleSheet } from 'react-native';
-import { SPACING, TYPOGRAPHY } from '../global';
+import { SPACING, TYPOGRAPHY, SIZES, LAYOUT, RESPONSIVE, wp, hp } from '../global';
 
 export const dashboardStyles = StyleSheet.create({
   container: {
-    flex: 1,
+    ...LAYOUT.container,
   },
   scrollContainer: {
     flexGrow: 1,
     paddingBottom: SPACING.xl,
   },
   header: {
-    padding: SPACING.md,
+    ...LAYOUT.containerPadding,
     paddingTop: SPACING.lg,
   },
   greeting: {
@@ -22,30 +22,30 @@ export const dashboardStyles = StyleSheet.create({
     opacity: 0.7,
   },
   headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    ...LAYOUT.row,
+    ...LAYOUT.spaceBetween,
+    ...LAYOUT.alignCenter,
   },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: SIZES.avatar.medium,
+    height: SIZES.avatar.medium,
+    borderRadius: SIZES.avatar.medium / 2,
+    ...LAYOUT.center,
   },
   avatarText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: TYPOGRAPHY.body1.fontSize,
   },
   statsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: SPACING.md,
+    ...LAYOUT.row,
+    paddingHorizontal: SPACING.containerHorizontal,
     gap: SPACING.sm,
+    marginBottom: SPACING.md,
   },
   statsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: SPACING.md,
+    ...LAYOUT.row,
+    paddingHorizontal: SPACING.containerHorizontal,
     gap: SPACING.sm,
     marginBottom: SPACING.sm,
   },
