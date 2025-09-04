@@ -1,110 +1,271 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { Card } from '@/components/ui/Card';
+import { Colors } from '@/constants/Colors';
+import { useAppSelector } from '@/hooks/redux';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { News } from '@/types';
+import { selectNewsItems } from '@/types/redux';
+import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function TabTwoScreen() {
+export default function ExploreScreen() {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+  
+  const news = useAppSelector(selectNewsItems);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'announcement': return 'megaphone-outline';
+      case 'news': return 'newspaper-outline';
+      case 'academic': return 'school-outline';
+      case 'events': return 'calendar-outline';
+      default: return 'information-circle-outline';
+    }
+  };
+
+  const getCategoryLabel = (category: string) => {
+    switch (category) {
+      case 'announcement': return 'Объявление';
+      case 'news': return 'Новости';
+      case 'academic': return 'Академическое';
+      case 'events': return 'События';
+      default: return 'Информация';
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
-          </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header */}
+      <View style={styles.header}>
+        <ThemedText style={styles.title}>Новости</ThemedText>
+        <TouchableOpacity style={[styles.searchButton, { backgroundColor: colors.surfaceSecondary }]}>
+          <Ionicons name="search" size={20} color={colors.text} />
+        </TouchableOpacity>
+      </View>
+
+      {/* News List */}
+      <ScrollView style={styles.newsList} showsVerticalScrollIndicator={false}>
+        <View style={styles.newsContainer}>
+          {news && news.length > 0 ? (
+            news.map((newsItem: News) => (
+              <Card key={newsItem.id} style={styles.newsCard}>
+                <TouchableOpacity style={styles.newsItem}>
+                  {/* News Image */}
+                  {newsItem.image && (
+                    <Image 
+                      source={{ uri: newsItem.image }}
+                      style={styles.newsImage}
+                      resizeMode="cover"
+                    />
+                  )}
+                  
+                  <View style={styles.newsContent}>
+                    {/* News Header */}
+                    <View style={styles.newsHeader}>
+                      <View style={[
+                        styles.categoryBadge,
+                        { 
+                          backgroundColor: newsItem.isImportant 
+                            ? `${colors.error}20` 
+                            : `${colors.primary}20`
+                        }
+                      ]}>
+                        <Ionicons 
+                          name={getCategoryIcon(newsItem.category) as keyof typeof Ionicons.glyphMap} 
+                          size={12} 
+                          color={newsItem.isImportant ? colors.error : colors.primary} 
+                        />
+                        <ThemedText style={[
+                          styles.categoryText,
+                          { color: newsItem.isImportant ? colors.error : colors.primary }
+                        ]}>
+                          {getCategoryLabel(newsItem.category)}
+                        </ThemedText>
+                        {newsItem.isImportant && (
+                          <Ionicons name="flame" size={12} color={colors.error} />
+                        )}
+                      </View>
+                      
+                      <ThemedText style={[styles.newsDate, { color: colors.textSecondary }]}>
+                        {formatDate(newsItem.date)}
+                      </ThemedText>
+                    </View>
+
+                    {/* News Title */}
+                    <ThemedText style={[styles.newsTitle, { color: colors.text }]}>
+                      {newsItem.title}
+                    </ThemedText>
+
+                    {/* News Content */}
+                    <ThemedText 
+                      style={[styles.newsText, { color: colors.textSecondary }]}
+                      numberOfLines={3}
+                    >
+                      {newsItem.content}
+                    </ThemedText>
+
+                    {/* News Footer */}
+                    <View style={styles.newsFooter}>
+                      <View style={styles.authorInfo}>
+                        <Ionicons name="person-circle-outline" size={16} color={colors.textSecondary} />
+                        <ThemedText style={[styles.authorText, { color: colors.textSecondary }]}>
+                          {newsItem.author}
+                        </ThemedText>
+                      </View>
+                      
+                      <TouchableOpacity style={styles.readMoreButton}>
+                        <ThemedText style={[styles.readMoreText, { color: colors.primary }]}>
+                          Читать далее
+                        </ThemedText>
+                        <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              </Card>
+            ))
+          ) : (
+            <Card style={styles.emptyCard}>
+              <View style={styles.emptyState}>
+                <Ionicons name="newspaper-outline" size={64} color={colors.textSecondary} />
+                <ThemedText style={[styles.emptyTitle, { color: colors.text }]}>
+                  Нет новостей
+                </ThemedText>
+                <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>
+                  Новости и объявления появятся здесь
+                </ThemedText>
+              </View>
+            </Card>
+          )}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
   },
-  titleContainer: {
+  header: {
     flexDirection: 'row',
-    gap: 8,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+  },
+  searchButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  newsList: {
+    flex: 1,
+  },
+  newsContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 100,
+  },
+  newsCard: {
+    marginBottom: 16,
+    padding: 0,
+    overflow: 'hidden',
+  },
+  newsItem: {
+    flex: 1,
+  },
+  newsImage: {
+    width: '100%',
+    height: 180,
+  },
+  newsContent: {
+    padding: 16,
+    gap: 12,
+  },
+  newsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  categoryBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  categoryText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  newsDate: {
+    fontSize: 12,
+  },
+  newsTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    lineHeight: 24,
+  },
+  newsText: {
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  newsFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  authorInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  authorText: {
+    fontSize: 12,
+    marginLeft: 4,
+  },
+  readMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  readMoreText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  emptyCard: {
+    padding: 32,
+  },
+  emptyState: {
+    alignItems: 'center',
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyText: {
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 24,
   },
 });
