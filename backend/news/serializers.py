@@ -3,17 +3,25 @@ from datetime import datetime
 from .models import News, Event, EventRegistration
 
 
+class EventForNewsSerializer(serializers.ModelSerializer):
+    """Упрощенный сериализатор событий для отображения в новостях"""
+    class Meta:
+        model = Event
+        fields = ['id', 'title', 'date', 'time', 'location', 'category']
+
+
 class NewsSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source='author.get_full_name', read_only=True)
     date = serializers.DateTimeField(source='created_at', format='%Y-%m-%d %H:%M:%S', read_only=True)
+    events = EventForNewsSerializer(many=True, read_only=True)
     
     class Meta:
         model = News
         fields = [
             'id', 'title', 'subtitle', 'content', 'author', 'author_name',
-            'category', 'icon', 'is_important', 'date', 'created_at', 'updated_at'
+            'category', 'icon', 'is_important', 'image', 'events', 'date', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'author', 'created_at', 'updated_at', 'author_name', 'date']
+        read_only_fields = ['id', 'author', 'created_at', 'updated_at', 'author_name', 'date', 'events']
     
     def create(self, validated_data):
         # Автоматически устанавливаем автора как текущего пользователя
@@ -31,7 +39,7 @@ class EventSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'description', 'location', 'date', 'time',
             'category', 'max_participants', 'current_participants', 'image',
-            'created_by', 'created_by_name', 'is_registered', 'created_at', 'updated_at'
+            'news', 'created_by', 'created_by_name', 'is_registered', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_by', 'current_participants', 'created_at', 'updated_at', 'created_by_name', 'is_registered']
     

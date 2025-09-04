@@ -145,9 +145,12 @@ export default function HomeScreen() {
                   title={news.title}
                   subtitle={news.subtitle}
                   date={news.date}
+                  image={news.image}
+                  events={news.events || []}
                   icon={news.icon}
                   index={index}
                   onPress={() => console.log(`News ${news.id} pressed`)}
+                  onEventPress={(event) => console.log(`Event ${event.id} pressed from news ${news.id}`)}
                 />
               ))
             ) : (

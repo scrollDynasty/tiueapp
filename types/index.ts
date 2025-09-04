@@ -127,6 +127,15 @@ export interface Grade {
   teacher: string;
 }
 
+export interface NewsEvent {
+  id: number;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  category: string;
+}
+
 export interface News {
   id: string;
   title: string;
@@ -137,6 +146,7 @@ export interface News {
   category: 'announcement' | 'news' | 'academic' | 'events';
   icon: 'school-outline' | 'trophy-outline' | 'people-outline' | 'megaphone-outline' | 'calendar-outline';
   image?: string;
+  events?: NewsEvent[];
   isImportant: boolean;
 }
 
