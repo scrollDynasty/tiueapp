@@ -3,13 +3,13 @@ import { SHADOWS, SIZES, SPACING } from '../global';
 
 export const cardStyles = StyleSheet.create({
   card: {
-    borderRadius: SIZES.border,
+    borderRadius: SIZES.border.medium,
     overflow: 'hidden',
   },
   gradient: {
     padding: SPACING.md,
     margin: SPACING.sm,
-    borderRadius: SIZES.border,
+    borderRadius: SIZES.border.medium,
   },
   shadow: {
     ...SHADOWS.small,

@@ -26,12 +26,10 @@ export const Card: React.FC<CardProps> = ({
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
-  const cardStyle = [
+  const cardStyle: any = [
     cardStyles.card,
     {
-      backgroundColor: colors.card,
-      padding,
-      margin,
+      backgroundColor: colorScheme === 'dark' ? Colors.dark.surface : Colors.light.surface,
       ...SHADOWS[elevation],
       shadowColor: colorScheme === 'dark' ? '#000' : '#000',
     },

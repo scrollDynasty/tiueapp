@@ -1,96 +1,185 @@
 import { StyleSheet } from 'react-native';
-import { SHADOWS, SPACING, TYPOGRAPHY } from '../global';
+import { Colors } from '../../constants/Colors';
+import { LAYOUT, SHADOWS, SIZES, SPACING, TYPOGRAPHY, wp } from '../global';
 
 export const profileStyles = StyleSheet.create({
   container: {
-    flex: 1,
+    ...LAYOUT.container,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingBottom: SPACING.xl,
   },
   header: {
-    alignItems: 'center',
-    paddingVertical: SPACING.xl,
-    paddingHorizontal: SPACING.lg,
+    backgroundColor: Colors.light.primary,
+    paddingTop: SPACING.xl,
+    paddingBottom: SPACING.xl,
+    paddingHorizontal: SPACING.containerHorizontal,
+    borderBottomLeftRadius: SIZES.border.large,
+    borderBottomRightRadius: SIZES.border.large,
+    ...LAYOUT.center,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: wp(25),
+    height: wp(25),
+    borderRadius: wp(12.5),
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    ...LAYOUT.center,
     marginBottom: SPACING.md,
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   avatarText: {
-    color: '#fff',
-    fontSize: 36,
-    fontWeight: 'bold',
-  },
-  name: {
     ...TYPOGRAPHY.h1,
+    color: '#ffffff',
+    fontWeight: '700',
+  },
+  userName: {
+    ...TYPOGRAPHY.h2,
+    color: '#ffffff',
+    fontWeight: '700',
     marginBottom: SPACING.xs,
   },
-  info: {
-    ...TYPOGRAPHY.body2,
+  userInfo: {
+    ...TYPOGRAPHY.body1,
+    color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
   },
-  section: {
-    paddingHorizontal: SPACING.lg,
-    marginBottom: SPACING.lg,
+  editButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: SIZES.border.round,
+    padding: SPACING.sm,
+    marginTop: SPACING.md,
+  },
+  editButtonText: {
+    ...TYPOGRAPHY.body2,
+    color: '#ffffff',
+    fontWeight: '600',
+  },
+  content: {
+    paddingHorizontal: SPACING.containerHorizontal,
+  },
+  statsSection: {
+    backgroundColor: Colors.light.surface,
+    borderRadius: SIZES.border.medium,
+    padding: SPACING.md,
+    margin: SPACING.md,
+    ...SHADOWS.small,
   },
   sectionTitle: {
-    ...TYPOGRAPHY.h2,
+    ...TYPOGRAPHY.h3,
+    color: Colors.light.text,
+    fontWeight: '600',
     marginBottom: SPACING.md,
   },
   statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: SPACING.lg,
+    ...LAYOUT.row,
+    gap: SPACING.sm,
   },
-  statItem: {
-    alignItems: 'center',
-    padding: SPACING.md,
-    borderRadius: 12,
+  statCard: {
     flex: 1,
-    marginHorizontal: SPACING.xs,
-    ...SHADOWS.small,
+    backgroundColor: Colors.light.backgroundSecondary,
+    borderRadius: SIZES.border.medium,
+    padding: SPACING.md,
+    ...LAYOUT.center,
   },
-  statValue: {
-    ...TYPOGRAPHY.h2,
-    fontWeight: 'bold',
-    marginBottom: SPACING.xs,
+  statNumber: {
+    ...TYPOGRAPHY.h3,
+    color: Colors.light.primary,
+    fontWeight: '700',
   },
   statLabel: {
-    ...TYPOGRAPHY.caption,
+    ...TYPOGRAPHY.body2,
+    color: Colors.light.textSecondary,
+    marginTop: SPACING.xs,
     textAlign: 'center',
   },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    borderBottomWidth: 1,
-  },
-  menuItemText: {
-    ...TYPOGRAPHY.body1,
-    marginLeft: SPACING.md,
-    flex: 1,
-  },
-  gradeCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: SPACING.md,
-    borderRadius: 12,
-    marginBottom: SPACING.sm,
+  menuSection: {
+    backgroundColor: Colors.light.surface,
+    borderRadius: SIZES.border.medium,
+    margin: SPACING.md,
+    overflow: 'hidden',
     ...SHADOWS.small,
   },
-  gradeSubject: {
-    ...TYPOGRAPHY.body1,
-    fontWeight: '600',
+  menuItem: {
+    ...LAYOUT.row,
+    ...LAYOUT.alignCenter,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.lg,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.light.border,
+  },
+  lastMenuItem: {
+    borderBottomWidth: 0,
+  },
+  menuIcon: {
+    width: wp(12),
+    height: wp(12),
+    borderRadius: wp(6),
+    ...LAYOUT.center,
+    marginRight: SPACING.md,
+  },
+  menuContent: {
     flex: 1,
   },
-  gradeValue: {
-    ...TYPOGRAPHY.h3,
-    fontWeight: 'bold',
-    minWidth: 40,
+  menuTitle: {
+    ...TYPOGRAPHY.body1,
+    color: Colors.light.text,
+    fontWeight: '600',
+  },
+  menuDescription: {
+    ...TYPOGRAPHY.body2,
+    color: Colors.light.textSecondary,
+    marginTop: SPACING.xs,
+  },
+  menuChevron: {
+    marginLeft: SPACING.sm,
+  },
+  achievementsSection: {
+    backgroundColor: Colors.light.surface,
+    borderRadius: SIZES.border.medium,
+    margin: SPACING.md,
+    padding: SPACING.md,
+    ...SHADOWS.small,
+  },
+  achievementsGrid: {
+    ...LAYOUT.row,
+    flexWrap: 'wrap',
+    gap: SPACING.sm,
+  },
+  achievementItem: {
+    width: (wp(100) - SPACING.containerHorizontal * 2 - SPACING.md * 2 - SPACING.sm * 2) / 3,
+    backgroundColor: Colors.light.backgroundSecondary,
+    borderRadius: SIZES.border.medium,
+    padding: SPACING.md,
+    ...LAYOUT.center,
+    aspectRatio: 1,
+  },
+  achievementIcon: {
+    width: wp(8),
+    height: wp(8),
+    borderRadius: wp(4),
+    backgroundColor: Colors.light.success,
+    ...LAYOUT.center,
+    marginBottom: SPACING.sm,
+  },
+  achievementTitle: {
+    ...TYPOGRAPHY.caption,
+    color: Colors.light.text,
+    fontWeight: '600',
     textAlign: 'center',
+  },
+  logoutButton: {
+    backgroundColor: Colors.light.error,
+    borderRadius: SIZES.border.medium,
+    marginHorizontal: SPACING.md,
+    marginTop: SPACING.md,
+    paddingVertical: SPACING.md,
+    ...LAYOUT.center,
+  },
+  logoutButtonText: {
+    ...TYPOGRAPHY.body1,
+    color: '#ffffff',
+    fontWeight: '600',
   },
 });
