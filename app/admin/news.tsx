@@ -1,12 +1,13 @@
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { fetchEvents } from '@/store/slices/eventsSlice';
 import { addNews, createNews, fetchNews } from '@/store/slices/newsSlice';
 import { News } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, TextInput, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -14,15 +15,19 @@ export default function NewsManagementScreen() {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { items: news, isLoading } = useAppSelector((state) => state.news);
+  const { items: events } = useAppSelector((state) => state.events);
   
   const [title, setTitle] = React.useState('');
   const [subtitle, setSubtitle] = React.useState('');
   const [content, setContent] = React.useState('');
+  const [imageUrl, setImageUrl] = React.useState('');
+  const [selectedEventIds, setSelectedEventIds] = React.useState<number[]>([]);
   const [selectedIcon, setSelectedIcon] = React.useState<'school-outline' | 'trophy-outline' | 'people-outline' | 'megaphone-outline' | 'calendar-outline'>('megaphone-outline');
 
-  // Загружаем новости при открытии страницы
+  // Загружаем новости и события при открытии страницы
   React.useEffect(() => {
     dispatch(fetchNews());
+    dispatch(fetchEvents());
   }, [dispatch]);
 
   // Проверяем права доступа
@@ -74,6 +79,7 @@ export default function NewsManagementScreen() {
       category: 'announcement' as const,
       icon: selectedIcon,
       is_important: false,
+      image: imageUrl.trim() || undefined,
     };
 
     try {
@@ -87,6 +93,8 @@ export default function NewsManagementScreen() {
       setTitle('');
       setSubtitle('');
       setContent('');
+      setImageUrl('');
+      setSelectedEventIds([]);
       setSelectedIcon('megaphone-outline');
       
       Alert.alert('Успешно', 'Новость добавлена и сохранена в базе данных');
@@ -101,6 +109,7 @@ export default function NewsManagementScreen() {
         content: content.trim(),
         category: 'announcement' as const,
         icon: selectedIcon,
+        image: imageUrl.trim() || undefined,
         author: `${user.first_name} ${user.last_name}`.trim() || user.username,
         date: 'только что',
         isImportant: false,
@@ -112,6 +121,8 @@ export default function NewsManagementScreen() {
       setTitle('');
       setSubtitle('');
       setContent('');
+      setImageUrl('');
+      setSelectedEventIds([]);
       setSelectedIcon('megaphone-outline');
       
       Alert.alert('Внимание', 'Новость добавлена локально. Проверьте подключение к серверу для синхронизации с базой данных.');
@@ -225,6 +236,46 @@ export default function NewsManagementScreen() {
               }}
               placeholderTextColor={Colors.textSecondary}
             />
+          </View>
+
+          {/* URL изображения */}
+          <View style={{ marginBottom: Spacing.l }}>
+            <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
+              URL изображения (необязательно)
+            </ThemedText>
+            <TextInput
+              value={imageUrl}
+              onChangeText={setImageUrl}
+              placeholder="https://example.com/image.jpg"
+              style={{
+                backgroundColor: Colors.surfaceSubtle,
+                borderRadius: 12,
+                padding: Spacing.m,
+                fontSize: 16,
+                color: Colors.textPrimary,
+              }}
+              placeholderTextColor={Colors.textSecondary}
+            />
+            {imageUrl.trim() && (
+              <View style={{ marginTop: Spacing.s }}>
+                <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary, marginBottom: Spacing.xs }}>
+                  Предварительный просмотр:
+                </ThemedText>
+                <Image
+                  source={{ uri: imageUrl }}
+                  style={{
+                    width: '100%',
+                    height: 150,
+                    borderRadius: 8,
+                    backgroundColor: Colors.surfaceSubtle,
+                  }}
+                  resizeMode="cover"
+                  onError={() => {
+                    Alert.alert('Ошибка', 'Не удалось загрузить изображение по указанному URL');
+                  }}
+                />
+              </View>
+            )}
           </View>
 
           {/* Выбор иконки */}

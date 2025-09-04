@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Pressable, View, ViewStyle } from 'react-native';
+import { Image, Pressable, View, ViewStyle } from 'react-native';
 import Animated, {
     FadeIn,
     interpolate,
@@ -11,12 +11,24 @@ import Animated, {
 import { Animation, Colors, Spacing } from '../constants/DesignTokens';
 import { ThemedText } from './ThemedText';
 
+interface Event {
+  id: number;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  category: string;
+}
+
 interface NewsCardProps {
   title: string;
   subtitle: string;
   date: string;
+  image?: string;
+  events?: Event[];
   icon?: keyof typeof Ionicons.glyphMap;
   onPress?: () => void;
+  onEventPress?: (event: Event) => void;
   style?: ViewStyle;
   index?: number;
 }
@@ -27,8 +39,11 @@ export function NewsCard({
   title, 
   subtitle, 
   date, 
+  image,
+  events = [],
   icon = 'notifications-outline', 
-  onPress, 
+  onPress,
+  onEventPress,
   style,
   index = 0 
 }: NewsCardProps) {
@@ -79,6 +94,20 @@ export function NewsCard({
         style,
       ]}
     >
+      {/* Изображение, если есть */}
+      {image && (
+        <Image
+          source={{ uri: image }}
+          style={{
+            width: '100%',
+            height: 200,
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+          }}
+          resizeMode="cover"
+        />
+      )}
+      
       <View
         style={{
           flexDirection: 'row',
@@ -156,6 +185,65 @@ export function NewsCard({
           />
         </View>
       </View>
+
+      {/* События, связанные с новостью */}
+      {events.length > 0 && (
+        <View
+          style={{
+            borderTopWidth: 1,
+            borderTopColor: '#E5EAF2',
+            paddingHorizontal: Spacing.m,
+            paddingVertical: Spacing.s,
+          }}
+        >
+          <ThemedText
+            style={{
+              fontSize: 14,
+              fontWeight: '600',
+              color: Colors.textPrimary,
+              marginBottom: Spacing.xs,
+            }}
+          >
+            📅 Связанные события
+          </ThemedText>
+          
+          {events.map((event) => (
+            <Pressable
+              key={event.id}
+              onPress={() => onEventPress?.(event)}
+              style={{
+                backgroundColor: '#F8FAFC',
+                borderRadius: 8,
+                padding: Spacing.s,
+                marginBottom: Spacing.xs,
+                borderLeftWidth: 3,
+                borderLeftColor: Colors.brandPrimary,
+              }}
+            >
+              <ThemedText
+                style={{
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: Colors.textPrimary,
+                  marginBottom: 2,
+                }}
+                numberOfLines={1}
+              >
+                {event.title}
+              </ThemedText>
+              
+              <ThemedText
+                style={{
+                  fontSize: 11,
+                  color: Colors.textSecondary,
+                }}
+              >
+                📍 {event.location} • {event.date} в {event.time}
+              </ThemedText>
+            </Pressable>
+          ))}
+        </View>
+      )}
     </AnimatedPressable>
   );
 }

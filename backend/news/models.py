@@ -23,6 +23,7 @@ class News(models.Model):
     title = models.CharField(max_length=200, verbose_name='Заголовок')
     subtitle = models.CharField(max_length=300, verbose_name='Подзаголовок')
     content = models.TextField(verbose_name='Содержание')
+    image = models.ImageField(upload_to='news/', null=True, blank=True, verbose_name='Изображение')
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Автор')
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default='announcement', verbose_name='Категория')
     icon = models.CharField(max_length=50, choices=ICON_CHOICES, default='megaphone-outline', verbose_name='Иконка')
@@ -49,6 +50,9 @@ class Event(models.Model):
         ('other', 'Другие'),
     ]
     
+    # Связь с новостью
+    news = models.ForeignKey(News, on_delete=models.CASCADE, related_name='events', verbose_name='Связанная новость')
+    
     title = models.CharField(max_length=200, verbose_name='Название')
     description = models.TextField(verbose_name='Описание')
     location = models.CharField(max_length=200, verbose_name='Место проведения')
@@ -58,6 +62,7 @@ class Event(models.Model):
     max_participants = models.PositiveIntegerField(null=True, blank=True, verbose_name='Максимум участников')
     current_participants = models.PositiveIntegerField(default=0, verbose_name='Текущее количество участников')
     image = models.ImageField(upload_to='events/', null=True, blank=True, verbose_name='Изображение')
+    news = models.ForeignKey(News, on_delete=models.CASCADE, related_name='events', verbose_name='Связанная новость', null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Создано пользователем')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')

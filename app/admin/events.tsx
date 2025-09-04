@@ -1,7 +1,7 @@
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { addEvent, createEvent } from '@/store/slices/eventsSlice';
+import { addEvent, createEvent, fetchEvents } from '@/store/slices/eventsSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
@@ -18,6 +18,11 @@ export default function EventsManagementScreen() {
   const [description, setDescription] = React.useState('');
   const [location, setLocation] = React.useState('');
   const [date, setDate] = React.useState('');
+
+  // Загружаем события при открытии страницы
+  React.useEffect(() => {
+    dispatch(fetchEvents());
+  }, [dispatch]);
   const [time, setTime] = React.useState('');
 
   // Проверяем права доступа
@@ -67,6 +72,9 @@ export default function EventsManagementScreen() {
     try {
       // Сначала пытаемся сохранить через API
       await dispatch(createEvent(newEventData)).unwrap();
+      
+      // Перезагружаем список событий
+      dispatch(fetchEvents());
       
       // Очищаем форму
       setTitle('');
