@@ -9,10 +9,8 @@ import { Event, Schedule, Task } from '@/types';
 import { selectEvents, selectSchedule, selectStudent, selectTasks } from '@/types/redux';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Dimensions, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const { width } = Dimensions.get('window');
 
 export default function DashboardScreen() {
   const colorScheme = useColorScheme();

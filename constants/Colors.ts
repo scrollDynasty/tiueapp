@@ -53,12 +53,12 @@ export const Colors = {
 };
 
 export const Gradients = {
-  primary: ['#6366f1', '#8b5cf6'],
-  secondary: ['#8b5cf6', '#d946ef'],
-  accent: ['#06b6d4', '#3b82f6'],
-  success: ['#10b981', '#34d399'],
-  warning: ['#f59e0b', '#fbbf24'],
-  sunset: ['#f97316', '#f59e0b'],
-  ocean: ['#0ea5e9', '#06b6d4'],
-  purple: ['#8b5cf6', '#a78bfa'],
+  primary: ['#6366f1', '#8b5cf6'] as [string, string],
+  secondary: ['#8b5cf6', '#d946ef'] as [string, string],
+  accent: ['#06b6d4', '#3b82f6'] as [string, string],
+  success: ['#10b981', '#34d399'] as [string, string],
+  warning: ['#f59e0b', '#fbbf24'] as [string, string],
+  sunset: ['#f97316', '#f59e0b'] as [string, string],
+  ocean: ['#0ea5e9', '#06b6d4'] as [string, string],
+  purple: ['#8b5cf6', '#a78bfa'] as [string, string],
 };

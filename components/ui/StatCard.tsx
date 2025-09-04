@@ -13,7 +13,7 @@ interface StatCardProps {
   icon: keyof typeof Ionicons.glyphMap;
   color?: string;
   subtitle?: string;
-  gradient?: string[];
+  gradient?: [string, string, ...string[]];
 }
 
 export const StatCard: React.FC<StatCardProps> = ({

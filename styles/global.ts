@@ -1,5 +1,5 @@
 import { Colors } from '@/constants/Colors';
-import { Dimensions, StyleSheet, Platform } from 'react-native';
+import { Dimensions, Platform, StyleSheet } from 'react-native';
 
 // Получаем размеры экрана
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -230,18 +230,44 @@ export const createGlobalStyles = (colors: typeof Colors.light) => StyleSheet.cr
   marginVertical: {
     marginVertical: SPACING.md,
   },
+  // Современные карточки с красивыми тенями
   card: {
     backgroundColor: colors.card,
-    borderRadius: SIZES.card.borderRadius,
-    padding: SPACING.cardPadding,
+    borderRadius: SIZES.border.large,
+    padding: SPACING.lg,
+    marginVertical: SPACING.sm,
     ...SHADOWS.small,
   },
+  elevatedCard: {
+    backgroundColor: colors.card,
+    borderRadius: SIZES.border.large,
+    padding: SPACING.xl,
+    marginVertical: SPACING.md,
+    ...SHADOWS.medium,
+  },
+  heroCard: {
+    backgroundColor: colors.card,
+    borderRadius: SIZES.border.large,
+    padding: SPACING.xl,
+    marginVertical: SPACING.lg,
+    ...SHADOWS.large,
+  },
+  // Современные кнопки с градиентами
   button: {
     height: SIZES.button.medium,
-    borderRadius: SIZES.border.medium,
+    borderRadius: SIZES.border.large,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
+    paddingHorizontal: SPACING.xl,
+    ...SHADOWS.small,
+  },
+  buttonLarge: {
+    height: SIZES.button.large,
+    borderRadius: SIZES.border.large,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.xxl,
+    ...SHADOWS.medium,
   },
   buttonPrimary: {
     backgroundColor: colors.primary,
@@ -393,4 +419,49 @@ export const RESPONSIVE = {
   // Is small screen?
   isSmallScreen: SCREEN_WIDTH < BREAKPOINTS.md,
   isLargeScreen: SCREEN_WIDTH > BREAKPOINTS.lg,
+};
+
+// Современные анимации и интерактивность
+export const ANIMATIONS = {
+  // Мягкие переходы
+  transition: {
+    duration: 200,
+    useNativeDriver: true,
+  },
+  // Пружинные анимации
+  spring: {
+    tension: 100,
+    friction: 8,
+    useNativeDriver: true,
+  },
+  // Плавные появления
+  fadeIn: {
+    opacity: 1,
+    duration: 300,
+    useNativeDriver: true,
+  },
+  // Масштабирование при нажатии
+  pressScale: {
+    scale: 0.98,
+    duration: 100,
+    useNativeDriver: true,
+  },
+};
+
+// Современные стили интерактивности
+export const INTERACTIVE = {
+  // Кнопки с эффектами нажатия
+  touchable: {
+    activeOpacity: 0.8,
+  },
+  // Карточки с подъемом при нажатии
+  elevateOnPress: {
+    activeOpacity: 0.95,
+  },
+  // Плавные переходы для веб
+  ...(Platform.OS === 'web' && {
+    smooth: {
+      transition: 'all 0.2s ease-in-out',
+    },
+  }),
 };
