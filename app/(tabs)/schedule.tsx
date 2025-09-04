@@ -4,11 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import Animated, {
-    FadeInDown,
-    SlideInRight,
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
+  FadeInDown,
+  SlideInRight,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -238,39 +235,30 @@ export default function ScheduleScreen() {
           >
             {days.map((day) => {
               const isSelected = day === selectedDay;
-              const animatedScale = useSharedValue(isSelected ? 1 : 0.95);
               
-              React.useEffect(() => {
-                animatedScale.value = withSpring(isSelected ? 1 : 0.95);
-              }, [isSelected, animatedScale]);
-
-              const animatedStyle = useAnimatedStyle(() => ({
-                transform: [{ scale: animatedScale.value }],
-              }));
-
               return (
-                <Animated.View key={day} style={animatedStyle}>
-                  <Pressable
-                    onPress={() => setSelectedDay(day)}
+                <Pressable
+                  key={day}
+                  onPress={() => setSelectedDay(day)}
+                  style={{
+                    backgroundColor: isSelected ? Colors.brandPrimary : Colors.surfaceSubtle,
+                    borderRadius: 12,
+                    paddingHorizontal: Spacing.m,
+                    paddingVertical: Spacing.s,
+                    marginRight: Spacing.xs,
+                    transform: [{ scale: isSelected ? 1 : 0.95 }],
+                  }}
+                >
+                  <ThemedText
                     style={{
-                      backgroundColor: isSelected ? Colors.brandPrimary : Colors.surfaceSubtle,
-                      borderRadius: 12,
-                      paddingHorizontal: Spacing.m,
-                      paddingVertical: Spacing.s,
-                      marginRight: Spacing.xs,
+                      fontSize: 14,
+                      fontWeight: '500',
+                      color: isSelected ? Colors.surface : Colors.textSecondary,
                     }}
                   >
-                    <ThemedText
-                      style={{
-                        fontSize: 14,
-                        fontWeight: '500',
-                        color: isSelected ? Colors.surface : Colors.textSecondary,
-                      }}
-                    >
-                      {day.slice(0, 3).toUpperCase()}
-                    </ThemedText>
-                  </Pressable>
-                </Animated.View>
+                    {day.slice(0, 3).toUpperCase()}
+                  </ThemedText>
+                </Pressable>
               );
             })}
           </ScrollView>

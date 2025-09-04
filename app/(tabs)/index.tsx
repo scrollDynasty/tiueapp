@@ -3,7 +3,7 @@ import { AnimatedHeader } from '@/components/AnimatedHeader';
 import { CustomRefreshControl } from '@/components/CustomRefreshControl';
 import { NewsCard } from '@/components/NewsCard';
 import { ThemedText } from '@/components/ThemedText';
-import { Colors, Spacing, Typography } from '@/constants/DesignTokens';
+import { Colors, Spacing } from '@/constants/DesignTokens';
 import React from 'react';
 import { ScrollView, View } from 'react-native';
 import Animated, {
@@ -75,7 +75,7 @@ export default function HomeScreen() {
           <CustomRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         contentContainerStyle={{
-          paddingHorizontal: Spacing.l,
+          paddingHorizontal: 20,
           paddingBottom: 100,
         }}
       >
@@ -83,7 +83,7 @@ export default function HomeScreen() {
         <Animated.View
           entering={FadeInDown.delay(300)}
           style={{
-            marginBottom: Spacing.xl,
+            marginBottom: 32,
           }}
         >
           <View
@@ -91,27 +91,26 @@ export default function HomeScreen() {
               flexDirection: 'row',
               flexWrap: 'wrap',
               justifyContent: 'space-between',
+              gap: 12,
             }}
           >
             <ActionCard
-              title="КУРСЫ"
+              title="COURSES"
               icon="book-outline"
               onPress={() => console.log('Courses pressed')}
-              style={{ marginBottom: Spacing.m }}
             />
             <ActionCard
-              title="РАСПИСАНИЕ"
+              title="SCHEDULE"
               icon="calendar-outline"
               onPress={() => console.log('Schedule pressed')}
-              style={{ marginBottom: Spacing.m }}
             />
             <ActionCard
-              title="ЗАДАНИЯ"
+              title="ASSIGNMENTS"
               icon="list-outline"
               onPress={() => console.log('Assignments pressed')}
             />
             <ActionCard
-              title="ОЦЕНКИ"
+              title="GRADES"
               icon="analytics-outline"
               onPress={() => console.log('Grades pressed')}
             />
@@ -122,15 +121,18 @@ export default function HomeScreen() {
         <Animated.View entering={SlideInRight.delay(500)}>
           <ThemedText
             style={{
-              ...Typography.titleH2,
-              color: Colors.textPrimary,
-              marginBottom: Spacing.m,
+              fontSize: 20,
+              lineHeight: 26,
+              fontWeight: '600',
+              color: '#1E1E1E',
+              marginBottom: 16,
+              fontFamily: 'Inter',
             }}
           >
             University News
           </ThemedText>
 
-          <View style={{ gap: Spacing.s }}>
+          <View style={{ gap: 12 }}>
             {newsData.map((news, index) => (
               <NewsCard
                 key={news.id}
@@ -151,17 +153,20 @@ export default function HomeScreen() {
         <Animated.View 
           entering={FadeInDown.delay(700)}
           style={{
-            padding: Spacing.l,
-            backgroundColor: Colors.surfaceSubtle,
+            padding: 20,
+            backgroundColor: '#F5F7FB',
             borderRadius: 16,
-            marginTop: Spacing.l,
+            marginTop: 24,
           }}
         >
           <ThemedText
             style={{
-              ...Typography.body,
-              color: Colors.textSecondary,
+              fontSize: 16,
+              lineHeight: 24,
+              fontWeight: '500',
+              color: '#475569',
               textAlign: 'center',
+              fontFamily: 'Inter',
             }}
           >
             Добро пожаловать в новую версию университетского приложения! 

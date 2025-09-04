@@ -8,7 +8,7 @@ import Animated, {
     useSharedValue,
     withSpring,
 } from 'react-native-reanimated';
-import { Animation, Colors, Spacing, Typography } from '../constants/DesignTokens';
+import { Animation, Colors, Spacing } from '../constants/DesignTokens';
 import { ThemedText } from './ThemedText';
 
 interface HeaderProps {
@@ -56,11 +56,13 @@ export function AnimatedHeader({
       <Animated.View entering={SlideInLeft.duration(400)} style={{ flex: 1 }}>
         <ThemedText
           style={{
-            ...Typography.displayH1,
-            color: Colors.textPrimary,
+            fontSize: 24,
+            fontWeight: '700',
+            color: '#1E1E1E',
+            fontFamily: 'Inter',
           }}
         >
-          Привет, {userName}
+          Добро пожаловать, {userName}
         </ThemedText>
       </Animated.View>
 

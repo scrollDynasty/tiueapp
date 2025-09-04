@@ -1,14 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import React from 'react';
 import { Pressable, ViewStyle } from 'react-native';
 import Animated, {
     interpolate,
+    runOnJS,
     useAnimatedStyle,
     useSharedValue,
     withSpring,
-    withTiming
+    withTiming,
 } from 'react-native-reanimated';
-import { Animation, Colors, Radius, Shadows, Spacing } from '../constants/DesignTokens';
 import { ThemedText } from './ThemedText';
 
 interface ActionCardProps {
@@ -25,50 +26,60 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
   const pressed = useSharedValue(0);
   const hovered = useSharedValue(0);
 
-  const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onPress();
-  };
-
   const handlePressIn = () => {
     'worklet';
-    scale.value = withSpring(0.98, Animation.spring);
-    pressed.value = withTiming(1, { duration: Animation.duration.short });
+    scale.value = withSpring(0.95, {
+      damping: 18,
+      stiffness: 220,
+      mass: 1,
+    });
+    pressed.value = withTiming(1, { duration: 160 });
+    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const handlePressOut = () => {
     'worklet';
-    scale.value = withSpring(1, Animation.spring);
-    pressed.value = withTiming(0, { duration: Animation.duration.medium });
+    scale.value = withSpring(1.05, {
+      damping: 18,
+      stiffness: 220,
+      mass: 1,
+    }, () => {
+      scale.value = withSpring(1, {
+        damping: 18,
+        stiffness: 220,
+        mass: 1,
+      });
+    });
+    pressed.value = withTiming(0, { duration: 240 });
   };
 
   const handleHoverIn = () => {
     'worklet';
-    hovered.value = withTiming(1, { duration: Animation.duration.short });
+    hovered.value = withTiming(1, { duration: 160 });
   };
 
   const handleHoverOut = () => {
     'worklet';
-    hovered.value = withTiming(0, { duration: Animation.duration.short });
+    hovered.value = withTiming(0, { duration: 160 });
   };
 
   const animatedStyle = useAnimatedStyle(() => {
     const shadowOpacity = interpolate(
       hovered.value,
       [0, 1],
-      [Shadows.card.shadowOpacity, Shadows.cardHover.shadowOpacity]
+      [0.05, 0.08]
     );
 
     return {
       transform: [{ scale: scale.value }],
       shadowOpacity,
-      borderColor: pressed.value > 0.5 ? Colors.brandPrimary : Colors.strokeSoft,
+      borderColor: pressed.value > 0.5 ? '#007BFF' : '#E0E7FF',
     };
   });
 
   const backgroundStyle = useAnimatedStyle(() => {
     return {
-      backgroundColor: pressed.value > 0.5 ? Colors.brandPrimary10 : Colors.surface,
+      backgroundColor: pressed.value > 0.5 ? '#F8FAFF' : '#FFFFFF',
     };
   });
 
@@ -86,18 +97,24 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
 
   return (
     <AnimatedPressable
-      onPress={handlePress}
+      onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       onHoverIn={handleHoverIn}
       onHoverOut={handleHoverOut}
       style={[
         {
-          width: 156,
-          height: 112,
-          borderRadius: Radius.card,
+          width: 160,
+          height: 180,
+          borderRadius: 20,
           borderWidth: 1,
-          ...Shadows.card,
+          shadowColor: '#000',
+          shadowOffset: {
+            width: 0,
+            height: 6,
+          },
+          shadowRadius: 10,
+          elevation: 8,
         },
         animatedStyle,
         style,
@@ -107,9 +124,10 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
         style={[
           {
             flex: 1,
-            padding: Spacing.m,
-            borderRadius: Radius.card,
+            padding: 20,
+            borderRadius: 20,
             justifyContent: 'space-between',
+            alignItems: 'flex-start',
           },
           backgroundStyle,
         ]}
@@ -118,7 +136,7 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
           <Ionicons 
             name={icon} 
             size={28} 
-            color={Colors.brandPrimary} 
+            color="#007BFF"
           />
         </Animated.View>
         
@@ -127,7 +145,9 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
             fontSize: 13,
             lineHeight: 18,
             fontWeight: '500',
-            color: Colors.textSecondary,
+            color: '#6C757D',
+            letterSpacing: 0.5,
+            textTransform: 'uppercase',
           }}
         >
           {title}

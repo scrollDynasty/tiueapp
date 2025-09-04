@@ -8,7 +8,7 @@ import Animated, {
     useSharedValue,
     withTiming,
 } from 'react-native-reanimated';
-import { Animation, Colors, Radius, Shadows, Spacing } from '../constants/DesignTokens';
+import { Animation, Colors, Spacing } from '../constants/DesignTokens';
 import { ThemedText } from './ThemedText';
 
 interface NewsCardProps {
@@ -62,11 +62,18 @@ export function NewsCard({
       onPressOut={handlePressOut}
       style={[
         {
-          borderRadius: Radius.card,
+          borderRadius: 16,
           borderWidth: 1,
-          borderColor: Colors.strokeSoft,
-          backgroundColor: Colors.surface,
-          ...Shadows.card,
+          borderColor: '#E5EAF2',
+          backgroundColor: '#FFFFFF',
+          shadowColor: '#000',
+          shadowOffset: {
+            width: 0,
+            height: 6,
+          },
+          shadowOpacity: 0.05,
+          shadowRadius: 10,
+          elevation: 8,
         },
         animatedStyle,
         style,
