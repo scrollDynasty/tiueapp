@@ -1,13 +1,14 @@
-import { Animation, Colors } from '@/constants/DesignTokens';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import React from 'react';
 import { Pressable, View } from 'react-native';
 import Animated, {
     interpolate,
+    runOnJS,
     useAnimatedStyle,
     useSharedValue,
     withSpring,
+    withTiming,
 } from 'react-native-reanimated';
 
 interface AnimatedTabIconProps {
@@ -17,85 +18,98 @@ interface AnimatedTabIconProps {
 }
 
 export function AnimatedTabIcon({ name, focused, onPress }: AnimatedTabIconProps) {
-  const scale = useSharedValue(focused ? 1 : 0.8);
-  const activeValue = useSharedValue(focused ? 1 : 0);
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(focused ? 1 : 0.6);
+  const translateY = useSharedValue(0);
 
   React.useEffect(() => {
-    scale.value = withSpring(focused ? 1.12 : 1, Animation.spring);
-    activeValue.value = withSpring(focused ? 1 : 0, Animation.spring);
-  }, [focused, scale, activeValue]);
+    // Плавная анимация без резких скачков
+    scale.value = withSpring(focused ? 1.1 : 1, {
+      damping: 15,
+      stiffness: 300,
+      mass: 0.8,
+    });
+    
+    opacity.value = withTiming(focused ? 1 : 0.6, {
+      duration: 200,
+    });
+    
+    translateY.value = withSpring(focused ? -2 : 0, {
+      damping: 20,
+      stiffness: 400,
+      mass: 0.5,
+    });
+  }, [focused]);
 
   const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-    onPress();
+    'worklet';
+    // Легкая анимация нажатия
+    scale.value = withSpring(0.95, {
+      damping: 20,
+      stiffness: 400,
+      mass: 0.5,
+    }, () => {
+      scale.value = withSpring(focused ? 1.1 : 1, {
+        damping: 15,
+        stiffness: 300,
+        mass: 0.8,
+      });
+    });
+    
+    runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light);
+    runOnJS(onPress)();
   };
 
   const iconAnimatedStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ scale: scale.value }],
+      transform: [
+        { scale: scale.value },
+        { translateY: translateY.value }
+      ],
+      opacity: opacity.value,
     };
   });
 
   const indicatorStyle = useAnimatedStyle(() => {
-    const width = interpolate(activeValue.value, [0, 1], [0, 24]);
-    const opacity = interpolate(activeValue.value, [0, 1], [0, 1]);
+    const width = interpolate(opacity.value, [0.6, 1], [0, 20]);
+    const scaleX = interpolate(opacity.value, [0.6, 1], [0, 1]);
 
     return {
       width,
-      opacity,
-    };
-  });
-
-  const shadowStyle = useAnimatedStyle(() => {
-    const shadowOpacity = interpolate(activeValue.value, [0, 1], [0, 0.25]);
-
-    return {
-      shadowOpacity,
+      transform: [{ scaleX }],
+      opacity: interpolate(opacity.value, [0.6, 1], [0, 1]),
     };
   });
 
   return (
-    <Pressable onPress={handlePress} style={{ alignItems: 'center', flex: 1 }}>
-      <Animated.View
-        style={[
-          {
-            padding: 12,
-            borderRadius: 20,
-          },
-          shadowStyle,
-          {
-            shadowColor: Colors.brandPrimary,
-            shadowOffset: { width: 0, height: 6 },
-            shadowRadius: 16,
-          },
-        ]}
-      >
+    <Pressable onPress={handlePress} style={{ alignItems: 'center', flex: 1, paddingVertical: 8 }}>
+      <View style={{ alignItems: 'center' }}>
         <Animated.View style={iconAnimatedStyle}>
           <Ionicons
             name={name}
             size={24}
-            color={focused ? Colors.brandPrimary : Colors.tabInactive}
+            color={focused ? '#007BFF' : '#94A3B8'}
           />
         </Animated.View>
         
-        {/* Активный индикатор снизу */}
+        {/* Плавный индикатор снизу */}
         <Animated.View
           style={[
             {
               height: 2,
-              backgroundColor: Colors.brandPrimary,
+              backgroundColor: '#007BFF',
               borderRadius: 1,
               marginTop: 4,
             },
             indicatorStyle,
           ]}
         />
-      </Animated.View>
+      </View>
     </Pressable>
   );
 }
 
-// Специальные анимации для каждой иконки
+// Специальные иконки для каждой вкладки
 export function HomeTabIcon({ focused, onPress }: { focused: boolean; onPress: () => void }) {
   return (
     <AnimatedTabIcon
@@ -137,58 +151,11 @@ export function ScheduleTabIcon({ focused, onPress }: { focused: boolean; onPres
 }
 
 export function SettingsTabIcon({ focused, onPress }: { focused: boolean; onPress: () => void }) {
-  const rotation = useSharedValue(0);
-
-  React.useEffect(() => {
-    if (focused) {
-      rotation.value = withSpring(90, Animation.spring, () => {
-        rotation.value = withSpring(0, { ...Animation.spring, damping: 25 });
-      });
-    }
-  }, [focused, rotation]);
-
-  const rotationStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ rotate: `${rotation.value}deg` }],
-    };
-  });
-
   return (
-    <Pressable onPress={onPress} style={{ alignItems: 'center', flex: 1 }}>
-      <Animated.View
-        style={[
-          {
-            padding: 12,
-            borderRadius: 20,
-          },
-          focused && {
-            shadowColor: Colors.brandPrimary,
-            shadowOffset: { width: 0, height: 6 },
-            shadowOpacity: 0.25,
-            shadowRadius: 16,
-          },
-        ]}
-      >
-        <Animated.View style={[rotationStyle, { transform: [{ scale: focused ? 1.12 : 1 }] }]}>
-          <Ionicons
-            name={focused ? "settings" : "settings-outline"}
-            size={24}
-            color={focused ? Colors.brandPrimary : Colors.tabInactive}
-          />
-        </Animated.View>
-        
-        {focused && (
-          <View
-            style={{
-              height: 2,
-              width: 24,
-              backgroundColor: Colors.brandPrimary,
-              borderRadius: 1,
-              marginTop: 4,
-            }}
-          />
-        )}
-      </Animated.View>
-    </Pressable>
+    <AnimatedTabIcon
+      name={focused ? "settings" : "settings-outline"}
+      focused={focused}
+      onPress={onPress}
+    />
   );
 }

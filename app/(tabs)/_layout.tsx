@@ -32,60 +32,45 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ focused }) => (
-            <HomeTabIcon 
-              focused={focused} 
-              onPress={() => {}} 
-            />
-          ),
+          tabBarIcon: ({ focused }) => {
+            return <HomeTabIcon focused={focused} onPress={() => {}} />;
+          },
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Search',
-          tabBarIcon: ({ focused }) => (
-            <SearchTabIcon 
-              focused={focused} 
-              onPress={() => {}} 
-            />
-          ),
+          title: 'Search', 
+          tabBarIcon: ({ focused }) => {
+            return <SearchTabIcon focused={focused} onPress={() => {}} />;
+          },
         }}
       />
       <Tabs.Screen
         name="schedule"
         options={{
           title: 'Schedule',
-          tabBarIcon: ({ focused }) => (
-            <ScheduleTabIcon 
-              focused={focused} 
-              onPress={() => {}} 
-            />
-          ),
+          tabBarIcon: ({ focused }) => {
+            return <ScheduleTabIcon focused={focused} onPress={() => {}} />;
+          },
         }}
       />
       <Tabs.Screen
         name="events"
         options={{
           title: 'Messages',
-          tabBarIcon: ({ focused }) => (
-            <MessagesTabIcon 
-              focused={focused} 
-              onPress={() => {}} 
-            />
-          ),
+          tabBarIcon: ({ focused }) => {
+            return <MessagesTabIcon focused={focused} onPress={() => {}} />;
+          },
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ focused }) => (
-            <SettingsTabIcon 
-              focused={focused} 
-              onPress={() => {}} 
-            />
-          ),
+          tabBarIcon: ({ focused }) => {
+            return <SettingsTabIcon focused={focused} onPress={() => {}} />;
+          },
         }}
       />
     </Tabs>
