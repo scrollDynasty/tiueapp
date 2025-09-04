@@ -92,7 +92,12 @@ const newsSlice = createSlice({
       })
       .addCase(fetchNews.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.items = Array.isArray(action.payload) ? action.payload : [];
+        console.log('fetchNews.fulfilled payload:', action.payload);
+        // Django REST Framework возвращает данные в формате {results: [...]}
+        const payload = action.payload as any;
+        const newsArray = payload?.results || payload;
+        state.items = Array.isArray(newsArray) ? newsArray : [];
+        console.log('Updated state.items:', state.items);
       })
       .addCase(fetchNews.rejected, (state, action) => {
         state.isLoading = false;
@@ -105,10 +110,12 @@ const newsSlice = createSlice({
       })
       .addCase(createNews.fulfilled, (state, action) => {
         state.isLoading = false;
+        console.log('createNews.fulfilled payload:', action.payload);
         if (!Array.isArray(state.items)) {
           state.items = [];
         }
         state.items.unshift(action.payload);
+        console.log('Updated state.items after create:', state.items);
       })
       .addCase(createNews.rejected, (state, action) => {
         state.isLoading = false;

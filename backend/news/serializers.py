@@ -13,7 +13,7 @@ class NewsSerializer(serializers.ModelSerializer):
             'id', 'title', 'subtitle', 'content', 'author', 'author_name',
             'category', 'icon', 'is_important', 'date', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'author_name', 'date']
+        read_only_fields = ['id', 'author', 'created_at', 'updated_at', 'author_name', 'date']
     
     def create(self, validated_data):
         # Автоматически устанавливаем автора как текущего пользователя
