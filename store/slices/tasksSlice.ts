@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { mockTasks } from '../../data/mockData';
 import { Task } from '../../types';
 
 interface TasksState {
@@ -10,7 +9,7 @@ interface TasksState {
 }
 
 const initialState: TasksState = {
-  items: mockTasks,
+  items: [],
   filter: 'all',
   isLoading: false,
   error: null,

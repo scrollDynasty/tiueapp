@@ -1,3 +1,4 @@
+import authReducer from '@/store/slices/authSlice';
 import eventsReducer from '@/store/slices/eventsSlice';
 import gradesReducer from '@/store/slices/gradesSlice';
 import newsReducer from '@/store/slices/newsSlice';
@@ -9,6 +10,7 @@ import { configureStore } from '@reduxjs/toolkit';
 
 export const store = configureStore({
   reducer: {
+    auth: authReducer,
     student: studentReducer,
     schedule: scheduleReducer,
     events: eventsReducer,
@@ -19,4 +21,4 @@ export const store = configureStore({
   },
 });
 
-import type { RootState, AppDispatch } from '@/types/redux';
+

@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { mockEvents } from '../../data/mockData';
 import { Event } from '../../types';
 
 interface EventsState {
@@ -10,7 +9,7 @@ interface EventsState {
 }
 
 const initialState: EventsState = {
-  items: mockEvents,
+  items: [],
   filter: 'all',
   isLoading: false,
   error: null,

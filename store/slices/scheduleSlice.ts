@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { mockSchedule } from '../../data/mockData';
 import { Schedule } from '../../types';
 
 interface ScheduleState {
@@ -10,7 +9,7 @@ interface ScheduleState {
 }
 
 const initialState: ScheduleState = {
-  items: mockSchedule,
+  items: [],
   selectedDay: 'Понедельник',
   isLoading: false,
   error: null,

@@ -2,18 +2,20 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 
 import {
-  HomeTabIcon,
-  MessagesTabIcon,
-  ScheduleTabIcon,
-  SearchTabIcon,
-  SettingsTabIcon
+    HomeTabIcon,
+    MessagesTabIcon,
+    ScheduleTabIcon,
+    SearchTabIcon,
+    SettingsTabIcon
 } from '@/components/AnimatedTabIcons';
+import AuthGuard from '@/components/AuthGuard';
 import { ImmersiveContainer } from '@/components/ImmersiveContainer';
 import { Colors } from '@/constants/DesignTokens';
 
 export default function TabLayout() {
   return (
-    <ImmersiveContainer backgroundColor="#ffffff" includeNavigationBar={true}>
+    <AuthGuard>
+      <ImmersiveContainer backgroundColor="#ffffff" includeNavigationBar={true}>
       <Tabs
         screenOptions={{
           tabBarActiveTintColor: Colors.brandPrimary,
@@ -85,5 +87,6 @@ export default function TabLayout() {
       />
     </Tabs>
     </ImmersiveContainer>
+    </AuthGuard>
   );
 }
