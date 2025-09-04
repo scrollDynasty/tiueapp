@@ -61,10 +61,7 @@ export default function EventsManagementScreen() {
       date: date.trim(),
       time: time.trim(),
       category: 'university' as const,
-      maxParticipants: undefined,
-      currentParticipants: 0,
-      isRegistered: false,
-      image: undefined,
+      max_participants: undefined,
     };
 
     try {
