@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { mockStudent } from '../../data/mockData';
 import { Student } from '../../types';
 
 interface StudentState {
@@ -9,7 +8,7 @@ interface StudentState {
 }
 
 const initialState: StudentState = {
-  profile: mockStudent,
+  profile: null,
   isLoading: false,
   error: null,
 };

@@ -1,13 +1,65 @@
-export interface Student {
+export type UserRole = 'student' | 'professor' | 'admin';
+
+export interface User {
   id: string;
   name: string;
   email: string;
   avatar?: string;
+  role: UserRole;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Student extends User {
+  role: 'student';
   studentId: string;
   faculty: string;
   course: number;
-  group: string;
+  group: Group;
   gpa: number;
+}
+
+export interface Professor extends User {
+  role: 'professor';
+  employeeId: string;
+  department: string;
+  title: string;
+  subjects: string[];
+}
+
+export interface Admin extends User {
+  role: 'admin';
+  permissions: string[];
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  faculty: string;
+  course: number;
+  students: string[]; // student IDs
+  schedule: Schedule[];
+}
+
+export interface AuthState {
+  isAuthenticated: boolean;
+  user: User | null;
+  token: string | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
 }
 
 export interface Schedule {

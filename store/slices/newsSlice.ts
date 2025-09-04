@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { mockNews } from '../../data/mockData';
 import { News } from '../../types';
 
 interface NewsState {
@@ -10,7 +9,7 @@ interface NewsState {
 }
 
 const initialState: NewsState = {
-  items: mockNews,
+  items: [],
   filter: 'all',
   isLoading: false,
   error: null,

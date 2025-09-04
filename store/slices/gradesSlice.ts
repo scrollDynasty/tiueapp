@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { mockGrades } from '../../data/mockData';
 import { Grade } from '../../types';
 
 interface GradesState {
@@ -17,11 +16,11 @@ const calculateGPA = (grades: Grade[]): number => {
 };
 
 const initialState: GradesState = {
-  items: mockGrades,
+  items: [],
   selectedSubject: null,
   isLoading: false,
   error: null,
-  gpa: calculateGPA(mockGrades),
+  gpa: 0,
 };
 
 const gradesSlice = createSlice({
