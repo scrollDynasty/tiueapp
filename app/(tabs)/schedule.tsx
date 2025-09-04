@@ -1,191 +1,161 @@
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
+import { useAppSelector } from '@/hooks/redux';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
-import Animated, {
-  FadeInDown,
-  SlideInRight,
-} from 'react-native-reanimated';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeInDown, SlideInRight } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-interface ScheduleItemProps {
+interface ScheduleItem {
   time: string;
   subject: string;
   teacher: string;
   room: string;
-  type: 'lecture' | 'seminar' | 'lab';
+  type: 'lecture' | 'lab' | 'seminar';
+}
+
+interface ScheduleCardProps {
+  item: ScheduleItem;
   index: number;
 }
 
-function ScheduleItem({ time, subject, teacher, room, type, index }: ScheduleItemProps) {
-  const typeColors = {
-    lecture: Colors.brandPrimary,
-    seminar: '#10B981',
-    lab: '#F59E0B',
+function ScheduleCard({ item, index }: ScheduleCardProps) {
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'lecture':
+        return '#3B82F6';
+      case 'lab':
+        return '#10B981';
+      case 'seminar':
+        return '#F59E0B';
+      default:
+        return Colors.brandPrimary;
+    }
   };
 
-  const typeIcons = {
-    lecture: 'book-outline' as const,
-    seminar: 'people-outline' as const,
-    lab: 'flask-outline' as const,
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case 'lecture':
+        return 'Лекция';
+      case 'lab':
+        return 'Практика';
+      case 'seminar':
+        return 'Семинар';
+      default:
+        return 'Занятие';
+    }
   };
 
   return (
-    <Animated.View entering={FadeInDown.delay(index * 100)}>
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: Colors.surface,
-          borderRadius: 16,
-          padding: Spacing.m,
-          marginBottom: Spacing.s,
-          ...Shadows.card,
-        }}
-      >
-        {/* Время */}
-        <View
+    <Animated.View
+      entering={FadeInDown.duration(500).delay(index * 100)}
+      style={{
+        backgroundColor: Colors.surface,
+        borderRadius: 16,
+        padding: Spacing.m,
+        marginBottom: Spacing.s,
+        borderLeftWidth: 4,
+        borderLeftColor: getTypeColor(item.type),
+        ...Shadows.card,
+      }}
+    >
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.xs }}>
+        <View style={{ flex: 1 }}>
+          <ThemedText
+            style={{
+              ...Typography.titleH2,
+              color: Colors.textPrimary,
+              marginBottom: 4,
+            }}
+          >
+            {item.subject}
+          </ThemedText>
+          <ThemedText
+            style={{
+              ...Typography.caption,
+              color: getTypeColor(item.type),
+              backgroundColor: `${getTypeColor(item.type)}20`,
+              paddingHorizontal: 8,
+              paddingVertical: 2,
+              borderRadius: 8,
+              alignSelf: 'flex-start',
+            }}
+          >
+            {getTypeLabel(item.type)}
+          </ThemedText>
+        </View>
+        <ThemedText
           style={{
-            alignItems: 'center',
-            marginRight: Spacing.m,
-            minWidth: 60,
+            ...Typography.body,
+            color: Colors.brandPrimary,
+            fontWeight: '600',
           }}
         >
-          <ThemedText
-            style={{
-              fontSize: 16,
-              fontWeight: '600',
-              color: Colors.textPrimary,
-            }}
-          >
-            {time.split('-')[0]}
-          </ThemedText>
-          <ThemedText
-            style={{
-              fontSize: 12,
-              color: Colors.textSecondary,
-            }}
-          >
-            {time.split('-')[1]}
-          </ThemedText>
-        </View>
+          {item.time}
+        </ThemedText>
+      </View>
 
-        {/* Индикатор типа */}
-        <View
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: Spacing.s }}>
+        <Ionicons name="person-outline" size={16} color={Colors.textSecondary} />
+        <ThemedText
           style={{
-            width: 4,
-            backgroundColor: typeColors[type],
-            borderRadius: 2,
-            marginRight: Spacing.m,
+            ...Typography.caption,
+            color: Colors.textSecondary,
+            marginLeft: 6,
+            flex: 1,
           }}
-        />
-
-        {/* Контент */}
-        <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.xxs }}>
-            <Ionicons 
-              name={typeIcons[type]} 
-              size={16} 
-              color={typeColors[type]} 
-              style={{ marginRight: Spacing.xs }}
-            />
-            <ThemedText
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: Colors.textPrimary,
-                flex: 1,
-              }}
-              numberOfLines={1}
-            >
-              {subject}
-            </ThemedText>
-          </View>
-          
-          <ThemedText
-            style={{
-              fontSize: 14,
-              color: Colors.textSecondary,
-              marginBottom: Spacing.xxs,
-            }}
-          >
-            {teacher}
-          </ThemedText>
-          
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Ionicons 
-              name="location-outline" 
-              size={14} 
-              color={Colors.textSecondary} 
-              style={{ marginRight: Spacing.xxs }}
-            />
-            <ThemedText
-              style={{
-                fontSize: 13,
-                color: Colors.textSecondary,
-              }}
-            >
-              {room}
-            </ThemedText>
-          </View>
-        </View>
+        >
+          {item.teacher}
+        </ThemedText>
+        
+        <Ionicons name="location-outline" size={16} color={Colors.textSecondary} />
+        <ThemedText
+          style={{
+            ...Typography.caption,
+            color: Colors.textSecondary,
+            marginLeft: 6,
+          }}
+        >
+          {item.room}
+        </ThemedText>
       </View>
     </Animated.View>
   );
 }
 
 export default function ScheduleScreen() {
-  const [selectedDay, setSelectedDay] = React.useState<keyof typeof scheduleData>('Понедельник');
+  const [selectedDay, setSelectedDay] = React.useState<string>('Понедельник');
+  const { user } = useAppSelector((state) => state.auth);
+
+  const days: string[] = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
   
-  const days: (keyof typeof scheduleData)[] = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
-  
-  const scheduleData = {
-    'Понедельник': [
-      {
-        time: '09:00-10:30',
-        subject: 'Математический анализ',
-        teacher: 'Проф. Иванов А.И.',
-        room: 'Ауд. 205',
-        type: 'lecture' as const,
-      },
-      {
-        time: '10:45-12:15',
-        subject: 'Программирование',
-        teacher: 'Доц. Петрова М.В.',
-        room: 'Комп. класс 1',
-        type: 'lab' as const,
-      },
-      {
-        time: '13:00-14:30',
-        subject: 'Физика',
-        teacher: 'Проф. Сидоров П.П.',
-        room: 'Ауд. 301',
-        type: 'seminar' as const,
-      },
-    ],
-    'Вторник': [
-      {
-        time: '09:00-10:30',
-        subject: 'Алгоритмы и структуры данных',
-        teacher: 'Доц. Козлов В.А.',
-        room: 'Ауд. 105',
-        type: 'lecture' as const,
-      },
-      {
-        time: '10:45-12:15',
-        subject: 'Базы данных',
-        teacher: 'Проф. Новикова Е.С.',
-        room: 'Комп. класс 2',
-        type: 'lab' as const,
-      },
-    ],
-    'Среда': [] as const,
-    'Четверг': [] as const,
-    'Пятница': [] as const,
-    'Суббота': [] as const,
+  // Пустое расписание - данные будут загружаться с сервера через Redux
+  const scheduleData: Record<string, ScheduleItem[]> = {
+    'Понедельник': [],
+    'Вторник': [],
+    'Среда': [],
+    'Четверг': [],
+    'Пятница': [],
+    'Суббота': [],
   };
 
-  const currentSchedule = scheduleData[selectedDay];
+  const currentSchedule = scheduleData[selectedDay] || [];
+
+  // Получаем информацию о группе пользователя
+  const getUserGroupInfo = () => {
+    if (!user) return 'Расписание занятий';
+    
+    if (user.role === 'admin') {
+      return 'Управление расписанием';
+    } else if (user.role === 'professor') {
+      return `Расписание преподавателя ${user.first_name} ${user.last_name}`.trim();
+    } else if (user.student?.group?.name) {
+      return `Группа ${user.student.group.name}`;
+    }
+    
+    return 'Ваше расписание занятий';
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.surface }}>
@@ -212,119 +182,96 @@ export default function ScheduleScreen() {
             color: Colors.textSecondary,
           }}
         >
-          Занятия на эту неделю
+          {getUserGroupInfo()}
         </ThemedText>
       </Animated.View>
 
+      {/* Селектор дней */}
+      <Animated.View 
+        entering={FadeInDown.duration(500)}
+        style={{ paddingHorizontal: Spacing.l, marginBottom: Spacing.l }}
+      >
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingRight: Spacing.l }}
+        >
+          {days.map((day) => (
+            <TouchableOpacity
+              key={day}
+              onPress={() => setSelectedDay(day)}
+              style={{
+                backgroundColor: selectedDay === day ? Colors.brandPrimary : Colors.surfaceSubtle,
+                paddingHorizontal: Spacing.m,
+                paddingVertical: Spacing.s,
+                borderRadius: 20,
+                marginRight: Spacing.s,
+                ...Shadows.card,
+              }}
+            >
+              <ThemedText
+                style={{
+                  ...Typography.body,
+                  color: selectedDay === day ? Colors.surface : Colors.textSecondary,
+                  fontSize: 14,
+                }}
+              >
+                {day}
+              </ThemedText>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </Animated.View>
+
+      {/* Расписание */}
       <ScrollView
+        style={{ flex: 1 }}
         contentContainerStyle={{
           paddingHorizontal: Spacing.l,
           paddingBottom: 100,
         }}
       >
-        {/* Селектор дней */}
-        <Animated.View entering={FadeInDown.delay(200)}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              paddingVertical: Spacing.s,
-              gap: Spacing.s,
-            }}
-            style={{ marginBottom: Spacing.l }}
-          >
-            {days.map((day) => {
-              const isSelected = day === selectedDay;
-              
-              return (
-                <Pressable
-                  key={day}
-                  onPress={() => setSelectedDay(day)}
-                  style={{
-                    backgroundColor: isSelected ? Colors.brandPrimary : Colors.surfaceSubtle,
-                    borderRadius: 12,
-                    paddingHorizontal: Spacing.m,
-                    paddingVertical: Spacing.s,
-                    marginRight: Spacing.xs,
-                    transform: [{ scale: isSelected ? 1 : 0.95 }],
-                  }}
-                >
-                  <ThemedText
-                    style={{
-                      fontSize: 14,
-                      fontWeight: '500',
-                      color: isSelected ? Colors.surface : Colors.textSecondary,
-                    }}
-                  >
-                    {day.slice(0, 3).toUpperCase()}
-                  </ThemedText>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        </Animated.View>
-
-        {/* Расписание на день */}
-        <Animated.View entering={FadeInDown.delay(400)}>
-          <ThemedText
+        {currentSchedule.length > 0 ? (
+          currentSchedule.map((item, index) => (
+            <ScheduleCard key={index} item={item} index={index} />
+          ))
+        ) : (
+          <Animated.View 
+            entering={FadeInDown.duration(500).delay(300)}
             style={{
-              ...Typography.titleH2,
-              color: Colors.textPrimary,
-              marginBottom: Spacing.m,
+              backgroundColor: Colors.surfaceSubtle,
+              borderRadius: 16,
+              padding: Spacing.xl,
+              alignItems: 'center',
+              marginTop: Spacing.l,
             }}
           >
-            {selectedDay}
-          </ThemedText>
-
-          {currentSchedule.length > 0 ? (
-            <View>
-              {currentSchedule.map((item, index) => (
-                <ScheduleItem
-                  key={`${item.time}-${item.subject}`}
-                  time={item.time}
-                  subject={item.subject}
-                  teacher={item.teacher}
-                  room={item.room}
-                  type={item.type}
-                  index={index}
-                />
-              ))}
-            </View>
-          ) : (
-            <Animated.View 
-              entering={FadeInDown.delay(600)}
+            <Ionicons name="calendar-outline" size={48} color={Colors.textSecondary} />
+            <ThemedText
               style={{
-                alignItems: 'center',
-                padding: Spacing.xl,
-                marginTop: Spacing.l,
+                ...Typography.titleH2,
+                color: Colors.textSecondary,
+                textAlign: 'center',
+                marginTop: Spacing.m,
               }}
             >
-              <View
-                style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: 40,
-                  backgroundColor: Colors.surfaceSubtle,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginBottom: Spacing.m,
-                }}
-              >
-                <Ionicons name="calendar-outline" size={40} color={Colors.textSecondary} />
-              </View>
-              
-              <ThemedText
-                style={{
-                  ...Typography.body,
-                  color: Colors.textSecondary,
-                  textAlign: 'center',
-                }}
-              >
-                На {selectedDay.toLowerCase()} занятий нет
-              </ThemedText>
-            </Animated.View>
-          )}
-        </Animated.View>
+              {user?.role === 'admin' ? 'Расписание не настроено' : 'Нет занятий'}
+            </ThemedText>
+            <ThemedText
+              style={{
+                ...Typography.body,
+                color: Colors.textSecondary,
+                textAlign: 'center',
+                marginTop: Spacing.s,
+              }}
+            >
+              {user?.role === 'admin' 
+                ? 'Используйте панель администратора для создания расписания'
+                : 'В этот день у вас нет запланированных занятий'
+              }
+            </ThemedText>
+          </Animated.View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
