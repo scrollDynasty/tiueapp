@@ -1,7 +1,6 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   HomeTabIcon,
@@ -10,33 +9,37 @@ import {
   SearchTabIcon,
   SettingsTabIcon
 } from '@/components/AnimatedTabIcons';
-import { Colors, Shadows } from '@/constants/DesignTokens';
-import { useSystemBars } from '@/hooks/useSystemBars';
+import { ImmersiveContainer } from '@/components/ImmersiveContainer';
+import { Colors } from '@/constants/DesignTokens';
 
 export default function TabLayout() {
-  const insets = useSafeAreaInsets();
-  useSystemBars(); // Активируем immersive mode
-
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors.brandPrimary,
-        tabBarInactiveTintColor: Colors.tabInactive,
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarStyle: {
-          backgroundColor: Colors.surface,
-          borderTopWidth: 0,
-          height: Platform.OS === 'android' ? 60 : 82,
-          paddingBottom: Platform.OS === 'android' ? 8 : 25,
-          paddingTop: 8,
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          ...Shadows.tab,
-        },
-      }}>
+    <ImmersiveContainer backgroundColor="#ffffff" includeNavigationBar={true}>
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: Colors.brandPrimary,
+          tabBarInactiveTintColor: Colors.tabInactive,
+          headerShown: false,
+          tabBarShowLabel: false,
+          tabBarStyle: {
+            backgroundColor: Colors.surface,
+            // Убираем стандартную тень и границы
+            elevation: 0,
+            shadowOpacity: 0.1,
+            borderTopWidth: 0,
+            // Добавляем небольшую высоту для лучшей видимости
+            height: Platform.OS === 'android' ? 65 : 80,
+            paddingBottom: Platform.OS === 'android' ? 10 : 20,
+            paddingTop: 10,
+            // Добавляем небольшую тень сверху
+            shadowColor: '#000',
+            shadowOffset: {
+              width: 0,
+              height: -2,
+            },
+            shadowRadius: 3,
+          },
+        }}>
       <Tabs.Screen
         name="index"
         options={{
@@ -83,5 +86,6 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    </ImmersiveContainer>
   );
 }

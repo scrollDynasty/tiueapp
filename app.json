@@ -17,6 +17,21 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
+      "compileSdkVersion": 34,
+      "targetSdkVersion": 34,
+      "buildToolsVersion": "34.0.0",
+      "softwareKeyboardLayoutMode": "pan",
+      "navigationBar": {
+        "visible": false,
+        "behavior": "overlay-swipe",
+        "backgroundColor": "#00000000"
+      },
+      "statusBar": {
+        "barStyle": "light-content",
+        "translucent": true,
+        "hidden": false,
+        "backgroundColor": "#00000000"
+      },
       "package": "com.anonymous.tiueapp"
     },
     "web": {
@@ -33,6 +48,13 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "expo-navigation-bar",
+        {
+          "position": "absolute",
+          "visibility": "hidden"
         }
       ]
     ],
