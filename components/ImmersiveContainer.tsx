@@ -19,21 +19,13 @@ export const ImmersiveContainer: React.FC<ImmersiveContainerProps> = ({
 }) => {
   const insets = useSafeAreaInsets();
   
-  // Для Android добавляем дополнительные отступы снизу
-  // чтобы контент не перекрывался скрытой навигацией
+  // Убираем все отступы для табов - они сами позиционируются
   const getBottomPadding = () => {
-    if (Platform.OS !== 'android') return insets.bottom;
-    
-    // Для высоких экранов (современные Android) добавляем больше отступа
-    const isHighScreen = screenHeight > 800;
-    const basePadding = Math.max(insets.bottom, 24);
-    
-    return includeNavigationBar ? (isHighScreen ? basePadding + 24 : basePadding + 16) : 0;
+    return 0; // Полностью убираем отступы снизу
   };
 
   const getTopPadding = () => {
     if (Platform.OS !== 'android') return insets.top;
-    
     return includeStatusBar ? Math.max(insets.top, 24) : 0;
   };
 

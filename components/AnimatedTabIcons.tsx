@@ -10,22 +10,30 @@ interface AnimatedTabIconProps {
 
 export function AnimatedTabIcon({ name, focused, onPress }: AnimatedTabIconProps) {
   return (
-    <View style={{ alignItems: 'center', justifyContent: 'center', height: 40 }}>
+    <View style={{ 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      height: 44, 
+      width: 44,
+      // Добавляем больше области нажатия
+      minWidth: 44,
+      minHeight: 44
+    }}>
       <Ionicons
         name={name}
-        size={24}
-        color={focused ? '#007BFF' : '#94A3B8'}
+        size={26} // Увеличиваем размер иконок
+        color={focused ? '#007BFF' : '#6B7280'}
       />
       
       {/* Простой индикатор */}
       {focused && (
         <View
           style={{
-            height: 2,
-            width: 20,
+            height: 3,
+            width: 24,
             backgroundColor: '#007BFF',
-            borderRadius: 1,
-            marginTop: 4,
+            borderRadius: 2,
+            marginTop: 2,
           }}
         />
       )}
