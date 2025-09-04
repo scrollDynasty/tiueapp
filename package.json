@@ -27,6 +27,7 @@
     "expo-image": "~2.4.0",
     "expo-linear-gradient": "~14.1.5",
     "expo-linking": "~7.1.7",
+    "expo-navigation-bar": "~4.2.8",
     "expo-notifications": "^0.31.4",
     "expo-router": "~5.1.5",
     "expo-splash-screen": "~0.30.10",
@@ -48,11 +49,11 @@
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
     "react-native-svg": "^15.12.1",
+    "react-native-system-navigation-bar": "^2.6.4",
     "react-native-vector-icons": "^10.3.0",
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
-    "react-redux": "^9.2.0",
-    "expo-navigation-bar": "~4.2.8"
+    "react-redux": "^9.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
