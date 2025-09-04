@@ -14,7 +14,7 @@ import Animated, {
 interface AnimatedTabIconProps {
   name: keyof typeof Ionicons.glyphMap;
   focused: boolean;
-  onPress: () => void;
+  onPress?: () => void;
 }
 
 export function AnimatedTabIcon({ name, focused, onPress }: AnimatedTabIconProps) {
@@ -57,7 +57,9 @@ export function AnimatedTabIcon({ name, focused, onPress }: AnimatedTabIconProps
     });
     
     runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light);
-    runOnJS(onPress)();
+    if (onPress) {
+      runOnJS(onPress)();
+    }
   };
 
   const iconAnimatedStyle = useAnimatedStyle(() => {
@@ -110,7 +112,7 @@ export function AnimatedTabIcon({ name, focused, onPress }: AnimatedTabIconProps
 }
 
 // Специальные иконки для каждой вкладки
-export function HomeTabIcon({ focused, onPress }: { focused: boolean; onPress: () => void }) {
+export function HomeTabIcon({ focused, onPress }: { focused: boolean; onPress?: () => void }) {
   return (
     <AnimatedTabIcon
       name={focused ? "home" : "home-outline"}
@@ -120,7 +122,7 @@ export function HomeTabIcon({ focused, onPress }: { focused: boolean; onPress: (
   );
 }
 
-export function SearchTabIcon({ focused, onPress }: { focused: boolean; onPress: () => void }) {
+export function SearchTabIcon({ focused, onPress }: { focused: boolean; onPress?: () => void }) {
   return (
     <AnimatedTabIcon
       name={focused ? "search" : "search-outline"}
@@ -130,7 +132,7 @@ export function SearchTabIcon({ focused, onPress }: { focused: boolean; onPress:
   );
 }
 
-export function MessagesTabIcon({ focused, onPress }: { focused: boolean; onPress: () => void }) {
+export function MessagesTabIcon({ focused, onPress }: { focused: boolean; onPress?: () => void }) {
   return (
     <AnimatedTabIcon
       name={focused ? "chatbubbles" : "chatbubbles-outline"}
@@ -140,7 +142,7 @@ export function MessagesTabIcon({ focused, onPress }: { focused: boolean; onPres
   );
 }
 
-export function ScheduleTabIcon({ focused, onPress }: { focused: boolean; onPress: () => void }) {
+export function ScheduleTabIcon({ focused, onPress }: { focused: boolean; onPress?: () => void }) {
   return (
     <AnimatedTabIcon
       name={focused ? "calendar" : "calendar-outline"}
@@ -150,7 +152,7 @@ export function ScheduleTabIcon({ focused, onPress }: { focused: boolean; onPres
   );
 }
 
-export function SettingsTabIcon({ focused, onPress }: { focused: boolean; onPress: () => void }) {
+export function SettingsTabIcon({ focused, onPress }: { focused: boolean; onPress?: () => void }) {
   return (
     <AnimatedTabIcon
       name={focused ? "settings" : "settings-outline"}

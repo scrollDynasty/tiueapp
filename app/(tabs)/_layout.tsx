@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   HomeTabIcon,
@@ -12,6 +13,8 @@ import {
 import { Colors, Shadows } from '@/constants/DesignTokens';
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
@@ -22,9 +25,13 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: Colors.surface,
           borderTopWidth: 0,
-          height: 82,
-          paddingBottom: Platform.OS === 'ios' ? 25 : 12,
+          height: Platform.OS === 'android' ? 70 + insets.bottom : 82,
+          paddingBottom: Platform.OS === 'android' ? insets.bottom + 5 : 25,
           paddingTop: 8,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
           ...Shadows.tab,
         },
       }}>
@@ -33,7 +40,7 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ focused }) => {
-            return <HomeTabIcon focused={focused} onPress={() => {}} />;
+            return <HomeTabIcon focused={focused} />;
           },
         }}
       />
@@ -42,7 +49,7 @@ export default function TabLayout() {
         options={{
           title: 'Search', 
           tabBarIcon: ({ focused }) => {
-            return <SearchTabIcon focused={focused} onPress={() => {}} />;
+            return <SearchTabIcon focused={focused} />;
           },
         }}
       />
@@ -51,7 +58,7 @@ export default function TabLayout() {
         options={{
           title: 'Schedule',
           tabBarIcon: ({ focused }) => {
-            return <ScheduleTabIcon focused={focused} onPress={() => {}} />;
+            return <ScheduleTabIcon focused={focused} />;
           },
         }}
       />
@@ -60,7 +67,7 @@ export default function TabLayout() {
         options={{
           title: 'Messages',
           tabBarIcon: ({ focused }) => {
-            return <MessagesTabIcon focused={focused} onPress={() => {}} />;
+            return <MessagesTabIcon focused={focused} />;
           },
         }}
       />
@@ -69,7 +76,7 @@ export default function TabLayout() {
         options={{
           title: 'Settings',
           tabBarIcon: ({ focused }) => {
-            return <SettingsTabIcon focused={focused} onPress={() => {}} />;
+            return <SettingsTabIcon focused={focused} />;
           },
         }}
       />
