@@ -11,9 +11,11 @@ import {
   SettingsTabIcon
 } from '@/components/AnimatedTabIcons';
 import { Colors, Shadows } from '@/constants/DesignTokens';
+import { useSystemBars } from '@/hooks/useSystemBars';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  useSystemBars(); // Активируем immersive mode
 
   return (
     <Tabs
@@ -25,8 +27,8 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: Colors.surface,
           borderTopWidth: 0,
-          height: Platform.OS === 'android' ? 70 + insets.bottom : 82,
-          paddingBottom: Platform.OS === 'android' ? insets.bottom + 5 : 25,
+          height: Platform.OS === 'android' ? 60 : 82,
+          paddingBottom: Platform.OS === 'android' ? 8 : 25,
           paddingTop: 8,
           position: 'absolute',
           bottom: 0,

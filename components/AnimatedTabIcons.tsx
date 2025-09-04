@@ -84,29 +84,27 @@ export function AnimatedTabIcon({ name, focused, onPress }: AnimatedTabIconProps
   });
 
   return (
-    <Pressable onPress={handlePress} style={{ alignItems: 'center', flex: 1, paddingVertical: 8 }}>
-      <View style={{ alignItems: 'center' }}>
-        <Animated.View style={iconAnimatedStyle}>
-          <Ionicons
-            name={name}
-            size={24}
-            color={focused ? '#007BFF' : '#94A3B8'}
-          />
-        </Animated.View>
-        
-        {/* Плавный индикатор снизу */}
-        <Animated.View
-          style={[
-            {
-              height: 2,
-              backgroundColor: '#007BFF',
-              borderRadius: 1,
-              marginTop: 4,
-            },
-            indicatorStyle,
-          ]}
+    <Pressable onPress={handlePress} style={{ alignItems: 'center', flex: 1, justifyContent: 'center', minHeight: 44 }}>
+      <Animated.View style={iconAnimatedStyle}>
+        <Ionicons
+          name={name}
+          size={24}
+          color={focused ? '#007BFF' : '#94A3B8'}
         />
-      </View>
+      </Animated.View>
+      
+      {/* Простой индикатор */}
+      {focused && (
+        <View
+          style={{
+            height: 2,
+            width: 20,
+            backgroundColor: '#007BFF',
+            borderRadius: 1,
+            marginTop: 4,
+          }}
+        />
+      )}
     </Pressable>
   );
 }
