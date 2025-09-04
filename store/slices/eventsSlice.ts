@@ -35,7 +35,7 @@ export const fetchEvents = createAsyncThunk(
 
 export const createEvent = createAsyncThunk(
   'events/createEvent',
-  async (eventData: Omit<Event, 'id'>, { rejectWithValue }) => {
+  async (eventData: { title: string; description: string; location: string; date: string; time: string; category: string; max_participants?: number }, { rejectWithValue }) => {
     try {
       const response = await authApi.createEvent(eventData);
       if (response.success && response.data) {
@@ -73,6 +73,10 @@ const eventsSlice = createSlice({
       state.filter = action.payload;
     },
     toggleEventRegistration: (state, action: PayloadAction<string>) => {
+      if (!Array.isArray(state.items)) {
+        state.items = [];
+        return;
+      }
       const event = state.items.find(item => item.id === action.payload);
       if (event) {
         event.isRegistered = !event.isRegistered;
@@ -85,6 +89,9 @@ const eventsSlice = createSlice({
     },
     // Оставляем локальный addEvent для offline режима
     addEvent: (state, action: PayloadAction<Event>) => {
+      if (!Array.isArray(state.items)) {
+        state.items = [];
+      }
       state.items.push(action.payload);
     },
     clearError: (state) => {
@@ -100,7 +107,10 @@ const eventsSlice = createSlice({
       })
       .addCase(fetchEvents.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.items = action.payload;
+        // Django REST Framework возвращает данные в формате {results: [...]}
+        const payload = action.payload as any;
+        const eventsArray = payload?.results || payload;
+        state.items = Array.isArray(eventsArray) ? eventsArray : [];
       })
       .addCase(fetchEvents.rejected, (state, action) => {
         state.isLoading = false;
@@ -113,6 +123,9 @@ const eventsSlice = createSlice({
       })
       .addCase(createEvent.fulfilled, (state, action) => {
         state.isLoading = false;
+        if (!Array.isArray(state.items)) {
+          state.items = [];
+        }
         state.items.push(action.payload);
       })
       .addCase(createEvent.rejected, (state, action) => {

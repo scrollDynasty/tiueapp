@@ -33,7 +33,7 @@ class EventSerializer(serializers.ModelSerializer):
             'category', 'max_participants', 'current_participants', 'image',
             'created_by', 'created_by_name', 'is_registered', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'created_by_name', 'is_registered']
+        read_only_fields = ['id', 'created_by', 'current_participants', 'created_at', 'updated_at', 'created_by_name', 'is_registered']
     
     def validate_date(self, value):
         """Конвертируем дату из формата DD.MM.YYYY в YYYY-MM-DD"""
