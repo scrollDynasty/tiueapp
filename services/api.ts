@@ -10,7 +10,7 @@ class ApiService {
       'Content-Type': 'application/json',
     };
     
-    if (token) {
+    if (token && token !== 'undefined' && token !== 'null') {
       headers.Authorization = `Token ${token}`;
     }
     
@@ -69,21 +69,53 @@ class ApiService {
   }
 
   async login(credentials: LoginCredentials): Promise<ApiResponse<{ user: User; token: string }>> {
-    const response = await this.request<{ user: User; token: string }>('/auth/login/', {
+    // Для login запроса НЕ используем getHeaders (там может быть недействительный токен)
+    const response = await fetch(`${API_BASE_URL}/auth/login/`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(credentials),
     });
 
-    if (response.success && response.data) {
-      console.log('Saving token:', response.data.token);
-      await AsyncStorage.setItem('authToken', response.data.token);
+    try {
+      const data = await response.json();
       
-      // Проверим, что токен действительно сохранился
-      const savedToken = await AsyncStorage.getItem('authToken');
-      console.log('Token saved successfully:', savedToken === response.data.token);
-    }
+      console.log('Login API Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        data
+      });
 
-    return response;
+      if (!response.ok) {
+        return {
+          success: false,
+          error: data.error || data.message || `HTTP ${response.status}`,
+        };
+      }
+
+      const result = {
+        success: true,
+        data: data.data || data,
+      };
+
+      if (result.success && result.data) {
+        console.log('Saving token:', result.data.token);
+        await AsyncStorage.setItem('authToken', result.data.token);
+        
+        // Проверим, что токен действительно сохранился
+        const savedToken = await AsyncStorage.getItem('authToken');
+        console.log('Token saved successfully:', savedToken === result.data.token);
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Login API Error:', error);
+      return {
+        success: false,
+        error: 'Network error occurred',
+      };
+    }
   }
 
   async logout(): Promise<void> {

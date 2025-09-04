@@ -53,10 +53,11 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
+    'tiuebackend.middleware.LoggingMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',  # Временно отключаем CSRF для API
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -166,3 +167,18 @@ AUTH_USER_MODEL = 'users.CustomUser'
 DEFAULT_ADMIN_EMAIL = config('DEFAULT_ADMIN_EMAIL', default='admin@tiue.ru')
 DEFAULT_ADMIN_PASSWORD = config('DEFAULT_ADMIN_PASSWORD', default='admin123')
 DEFAULT_ADMIN_NAME = config('DEFAULT_ADMIN_NAME', default='Администратор')
+
+# Логирование
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
