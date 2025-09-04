@@ -188,7 +188,6 @@ class ApiService {
   }
 
   async createNews(newsData: any): Promise<ApiResponse<any>> {
-    console.log('API createNews called with:', newsData);
     return this.request<any>('/news/', {
       method: 'POST',
       body: JSON.stringify(newsData),

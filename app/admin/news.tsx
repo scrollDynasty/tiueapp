@@ -1,7 +1,7 @@
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { addNews, createNews } from '@/store/slices/newsSlice';
+import { addNews, createNews, fetchNews } from '@/store/slices/newsSlice';
 import { News } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -19,6 +19,11 @@ export default function NewsManagementScreen() {
   const [subtitle, setSubtitle] = React.useState('');
   const [content, setContent] = React.useState('');
   const [selectedIcon, setSelectedIcon] = React.useState<'school-outline' | 'trophy-outline' | 'people-outline' | 'megaphone-outline' | 'calendar-outline'>('megaphone-outline');
+
+  // Загружаем новости при открытии страницы
+  React.useEffect(() => {
+    dispatch(fetchNews());
+  }, [dispatch]);
 
   // Проверяем права доступа
   if (!user || user.role !== 'admin') {
@@ -72,11 +77,11 @@ export default function NewsManagementScreen() {
     };
 
     try {
-      // Добавляем логирование для отладки
-      console.log('Sending news data:', newNewsData);
-      
       // Сначала пытаемся сохранить через API
       await dispatch(createNews(newNewsData)).unwrap();
+      
+      // Перезагружаем список новостей
+      dispatch(fetchNews());
       
       // Очищаем форму
       setTitle('');

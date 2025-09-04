@@ -16,7 +16,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         if request.method in ['GET', 'HEAD', 'OPTIONS']:
             return True
         # Для методов записи требуем аутентификацию и роль админа
-        return request.user.is_authenticated and hasattr(request.user, 'role') and request.user.role == 'admin'
+        return request.user.is_authenticated and getattr(request.user, 'role', None) == 'admin'
 
 
 class NewsViewSet(viewsets.ModelViewSet):
