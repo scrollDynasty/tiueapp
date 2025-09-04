@@ -126,21 +126,6 @@ export const TYPOGRAPHY = {
     lineHeight: responsiveFontSize(24),
   },
 } as const;
-    fontSize: 14,
-    fontWeight: '400' as const,
-    lineHeight: 20,
-  },
-  caption: {
-    fontSize: 12,
-    fontWeight: '400' as const,
-    lineHeight: 16,
-  },
-  button: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    lineHeight: 20,
-  },
-} as const;
 
 export const SHADOWS = {
   small: {
@@ -221,13 +206,13 @@ export const createGlobalStyles = (colors: typeof Colors.light) => StyleSheet.cr
   },
   card: {
     backgroundColor: colors.card,
-    borderRadius: SIZES.border,
-    padding: SPACING.md,
+    borderRadius: SIZES.card.borderRadius,
+    padding: SPACING.cardPadding,
     ...SHADOWS.small,
   },
   button: {
-    height: SIZES.button,
-    borderRadius: SIZES.border,
+    height: SIZES.button.medium,
+    borderRadius: SIZES.border.medium,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: SPACING.lg,
@@ -243,8 +228,8 @@ export const createGlobalStyles = (colors: typeof Colors.light) => StyleSheet.cr
     color: '#fff',
   },
   input: {
-    height: SIZES.input,
-    borderRadius: SIZES.border,
+    height: SIZES.input.height,
+    borderRadius: SIZES.input.borderRadius,
     paddingHorizontal: SPACING.md,
     backgroundColor: colors.surface,
     borderWidth: 1,
@@ -258,9 +243,9 @@ export const createGlobalStyles = (colors: typeof Colors.light) => StyleSheet.cr
     marginVertical: SPACING.sm,
   },
   avatar: {
-    width: SIZES.avatar,
-    height: SIZES.avatar,
-    borderRadius: SIZES.avatar / 2,
+    width: SIZES.avatar.medium,
+    height: SIZES.avatar.medium,
+    borderRadius: SIZES.avatar.medium / 2,
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
