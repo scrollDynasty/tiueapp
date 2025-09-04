@@ -1,4 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { authApi } from '../../services/api';
 import { News } from '../../types';
 
 interface NewsState {
@@ -15,33 +16,125 @@ const initialState: NewsState = {
   error: null,
 };
 
+// Async thunks для работы с API
+export const fetchNews = createAsyncThunk(
+  'news/fetchNews',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await authApi.getNews();
+      if (response.success && response.data) {
+        return response.data;
+      } else {
+        return rejectWithValue(response.error || 'Failed to fetch news');
+      }
+    } catch (error) {
+      return rejectWithValue('Network error occurred');
+    }
+  }
+);
+
+export const createNews = createAsyncThunk(
+  'news/createNews',
+  async (newsData: { title: string; subtitle: string; content: string; category: string; icon: string; is_important: boolean }, { rejectWithValue }) => {
+    try {
+      const response = await authApi.createNews(newsData);
+      if (response.success && response.data) {
+        return response.data;
+      } else {
+        return rejectWithValue(response.error || 'Failed to create news');
+      }
+    } catch (error) {
+      return rejectWithValue('Network error occurred');
+    }
+  }
+);
+
+export const deleteNews = createAsyncThunk(
+  'news/deleteNews',
+  async (newsId: string, { rejectWithValue }) => {
+    try {
+      const response = await authApi.deleteNews(newsId);
+      if (response.success) {
+        return newsId;
+      } else {
+        return rejectWithValue(response.error || 'Failed to delete news');
+      }
+    } catch (error) {
+      return rejectWithValue('Network error occurred');
+    }
+  }
+);
+
 const newsSlice = createSlice({
   name: 'news',
   initialState,
   reducers: {
-    setNews: (state, action: PayloadAction<News[]>) => {
-      state.items = action.payload;
-    },
     setFilter: (state, action: PayloadAction<string>) => {
       state.filter = action.payload;
     },
+    // Оставляем локальный addNews для offline режима
     addNews: (state, action: PayloadAction<News>) => {
+      if (!Array.isArray(state.items)) {
+        state.items = [];
+      }
       state.items.unshift(action.payload);
     },
-    setLoading: (state, action: PayloadAction<boolean>) => {
-      state.isLoading = action.payload;
+    clearError: (state) => {
+      state.error = null;
     },
-    setError: (state, action: PayloadAction<string | null>) => {
-      state.error = action.payload;
-    },
+  },
+  extraReducers: (builder) => {
+    builder
+      // Fetch news
+      .addCase(fetchNews.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchNews.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.items = Array.isArray(action.payload) ? action.payload : [];
+      })
+      .addCase(fetchNews.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      // Create news
+      .addCase(createNews.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(createNews.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (!Array.isArray(state.items)) {
+          state.items = [];
+        }
+        state.items.unshift(action.payload);
+      })
+      .addCase(createNews.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      // Delete news
+      .addCase(deleteNews.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(deleteNews.fulfilled, (state, action) => {
+        state.isLoading = false;
+        if (Array.isArray(state.items)) {
+          state.items = state.items.filter(item => item.id !== action.payload);
+        }
+      })
+      .addCase(deleteNews.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 
 export const {
-  setNews,
   setFilter,
   addNews,
-  setLoading,
-  setError
+  clearError
 } = newsSlice.actions;
 export default newsSlice.reducer;

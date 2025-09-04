@@ -181,6 +181,57 @@ class ApiService {
       body: JSON.stringify(scheduleData),
     });
   }
+
+  // News management
+  async getNews(): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>('/news/');
+  }
+
+  async createNews(newsData: any): Promise<ApiResponse<any>> {
+    console.log('API createNews called with:', newsData);
+    return this.request<any>('/news/', {
+      method: 'POST',
+      body: JSON.stringify(newsData),
+    });
+  }
+
+  async updateNews(newsId: string, newsData: any): Promise<ApiResponse<any>> {
+    return this.request<any>(`/news/${newsId}/`, {
+      method: 'PUT',
+      body: JSON.stringify(newsData),
+    });
+  }
+
+  async deleteNews(newsId: string): Promise<ApiResponse<void>> {
+    return this.request<void>(`/news/${newsId}/`, {
+      method: 'DELETE',
+    });
+  }
+
+  // Events management
+  async getEvents(): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>('/events/');
+  }
+
+  async createEvent(eventData: any): Promise<ApiResponse<any>> {
+    return this.request<any>('/events/', {
+      method: 'POST',
+      body: JSON.stringify(eventData),
+    });
+  }
+
+  async updateEvent(eventId: string, eventData: any): Promise<ApiResponse<any>> {
+    return this.request<any>(`/events/${eventId}/`, {
+      method: 'PUT',
+      body: JSON.stringify(eventData),
+    });
+  }
+
+  async deleteEvent(eventId: string): Promise<ApiResponse<void>> {
+    return this.request<void>(`/events/${eventId}/`, {
+      method: 'DELETE',
+    });
+  }
 }
 
 export const authApi = new ApiService();

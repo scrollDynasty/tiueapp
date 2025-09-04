@@ -1,5 +1,5 @@
 import { ThemedText } from '@/components/ThemedText';
-import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
+import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { logoutUser } from '@/store/slices/authSlice';
 import { Ionicons } from '@expo/vector-icons';
@@ -75,183 +75,462 @@ function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightC
   );
 }
 
-// Компонент админ-профиля
+// Компонент админ-профиля - современная панель управления
 function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
+  // Получаем данные из Redux для статистики
+  const { items: newsItems } = useAppSelector((state) => state.news);
+  const { items: eventsItems } = useAppSelector((state) => state.events);
+  
   const displayInfo = {
     name: `${user.first_name} ${user.last_name}`.trim() || user.username,
-    subtitle: 'Администратор системы',
-    roleColor: '#e11d48'
-  };
-
-  const handleAdminAction = (title: string) => {
-    Alert.alert(title, 'Функция будет доступна в следующих версиях приложения');
+    subtitle: 'Системный администратор',
   };
 
   return (
-    <>
-      {/* Профиль администратора */}
+    <View style={{ flex: 1 }}>
+      {/* Современный заголовок админ панели */}
       <Animated.View 
         entering={SlideInRight.duration(400)}
         style={{
-          backgroundColor: Colors.surface,
-          borderRadius: 20,
-          padding: Spacing.l,
-          marginTop: Spacing.l,
+          backgroundColor: Colors.brandPrimary,
+          paddingHorizontal: Spacing.l,
+          paddingVertical: Spacing.xl,
+          marginTop: -Spacing.l,
+          marginHorizontal: -Spacing.l,
           marginBottom: Spacing.l,
-          alignItems: 'center',
+          borderBottomLeftRadius: 24,
+          borderBottomRightRadius: 24,
           ...Shadows.card,
         }}
       >
-        <View
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.m }}>
+          <View
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 28,
+              backgroundColor: 'rgba(255,255,255,0.15)',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: Spacing.m,
+              borderWidth: 2,
+              borderColor: 'rgba(255,255,255,0.2)',
+            }}
+          >
+            <Ionicons name="settings" size={28} color="white" />
+          </View>
+          
+          <View style={{ flex: 1 }}>
+            <ThemedText
+              style={{
+                ...Typography.displayH1,
+                color: 'white',
+                marginBottom: 4,
+                fontSize: 22,
+              }}
+            >
+              {displayInfo.name}
+            </ThemedText>
+            <ThemedText
+              style={{
+                ...Typography.body,
+                color: 'rgba(255,255,255,0.85)',
+              }}
+            >
+              {displayInfo.subtitle}
+            </ThemedText>
+          </View>
+
+          <View style={{
+            backgroundColor: Colors.chipBg,
+            paddingHorizontal: Spacing.m,
+            paddingVertical: Spacing.xs,
+            borderRadius: 16,
+          }}>
+            <ThemedText style={{
+              ...Typography.caption,
+              color: Colors.brandPrimary,
+              fontWeight: '700',
+              fontSize: 11,
+            }}>
+              ADMIN
+            </ThemedText>
+          </View>
+        </View>
+
+        {/* Статистика в заголовке */}
+        <View style={{
+          backgroundColor: 'rgba(255,255,255,0.1)',
+          paddingHorizontal: Spacing.m,
+          paddingVertical: Spacing.m,
+          borderRadius: 16,
+          flexDirection: 'row',
+          justifyContent: 'space-around',
+        }}>
+          <View style={{ alignItems: 'center' }}>
+            <ThemedText style={{
+              ...Typography.displayH1,
+              color: 'white',
+              fontSize: 20,
+              fontWeight: '700',
+            }}>
+              {newsItems.length}
+            </ThemedText>
+            <ThemedText style={{
+              ...Typography.caption,
+              color: 'rgba(255,255,255,0.8)',
+            }}>
+              Новостей
+            </ThemedText>
+          </View>
+          <View style={{ alignItems: 'center' }}>
+            <ThemedText style={{
+              ...Typography.displayH1,
+              color: 'white',
+              fontSize: 20,
+              fontWeight: '700',
+            }}>
+              {eventsItems.length}
+            </ThemedText>
+            <ThemedText style={{
+              ...Typography.caption,
+              color: 'rgba(255,255,255,0.8)',
+            }}>
+              Событий
+            </ThemedText>
+          </View>
+          <View style={{ alignItems: 'center' }}>
+            <ThemedText style={{
+              ...Typography.displayH1,
+              color: 'white',
+              fontSize: 20,
+              fontWeight: '700',
+            }}>
+              1
+            </ThemedText>
+            <ThemedText style={{
+              ...Typography.caption,
+              color: 'rgba(255,255,255,0.8)',
+            }}>
+              Админов
+            </ThemedText>
+          </View>
+        </View>
+      </Animated.View>
+
+      {/* Современные карточки управления */}
+      <Animated.View entering={FadeInDown.duration(500).delay(200)}>
+        <ThemedText style={{ 
+          ...Typography.titleH2, 
+          color: Colors.textPrimary, 
+          marginBottom: Spacing.m,
+          fontSize: 18,
+        }}>
+          Управление контентом
+        </ThemedText>
+        
+        <View style={{
+          gap: Spacing.m,
+          marginBottom: Spacing.l,
+        }}>
+          {/* Карточка управления новостями */}
+          <Pressable
+            onPress={() => router.push('../../admin/news' as any)}
+            style={{
+              backgroundColor: Colors.surface,
+              borderRadius: Radius.card,
+              padding: Spacing.l,
+              flexDirection: 'row',
+              alignItems: 'center',
+              ...Shadows.card,
+              borderWidth: 1,
+              borderColor: Colors.strokeSoft,
+            }}
+          >
+            <View style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              backgroundColor: Colors.brandPrimary10,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: Spacing.m,
+            }}>
+              <Ionicons name="newspaper-outline" size={24} color={Colors.brandPrimary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <ThemedText style={{ 
+                ...Typography.titleH2, 
+                color: Colors.textPrimary, 
+                marginBottom: 4,
+              }}>
+                Управление новостями
+              </ThemedText>
+              <ThemedText style={{ 
+                ...Typography.body, 
+                color: Colors.textSecondary,
+                fontSize: 14,
+              }}>
+                {newsItems.length} активных новостей
+              </ThemedText>
+            </View>
+            <View style={{
+              backgroundColor: Colors.chipBg,
+              paddingHorizontal: Spacing.s,
+              paddingVertical: Spacing.xs,
+              borderRadius: Radius.icon,
+              marginRight: Spacing.s,
+            }}>
+              <ThemedText style={{
+                ...Typography.caption,
+                color: Colors.chipIcon,
+                fontWeight: '600',
+              }}>
+                {newsItems.length}
+              </ThemedText>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+          </Pressable>
+
+          {/* Карточка управления событиями */}
+          <Pressable
+            onPress={() => router.push('../../admin/events' as any)}
+            style={{
+              backgroundColor: Colors.surface,
+              borderRadius: Radius.card,
+              padding: Spacing.l,
+              flexDirection: 'row',
+              alignItems: 'center',
+              ...Shadows.card,
+              borderWidth: 1,
+              borderColor: Colors.strokeSoft,
+            }}
+          >
+            <View style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              backgroundColor: '#FEF3C7',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: Spacing.m,
+            }}>
+              <Ionicons name="calendar-outline" size={24} color="#F59E0B" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <ThemedText style={{ 
+                ...Typography.titleH2, 
+                color: Colors.textPrimary, 
+                marginBottom: 4,
+              }}>
+                Управление событиями
+              </ThemedText>
+              <ThemedText style={{ 
+                ...Typography.body, 
+                color: Colors.textSecondary,
+                fontSize: 14,
+              }}>
+                {eventsItems.length} запланированных событий
+              </ThemedText>
+            </View>
+            <View style={{
+              backgroundColor: '#FEF3C7',
+              paddingHorizontal: Spacing.s,
+              paddingVertical: Spacing.xs,
+              borderRadius: Radius.icon,
+              marginRight: Spacing.s,
+            }}>
+              <ThemedText style={{
+                ...Typography.caption,
+                color: '#F59E0B',
+                fontWeight: '600',
+              }}>
+                {eventsItems.length}
+              </ThemedText>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+          </Pressable>
+
+          {/* Карточка управления расписанием */}
+          <Pressable
+            onPress={() => Alert.alert('Расписание', 'Управление расписанием будет доступно в следующих версиях')}
+            style={{
+              backgroundColor: Colors.surface,
+              borderRadius: Radius.card,
+              padding: Spacing.l,
+              flexDirection: 'row',
+              alignItems: 'center',
+              ...Shadows.card,
+              borderWidth: 1,
+              borderColor: Colors.strokeSoft,
+            }}
+          >
+            <View style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              backgroundColor: '#D1FAE5',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: Spacing.m,
+            }}>
+              <Ionicons name="time-outline" size={24} color="#10B981" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <ThemedText style={{ 
+                ...Typography.titleH2, 
+                color: Colors.textPrimary, 
+                marginBottom: 4,
+              }}>
+                Управление расписанием
+              </ThemedText>
+              <ThemedText style={{ 
+                ...Typography.body, 
+                color: Colors.textSecondary,
+                fontSize: 14,
+              }}>
+                Составление и редактирование
+              </ThemedText>
+            </View>
+            <View style={{
+              backgroundColor: '#D1FAE5',
+              paddingHorizontal: Spacing.s,
+              paddingVertical: Spacing.xs,
+              borderRadius: Radius.icon,
+              marginRight: Spacing.s,
+            }}>
+              <ThemedText style={{
+                ...Typography.caption,
+                color: '#10B981',
+                fontWeight: '600',
+              }}>
+                ∞
+              </ThemedText>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+          </Pressable>
+        </View>
+      </Animated.View>
+
+      {/* Системная информация и настройки */}
+      <Animated.View entering={FadeInDown.duration(500).delay(300)}>
+        <ThemedText style={{ 
+          ...Typography.titleH2, 
+          color: Colors.textPrimary, 
+          marginBottom: Spacing.m,
+          fontSize: 18,
+        }}>
+          Системная информация
+        </ThemedText>
+        
+        <View style={{ gap: Spacing.s, marginBottom: Spacing.l }}>
+          <Pressable
+            style={{
+              backgroundColor: Colors.surface,
+              borderRadius: Radius.card,
+              padding: Spacing.m,
+              flexDirection: 'row',
+              alignItems: 'center',
+              ...Shadows.card,
+              borderWidth: 1,
+              borderColor: Colors.strokeSoft,
+            }}
+            onPress={() => Alert.alert('Настройки', 'Системные настройки будут доступны в следующих версиях')}
+          >
+            <View style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: Colors.brandPrimary10,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: Spacing.m,
+            }}>
+              <Ionicons name="settings-outline" size={18} color={Colors.brandPrimary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <ThemedText style={{ ...Typography.body, color: Colors.textPrimary }}>
+                Системные настройки
+              </ThemedText>
+              <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary }}>
+                Конфигурация приложения
+              </ThemedText>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+          </Pressable>
+
+          <Pressable
+            style={{
+              backgroundColor: Colors.surface,
+              borderRadius: Radius.card,
+              padding: Spacing.m,
+              flexDirection: 'row',
+              alignItems: 'center',
+              ...Shadows.card,
+              borderWidth: 1,
+              borderColor: Colors.strokeSoft,
+            }}
+            onPress={() => Alert.alert('Логи', 'Просмотр логов будет доступен в следующих версиях')}
+          >
+            <View style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: Colors.chipBg,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: Spacing.m,
+            }}>
+              <Ionicons name="document-text-outline" size={18} color={Colors.chipIcon} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <ThemedText style={{ ...Typography.body, color: Colors.textPrimary }}>
+                Логи системы
+              </ThemedText>
+              <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary }}>
+                Просмотр и анализ
+              </ThemedText>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+          </Pressable>
+        </View>
+      </Animated.View>
+
+      {/* Выход из системы */}
+      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ marginTop: Spacing.l }}>
+        <Pressable
+          onPress={onLogout}
           style={{
-            width: 80,
-            height: 80,
-            borderRadius: 40,
-            backgroundColor: '#fef2f2',
-            justifyContent: 'center',
+            backgroundColor: Colors.error,
+            borderRadius: Radius.card,
+            padding: Spacing.l,
+            flexDirection: 'row',
             alignItems: 'center',
-            marginBottom: Spacing.m,
+            justifyContent: 'center',
             ...Shadows.card,
           }}
         >
-          <Ionicons name="shield-checkmark" size={40} color={displayInfo.roleColor} />
-        </View>
-        
-        <ThemedText
-          style={{
-            ...Typography.displayH1,
-            color: Colors.textPrimary,
-            marginBottom: Spacing.xxs,
-          }}
-        >
-          {displayInfo.name}
-        </ThemedText>
-        
-        <ThemedText
-          style={{
-            ...Typography.body,
-            color: displayInfo.roleColor,
-            marginBottom: Spacing.s,
-          }}
-        >
-          {displayInfo.subtitle}
-        </ThemedText>
-
-        <View style={{
-          backgroundColor: displayInfo.roleColor + '20',
-          paddingHorizontal: Spacing.m,
-          paddingVertical: Spacing.xs,
-          borderRadius: 20,
-        }}>
-          <ThemedText style={{
-            ...Typography.caption,
-            color: displayInfo.roleColor,
+          <Ionicons name="log-out-outline" size={20} color="white" style={{ marginRight: Spacing.s }} />
+          <ThemedText style={{ 
+            ...Typography.body, 
+            color: 'white',
             fontWeight: '600',
           }}>
-            Полный доступ ко всем функциям
+            Выйти из системы
           </ThemedText>
-        </View>
+        </Pressable>
       </Animated.View>
-
-      {/* Панель управления */}
-      <Animated.View entering={FadeInDown.duration(500).delay(200)}>
-        <ThemedText style={{ ...Typography.titleH2, color: Colors.textPrimary, marginBottom: Spacing.m }}>
-          Панель управления
-        </ThemedText>
-        
-        <SettingsItem
-          title="Управление новостями"
-          subtitle="Создание, редактирование и удаление новостей"
-          icon="newspaper-outline"
-          onPress={() => router.push('../../admin/news' as any)}
-        />
-        
-        <SettingsItem
-          title="Управление пользователями"
-          subtitle="Создание, редактирование и удаление пользователей"
-          icon="people-outline"
-          onPress={() => handleAdminAction('Управление пользователями')}
-        />
-        
-        <SettingsItem
-          title="Управление группами"
-          subtitle="Настройка учебных групп и курсов"
-          icon="albums-outline"
-          onPress={() => handleAdminAction('Управление группами')}
-        />
-        
-        <SettingsItem
-          title="Управление расписанием"
-          subtitle="Составление и редактирование расписания"
-          icon="calendar-outline"
-          onPress={() => handleAdminAction('Управление расписанием')}
-        />
-        
-        <SettingsItem
-          title="Управление событиями"
-          subtitle="События и мероприятия университета"
-          icon="ticket-outline"
-          onPress={() => handleAdminAction('Управление событиями')}
-        />
-      </Animated.View>
-
-      {/* Системные функции */}
-      <Animated.View entering={FadeInDown.duration(500).delay(300)} style={{ marginTop: Spacing.l }}>
-        <ThemedText style={{ ...Typography.titleH2, color: Colors.textPrimary, marginBottom: Spacing.m }}>
-          Система
-        </ThemedText>
-        
-        <SettingsItem
-          title="Статистика системы"
-          subtitle="Аналитика и отчёты"
-          icon="analytics-outline"
-          onPress={() => handleAdminAction('Статистика системы')}
-        />
-        
-        <SettingsItem
-          title="Настройки системы"
-          subtitle="Конфигурация и безопасность"
-          icon="settings-outline"
-          onPress={() => handleAdminAction('Настройки системы')}
-        />
-        
-        <SettingsItem
-          title="Логи и мониторинг"
-          subtitle="Просмотр системных логов"
-          icon="document-text-outline"
-          onPress={() => handleAdminAction('Логи и мониторинг')}
-        />
-
-        <SettingsItem
-          title="Резервное копирование"
-          subtitle="Бэкап и восстановление данных"
-          icon="cloud-download-outline"
-          onPress={() => handleAdminAction('Резервное копирование')}
-        />
-      </Animated.View>
-
-      {/* Выход */}
-      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ marginTop: Spacing.l }}>
-        <SettingsItem
-          title="Выйти из аккаунта"
-          icon="log-out-outline"
-          onPress={onLogout}
-          showArrow={false}
-        />
-      </Animated.View>
-    </>
+    </View>
   );
 }
 
-// Компонент студенческого профиля  
+// Компонент студент-профиля
 function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   
   const displayInfo = {
     name: `${user.first_name} ${user.last_name}`.trim() || user.username,
-    subtitle: user.student?.group?.name ? 
-      `Группа ${user.student.group.name} • ${user.student.course || 1} курс` : 
-      'Студент',
+    subtitle: user.student?.group?.name ? `Группа ${user.student.group.name} • ${user.student.course || 1} курс` : 'Студент',
     roleColor: '#2563eb'
   };
 
@@ -304,64 +583,37 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
         >
           {displayInfo.subtitle}
         </ThemedText>
-
-        {/* Средний балл */}
-        <View style={{
-          backgroundColor: Colors.brandPrimary10,
-          paddingHorizontal: Spacing.m,
-          paddingVertical: Spacing.xs,
-          borderRadius: 20,
-          flexDirection: 'row',
-          alignItems: 'center',
-        }}>
-          <Ionicons name="school" size={16} color={Colors.brandPrimary} />
-          <ThemedText style={{
-            ...Typography.caption,
-            color: Colors.brandPrimary,
-            fontWeight: '600',
-            marginLeft: 4,
-          }}>
-            Средний балл: {user.student?.average_grade || '—'}
-          </ThemedText>
-        </View>
       </Animated.View>
 
-      {/* Учебная деятельность */}
+      {/* Успеваемость */}
       <Animated.View entering={FadeInDown.duration(500).delay(200)}>
         <ThemedText style={{ ...Typography.titleH2, color: Colors.textPrimary, marginBottom: Spacing.m }}>
-          Учебная деятельность
+          Успеваемость
         </ThemedText>
         
         <SettingsItem
           title="Оценки"
-          subtitle="Просмотр текущих оценок по предметам"
+          subtitle="Текущие оценки по предметам"
           icon="school-outline"
           onPress={() => router.push('/(tabs)')}
         />
         
         <SettingsItem
-          title="Расписание занятий"
-          subtitle="Расписание лекций и практических занятий"
+          title="Расписание"
+          subtitle="Расписание занятий"
           icon="calendar-outline"
           onPress={() => router.push('/(tabs)/schedule')}
         />
         
         <SettingsItem
-          title="События и новости"
-          subtitle="Университетские события и объявления"
-          icon="newspaper-outline"
-          onPress={() => router.push('/(tabs)/events')}
-        />
-
-        <SettingsItem
-          title="Домашние задания"
-          subtitle="Текущие задания и проекты"
+          title="Задания"
+          subtitle="Домашние задания и проекты"
           icon="clipboard-outline"
-          onPress={() => Alert.alert('Задания', 'Раздел домашних заданий будет доступен в следующих версиях')}
+          onPress={() => Alert.alert('Задания', 'Раздел с заданиями будет доступен в следующих версиях')}
         />
       </Animated.View>
 
-      {/* Настройки приложения */}
+      {/* Настройки */}
       <Animated.View entering={FadeInDown.duration(500).delay(300)} style={{ marginTop: Spacing.l }}>
         <ThemedText style={{ ...Typography.titleH2, color: Colors.textPrimary, marginBottom: Spacing.m }}>
           Настройки
@@ -369,7 +621,7 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
         
         <SettingsItem
           title="Уведомления"
-          subtitle="Настройка push-уведомлений о занятиях и оценках"
+          subtitle="Настройка push-уведомлений"
           icon="notifications-outline"
           rightComponent={
             <Switch 
@@ -390,28 +642,37 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
         />
         
         <SettingsItem
-          title="Поддержка"
-          subtitle="Помощь и обратная связь"
-          icon="help-circle-outline"
-          onPress={() => Alert.alert('Поддержка', 'Свяжитесь с администрацией университета для получения помощи')}
-        />
-        
-        <SettingsItem
           title="О приложении"
           subtitle="Версия 1.0.0"
           icon="information-circle-outline"
-          onPress={() => Alert.alert('О приложении', 'TIUE App v1.0.0\nПриложение для студентов университета\n\nРазработано для Технологического института управления и экономики')}
+          onPress={() => Alert.alert('О приложении', 'TIUE App v1.0.0\nПриложение для студентов университета')}
         />
       </Animated.View>
 
       {/* Выход */}
       <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ marginTop: Spacing.l }}>
-        <SettingsItem
-          title="Выйти из аккаунта"
-          icon="log-out-outline"
+        <Pressable
           onPress={onLogout}
-          showArrow={false}
-        />
+          style={{
+            backgroundColor: '#ef4444',
+            borderRadius: 12,
+            padding: Spacing.m,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: Spacing.l,
+            ...Shadows.card,
+          }}
+        >
+          <Ionicons name="log-out-outline" size={20} color="white" style={{ marginRight: Spacing.s }} />
+          <ThemedText style={{ 
+            ...Typography.body, 
+            color: 'white',
+            fontWeight: '600',
+          }}>
+            Выйти из аккаунта
+          </ThemedText>
+        </Pressable>
       </Animated.View>
     </>
   );
@@ -430,9 +691,15 @@ export default function ProfileScreen() {
         { 
           text: 'Выйти', 
           style: 'destructive',
-          onPress: () => {
-            dispatch(logoutUser());
-            router.replace('/login');
+          onPress: async () => {
+            try {
+              await dispatch(logoutUser()).unwrap();
+              router.replace('/(auth)/login' as any);
+            } catch (error) {
+              console.error('Logout error:', error);
+              // Все равно перенаправляем на логин даже если ошибка
+              router.replace('/(auth)/login' as any);
+            }
           }
         }
       ]
@@ -445,11 +712,8 @@ export default function ProfileScreen() {
       <SafeAreaView style={{ flex: 1, backgroundColor: Colors.surface }}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: Spacing.l }}>
           <Ionicons name="person-outline" size={64} color={Colors.textSecondary} />
-          <ThemedText style={{ ...Typography.titleH2, color: Colors.textSecondary, marginTop: Spacing.l, textAlign: 'center' }}>
+          <ThemedText style={{ ...Typography.titleH2, color: Colors.textSecondary, marginTop: Spacing.l }}>
             Не авторизован
-          </ThemedText>
-          <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginTop: Spacing.s, textAlign: 'center' }}>
-            Войдите в систему для доступа к профилю
           </ThemedText>
           <Pressable
             onPress={() => router.push('/login')}

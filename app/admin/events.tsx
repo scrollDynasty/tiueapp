@@ -1,18 +1,18 @@
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { addEvent } from '@/store/slices/eventsSlice';
+import { addEvent, createEvent } from '@/store/slices/eventsSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
-import { Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function EventsManagementScreen() {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
-  const { items: events } = useAppSelector((state) => state.events);
+  const { items: events, isLoading } = useAppSelector((state) => state.events);
   
   const [title, setTitle] = React.useState('');
   const [description, setDescription] = React.useState('');
@@ -48,36 +48,59 @@ export default function EventsManagementScreen() {
     );
   }
 
-  const handleAddEvent = () => {
+  const handleAddEvent = async () => {
     if (!title.trim() || !description.trim() || !location.trim() || !date.trim() || !time.trim()) {
       Alert.alert('Ошибка', 'Заполните все поля');
       return;
     }
 
-    const newEvent = {
-      id: Date.now().toString(),
+    const newEventData = {
       title: title.trim(),
       description: description.trim(),
       location: location.trim(),
       date: date.trim(),
       time: time.trim(),
       category: 'university' as const,
-      isRegistered: false,
       maxParticipants: undefined,
       currentParticipants: 0,
+      isRegistered: false,
       image: undefined,
     };
 
-    dispatch(addEvent(newEvent));
-    
-    // Очищаем форму
-    setTitle('');
-    setDescription('');
-    setLocation('');
-    setDate('');
-    setTime('');
-    
-    Alert.alert('Успешно', 'Событие добавлено');
+    try {
+      // Сначала пытаемся сохранить через API
+      await dispatch(createEvent(newEventData)).unwrap();
+      
+      // Очищаем форму
+      setTitle('');
+      setDescription('');
+      setLocation('');
+      setDate('');
+      setTime('');
+      
+      Alert.alert('Успешно', 'Событие добавлено и сохранено в базе данных');
+    } catch (error) {
+      console.error('API Error:', error);
+      
+      // Если API не работает, сохраняем локально
+      const fallbackEvent = {
+        id: Date.now().toString(),
+        ...newEventData,
+        isRegistered: false,
+        currentParticipants: 0,
+      };
+      
+      dispatch(addEvent(fallbackEvent));
+      
+      // Очищаем форму
+      setTitle('');
+      setDescription('');
+      setLocation('');
+      setDate('');
+      setTime('');
+      
+      Alert.alert('Внимание', 'Событие добавлено локально. Проверьте подключение к серверу для синхронизации с базой данных.');
+    }
   };
 
   return (
@@ -229,15 +252,29 @@ export default function EventsManagementScreen() {
           {/* Кнопка добавления */}
           <Pressable
             onPress={handleAddEvent}
+            disabled={isLoading}
             style={{
-              backgroundColor: Colors.brandPrimary,
+              backgroundColor: isLoading ? Colors.strokeSoft : Colors.brandPrimary,
               paddingVertical: Spacing.m,
               borderRadius: 12,
               alignItems: 'center',
+              flexDirection: 'row',
+              justifyContent: 'center',
             }}
           >
-            <ThemedText style={{ ...Typography.body, color: Colors.surface, fontWeight: '600' }}>
-              Добавить событие
+            {isLoading && (
+              <ActivityIndicator 
+                size="small" 
+                color={Colors.textSecondary} 
+                style={{ marginRight: Spacing.s }} 
+              />
+            )}
+            <ThemedText style={{ 
+              ...Typography.body, 
+              color: isLoading ? Colors.textSecondary : Colors.surface, 
+              fontWeight: '600' 
+            }}>
+              {isLoading ? 'Добавляем...' : 'Добавить событие'}
             </ThemedText>
           </Pressable>
         </Animated.View>
@@ -245,13 +282,13 @@ export default function EventsManagementScreen() {
         {/* Список событий */}
         <Animated.View entering={FadeInDown.duration(500).delay(400)}>
           <ThemedText style={{ ...Typography.titleH2, color: Colors.textPrimary, marginBottom: Spacing.m }}>
-            Существующие события ({events.length})
+            Существующие события ({Array.isArray(events) ? events.length : 0})
           </ThemedText>
           
-          {events.length === 0 ? (
+          {!Array.isArray(events) || events.length === 0 ? (
             <View style={{
               backgroundColor: Colors.surface,
-              borderRadius: 16,
+              borderRadius: 12,
               padding: Spacing.l,
               alignItems: 'center',
               ...Shadows.card,

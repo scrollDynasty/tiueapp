@@ -4,8 +4,10 @@ import { CustomRefreshControl } from '@/components/CustomRefreshControl';
 import { NewsCard } from '@/components/NewsCard';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Spacing } from '@/constants/DesignTokens';
-import { useAppSelector } from '@/hooks/redux';
+import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { useResponsive } from '@/hooks/useResponsive';
+import { fetchEvents } from '@/store/slices/eventsSlice';
+import { fetchNews } from '@/store/slices/newsSlice';
 import React from 'react';
 import { ScrollView, View } from 'react-native';
 import Animated, {
@@ -19,6 +21,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
 export default function HomeScreen() {
+  const dispatch = useAppDispatch();
   const scrollY = useSharedValue(0);
   const [refreshing, setRefreshing] = React.useState(false);
   const { horizontalPadding, cardGap, cardWidth, cardHeight } = useResponsive();
@@ -30,16 +33,31 @@ export default function HomeScreen() {
     },
   });
 
-  const onRefresh = React.useCallback(() => {
+  // Загружаем данные при монтировании компонента
+  React.useEffect(() => {
+    if (user) {
+      dispatch(fetchNews());
+      dispatch(fetchEvents());
+    }
+  }, [dispatch, user]);
+
+  const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    // Здесь будет загрузка данных с сервера
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  }, []);
+    try {
+      if (user) {
+        await Promise.all([
+          dispatch(fetchNews()).unwrap(),
+          dispatch(fetchEvents()).unwrap()
+        ]);
+      }
+    } catch (error) {
+      console.log('Refresh error:', error);
+    }
+    setRefreshing(false);
+  }, [dispatch, user]);
 
   // Получаем новости из Redux store
-  const { items: newsData } = useAppSelector((state) => state.news);
+  const { items: newsData, isLoading: newsLoading } = useAppSelector((state) => state.news);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.surface }}>
