@@ -1,6 +1,7 @@
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { authApi } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
@@ -48,44 +49,31 @@ export default function UsersManagementScreen() {
   const [showCreateForm, setShowCreateForm] = React.useState(false);
   const [editingUser, setEditingUser] = React.useState<UserProfile | null>(null);
 
-  // Моковые данные пользователей (в реальном приложении будут из API)
-  const [users, setUsers] = React.useState<UserProfile[]>([
-    {
-      id: '1',
-      first_name: 'Иван',
-      last_name: 'Петров',
-      username: 'ivan_petrov',
-      email: 'ivan@university.edu',
-      role: 'student',
-      is_active: true,
-      created_at: '2024-01-15',
-      faculty: 'Информационные технологии',
-      course: 2,
-      group: 'ИТ-21',
-    },
-    {
-      id: '2', 
-      first_name: 'Мария',
-      last_name: 'Иванова',
-      username: 'maria_ivanova',
-      email: 'maria@university.edu',
-      role: 'professor',
-      is_active: true,
-      created_at: '2023-09-01',
-      department: 'Кафедра программирования',
-    },
-    {
-      id: '3',
-      first_name: 'Анна',
-      last_name: 'Сидорова',
-      username: 'anna_admin',
-      email: 'anna@university.edu',
-      role: 'admin',
-      is_active: true,
-      created_at: '2023-01-01',
-      last_login: '2024-12-01',
-    },
-  ]);
+  // Состояния для работы с API
+  const [users, setUsers] = React.useState<UserProfile[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = React.useState(true);
+
+  // Загружаем пользователей при загрузке компонента
+  React.useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    setIsLoadingUsers(true);
+    try {
+      const response = await authApi.getUsers();
+      if (response.success && response.data) {
+        setUsers(response.data);
+      } else {
+        Alert.alert('Ошибка', 'Не удалось загрузить список пользователей');
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+      Alert.alert('Ошибка', 'Не удалось загрузить список пользователей');
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  };
 
   // Фильтрация пользователей
   const filteredUsers = React.useMemo(() => {
@@ -312,22 +300,33 @@ export default function UsersManagementScreen() {
 
       if (editingUser) {
         // Обновление существующего пользователя
-        setUsers(prev => prev.map(u => 
-          u.id === editingUser.id 
-            ? { ...u, ...userData } as UserProfile
-            : u
-        ));
-        Alert.alert('Успешно', 'Пользователь обновлен');
+        const response = await authApi.updateUser(editingUser.id, userData);
+        if (response.success && response.data) {
+          setUsers(prev => prev.map(u => 
+            u.id === editingUser.id 
+              ? response.data as UserProfile
+              : u
+          ));
+          Alert.alert('Успешно', 'Пользователь обновлен');
+        } else {
+          Alert.alert('Ошибка', response.error || 'Не удалось обновить пользователя');
+          return;
+        }
       } else {
-        // Создание нового пользователя
-        const newUser: UserProfile = {
+        // Создание нового пользователя  
+        const userDataWithPassword = {
           ...userData,
-          id: Date.now().toString(),
-          created_at: new Date().toISOString().split('T')[0],
-        } as UserProfile;
+          password: password.trim(),
+        };
         
-        setUsers(prev => [...prev, newUser]);
-        Alert.alert('Успешно', 'Пользователь создан');
+        const response = await authApi.createUser(userDataWithPassword);
+        if (response.success && response.data) {
+          setUsers(prev => [...prev, response.data as UserProfile]);
+          Alert.alert('Успешно', 'Пользователь создан');
+        } else {
+          Alert.alert('Ошибка', response.error || 'Не удалось создать пользователя');
+          return;
+        }
       }
       
       clearForm();
@@ -355,12 +354,28 @@ export default function UsersManagementScreen() {
     setShowCreateForm(true);
   };
 
-  const handleToggleUserStatus = (userId: string) => {
-    setUsers(prev => prev.map(u => 
-      u.id === userId 
-        ? { ...u, is_active: !u.is_active }
-        : u
-    ));
+  const handleToggleUserStatus = async (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    try {
+      const response = await authApi.updateUser(userId, { 
+        is_active: !user.is_active 
+      });
+      if (response.success && response.data) {
+        setUsers(prev => prev.map(u => 
+          u.id === userId 
+            ? response.data as UserProfile
+            : u
+        ));
+        Alert.alert('Успешно', `Пользователь ${user.is_active ? 'деактивирован' : 'активирован'}`);
+      } else {
+        Alert.alert('Ошибка', response.error || 'Не удалось изменить статус пользователя');
+      }
+    } catch (error) {
+      console.error('Error toggling user status:', error);
+      Alert.alert('Ошибка', 'Не удалось изменить статус пользователя');
+    }
   };
 
   const handleDeleteUser = (userId: string) => {
@@ -372,7 +387,20 @@ export default function UsersManagementScreen() {
         { 
           text: 'Удалить', 
           style: 'destructive',
-          onPress: () => setUsers(prev => prev.filter(u => u.id !== userId))
+          onPress: async () => {
+            try {
+              const response = await authApi.deleteUser(userId);
+              if (response.success) {
+                setUsers(prev => prev.filter(u => u.id !== userId));
+                Alert.alert('Успешно', 'Пользователь удален');
+              } else {
+                Alert.alert('Ошибка', response.error || 'Не удалось удалить пользователя');
+              }
+            } catch (error) {
+              console.error('Error deleting user:', error);
+              Alert.alert('Ошибка', 'Не удалось удалить пользователя');
+            }
+          }
         }
       ]
     );
@@ -435,6 +463,43 @@ export default function UsersManagementScreen() {
             </Pressable>
           </View>
         </Animated.View>
+
+        {/* Основная кнопка добавления пользователя */}
+        {!showCreateForm && (
+          <Animated.View entering={FadeInDown.duration(500).delay(300)}>
+            <Pressable
+              onPress={() => {
+                setShowCreateForm(true);
+                clearForm();
+              }}
+              style={{
+                backgroundColor: Colors.brandPrimary,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: Spacing.l,
+                paddingHorizontal: Spacing.l,
+                borderRadius: Radius.card,
+                marginBottom: Spacing.l,
+                ...Shadows.card,
+              }}
+            >
+              <Ionicons 
+                name="person-add" 
+                size={24} 
+                color={Colors.surface} 
+                style={{ marginRight: Spacing.s }}
+              />
+              <ThemedText style={{
+                ...Typography.titleH2,
+                color: Colors.surface,
+                fontWeight: '600',
+              }}>
+                Добавить нового пользователя
+              </ThemedText>
+            </Pressable>
+          </Animated.View>
+        )}
 
         {/* Форма создания пользователя */}
         {showCreateForm && (
@@ -700,12 +765,51 @@ export default function UsersManagementScreen() {
             <ThemedText style={{ ...Typography.titleH2, color: Colors.textPrimary }}>
               Пользователи системы
             </ThemedText>
-            <ThemedText style={{ ...Typography.body, color: Colors.textSecondary }}>
-              {filteredUsers.length} из {users.length}
-            </ThemedText>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginRight: Spacing.s }}>
+                {filteredUsers.length} из {users.length}
+              </ThemedText>
+              <Pressable
+                onPress={loadUsers}
+                disabled={isLoadingUsers}
+                style={{
+                  backgroundColor: Colors.surface,
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  ...Shadows.card,
+                }}
+              >
+                <Ionicons 
+                  name="refresh" 
+                  size={16} 
+                  color={isLoadingUsers ? Colors.textSecondary : Colors.brandPrimary} 
+                />
+              </Pressable>
+            </View>
           </View>
 
-          {filteredUsers.length === 0 ? (
+          {isLoadingUsers ? (
+            <View style={{
+              backgroundColor: Colors.surface,
+              borderRadius: Radius.card,
+              padding: Spacing.xl,
+              alignItems: 'center',
+              ...Shadows.card,
+            }}>
+              <ActivityIndicator size="large" color={Colors.brandPrimary} />
+              <ThemedText style={{ 
+                ...Typography.body, 
+                color: Colors.textSecondary, 
+                marginTop: Spacing.m,
+                textAlign: 'center'
+              }}>
+                Загружаем пользователей...
+              </ThemedText>
+            </View>
+          ) : filteredUsers.length === 0 ? (
             <View style={{
               backgroundColor: Colors.surface,
               borderRadius: Radius.card,
