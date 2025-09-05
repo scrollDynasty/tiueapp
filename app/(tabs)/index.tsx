@@ -361,30 +361,63 @@ export default function HomeScreen() {
               gap: cardGap,
             }}
           >
-            <ActionCard
-              title="КУРСЫ"
-              icon="book-outline"
-              onPress={() => router.push('/(tabs)/explore')}
-              style={{ width: cardWidth, height: cardHeight }}
-            />
-            <ActionCard
-              title="РАСПИСАНИЕ"
-              icon="calendar-outline"
-              onPress={() => router.push('/(tabs)/schedule')}
-              style={{ width: cardWidth, height: cardHeight }}
-            />
-            <ActionCard
-              title="ЗАДАНИЯ"
-              icon="list-outline"
-              onPress={() => router.push('/(tabs)/explore')}
-              style={{ width: cardWidth, height: cardHeight }}
-            />
-            <ActionCard
-              title="ОЦЕНКИ"
-              icon="analytics-outline"
-              onPress={() => router.push('/(tabs)/profile')}
-              style={{ width: cardWidth, height: cardHeight }}
-            />
+            {user?.role === 'admin' ? (
+              // Карточки для администратора
+              <>
+                <ActionCard
+                  title="ПОЛЬЗОВАТЕЛИ"
+                  icon="people-outline"
+                  onPress={() => router.push('/admin/users')}
+                  style={{ width: cardWidth, height: cardHeight }}
+                />
+                <ActionCard
+                  title="НОВОСТИ"
+                  icon="newspaper-outline"
+                  onPress={() => router.push('/admin/news')}
+                  style={{ width: cardWidth, height: cardHeight }}
+                />
+                <ActionCard
+                  title="СОБЫТИЯ"
+                  icon="calendar-outline"
+                  onPress={() => router.push('/admin/events')}
+                  style={{ width: cardWidth, height: cardHeight }}
+                />
+                <ActionCard
+                  title="АНАЛИТИКА"
+                  icon="analytics-outline"
+                  onPress={() => router.push('/(tabs)/profile')}
+                  style={{ width: cardWidth, height: cardHeight }}
+                />
+              </>
+            ) : (
+              // Карточки для студентов и преподавателей
+              <>
+                <ActionCard
+                  title="КУРСЫ"
+                  icon="book-outline"
+                  onPress={() => router.push('/(tabs)/explore')}
+                  style={{ width: cardWidth, height: cardHeight }}
+                />
+                <ActionCard
+                  title="РАСПИСАНИЕ"
+                  icon="calendar-outline"
+                  onPress={() => router.push('/(tabs)/schedule')}
+                  style={{ width: cardWidth, height: cardHeight }}
+                />
+                <ActionCard
+                  title="ЗАДАНИЯ"
+                  icon="list-outline"
+                  onPress={() => router.push('/(tabs)/explore')}
+                  style={{ width: cardWidth, height: cardHeight }}
+                />
+                <ActionCard
+                  title="ОЦЕНКИ"
+                  icon="analytics-outline"
+                  onPress={() => router.push('/(tabs)/profile')}
+                  style={{ width: cardWidth, height: cardHeight }}
+                />
+              </>
+            )}
           </View>
         </Animated.View>
 
