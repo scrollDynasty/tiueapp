@@ -27,6 +27,173 @@ interface UserProfile {
   department?: string;
 }
 
+// Отдельный компонент для модального окна сброса пароля
+const PasswordResetModal = React.memo(({ 
+  isVisible, 
+  user, 
+  onClose, 
+  onReset 
+}: {
+  isVisible: boolean;
+  user: UserProfile | null;
+  onClose: () => void;
+  onReset: (password: string) => void;
+}) => {
+  const [password, setPassword] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  const handleSubmit = React.useCallback(async () => {
+    if (!password.trim()) {
+      alert('❌ Введите новый пароль');
+      return;
+    }
+
+    if (password.trim().length < 6) {
+      alert('❌ Пароль должен содержать минимум 6 символов');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await onReset(password.trim());
+      setPassword('');
+      onClose();
+    } catch (error) {
+      console.error('Password reset error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [password, onReset, onClose]);
+
+  const handleClose = React.useCallback(() => {
+    setPassword('');
+    onClose();
+  }, [onClose]);
+
+  if (!isVisible || !user) return null;
+
+  return (
+    <View style={{
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000,
+    }}>
+      <Animated.View 
+        entering={FadeInDown.duration(300)}
+        style={{
+          backgroundColor: Colors.surface,
+          borderRadius: Radius.card,
+          padding: Spacing.l,
+          margin: Spacing.l,
+          minWidth: 300,
+          maxWidth: 400,
+          ...Shadows.card,
+        }}
+      >
+        <ThemedText style={{ 
+          ...Typography.titleH2, 
+          color: Colors.textPrimary, 
+          marginBottom: Spacing.m,
+          textAlign: 'center'
+        }}>
+          Сброс пароля
+        </ThemedText>
+        
+        <ThemedText style={{ 
+          ...Typography.body, 
+          color: Colors.textSecondary, 
+          marginBottom: Spacing.l,
+          textAlign: 'center'
+        }}>
+          Новый пароль для пользователя{'\n'}
+          <ThemedText style={{ fontWeight: 'bold', color: Colors.textPrimary }}>
+            {user.first_name} {user.last_name}
+          </ThemedText>
+        </ThemedText>
+
+        <View style={{ marginBottom: Spacing.l }}>
+          <ThemedText style={{ 
+            ...Typography.body, 
+            color: Colors.textSecondary, 
+            marginBottom: Spacing.s 
+          }}>
+            Новый пароль
+          </ThemedText>
+          <TextInput
+            value={password}
+            onChangeText={setPassword}
+            placeholder="Введите новый пароль (минимум 6 символов)"
+            autoFocus
+            style={{
+              backgroundColor: Colors.surfaceSubtle,
+              borderRadius: Radius.card,
+              paddingHorizontal: Spacing.m,
+              paddingVertical: Spacing.m,
+              fontSize: 16,
+              borderWidth: 1,
+              borderColor: Colors.strokeSoft,
+            }}
+          />
+        </View>
+
+        <View style={{ flexDirection: 'row', gap: Spacing.m }}>
+          <Pressable
+            onPress={handleClose}
+            style={{
+              flex: 1,
+              backgroundColor: Colors.surfaceSubtle,
+              paddingVertical: Spacing.m,
+              paddingHorizontal: Spacing.l,
+              borderRadius: Radius.card,
+              alignItems: 'center',
+            }}
+          >
+            <ThemedText style={{ 
+              ...Typography.body, 
+              color: Colors.textSecondary,
+              fontWeight: '600'
+            }}>
+              Отмена
+            </ThemedText>
+          </Pressable>
+          
+          <Pressable
+            onPress={handleSubmit}
+            disabled={isLoading}
+            style={{
+              flex: 1,
+              backgroundColor: isLoading ? Colors.textSecondary : Colors.brandPrimary,
+              paddingVertical: Spacing.m,
+              paddingHorizontal: Spacing.l,
+              borderRadius: Radius.card,
+              alignItems: 'center',
+              flexDirection: 'row',
+              justifyContent: 'center',
+            }}
+          >
+            {isLoading && (
+              <ActivityIndicator size="small" color={Colors.surface} style={{ marginRight: Spacing.s }} />
+            )}
+            <ThemedText style={{ 
+              ...Typography.body, 
+              color: Colors.surface,
+              fontWeight: '600'
+            }}>
+              {isLoading ? 'Сохранение...' : 'Сохранить'}
+            </ThemedText>
+          </Pressable>
+        </View>
+      </Animated.View>
+    </View>
+  );
+});
+
 export default function UsersManagementScreen() {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
@@ -57,8 +224,6 @@ export default function UsersManagementScreen() {
   // Состояния для сброса пароля
   const [showPasswordReset, setShowPasswordReset] = React.useState(false);
   const [resetPasswordUser, setResetPasswordUser] = React.useState<UserProfile | null>(null);
-  const [newPassword, setNewPassword] = React.useState('');
-  const [isResettingPassword, setIsResettingPassword] = React.useState(false);
 
   // Загружаем пользователей при загрузке компонента
   React.useEffect(() => {
@@ -322,7 +487,7 @@ export default function UsersManagementScreen() {
   };
 
   // Функция сброса пароля
-  const handleResetPassword = async (userId: string) => {
+  const handleResetPassword = React.useCallback((userId: string) => {
     const user = users.find(u => u.id === userId);
     if (!user) {
       console.log('User not found for ID:', userId);
@@ -331,23 +496,12 @@ export default function UsersManagementScreen() {
 
     console.log('Opening password reset modal for user:', user.username);
     setResetPasswordUser(user);
-    setNewPassword('');
     setShowPasswordReset(true);
-  };
+  }, [users]);
 
   // Функция подтверждения сброса пароля
-  const confirmPasswordReset = async () => {
-    if (!resetPasswordUser || !newPassword.trim()) {
-      alert('❌ Введите новый пароль');
-      return;
-    }
-
-    if (newPassword.trim().length < 6) {
-      alert('❌ Пароль должен содержать минимум 6 символов');
-      return;
-    }
-
-    setIsResettingPassword(true);
+  const confirmPasswordReset = React.useCallback(async (newPassword: string) => {
+    if (!resetPasswordUser) return;
     
     try {
       console.log('Calling authApi.updateUser with password reset...');
@@ -373,21 +527,29 @@ export default function UsersManagementScreen() {
         console.log('Password reset successful!');
         alert(`✅ УСПЕШНО!\n\nПароль пользователя ${resetPasswordUser.username} изменен на: ${newPassword.trim()}\n\nТеперь можно войти с:\nEmail: ${resetPasswordUser.email}\nПароль: ${newPassword.trim()}`);
         
+        // Обновляем список пользователей
+        await loadUsers();
+        
         // Закрываем модальное окно
         setShowPasswordReset(false);
         setResetPasswordUser(null);
-        setNewPassword('');
       } else {
         console.error('Password reset failed:', response);
         alert(`❌ ОШИБКА!\n\n${response.error || 'Не удалось изменить пароль'}\n\nResponse: ${JSON.stringify(response)}`);
+        throw new Error(response.error || 'Password reset failed');
       }
     } catch (error) {
       console.error('Error resetting password:', error);
       alert(`❌ ОШИБКА!\n\nНе удалось изменить пароль: ${error}`);
-    } finally {
-      setIsResettingPassword(false);
+      throw error;
     }
-  };
+  }, [resetPasswordUser]);
+
+  // Функция закрытия модального окна сброса пароля
+  const handleClosePasswordReset = React.useCallback(() => {
+    setShowPasswordReset(false);
+    setResetPasswordUser(null);
+  }, []);
 
   const handleCreateUser = async () => {
     console.log('handleCreateUser called');
@@ -991,130 +1153,12 @@ export default function UsersManagementScreen() {
       </ScrollView>
 
       {/* Модальное окно сброса пароля */}
-      {showPasswordReset && resetPasswordUser && (
-        <View style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000,
-        }}>
-          <Animated.View 
-            entering={FadeInDown.duration(300)}
-            style={{
-              backgroundColor: Colors.surface,
-              borderRadius: Radius.card,
-              padding: Spacing.l,
-              margin: Spacing.l,
-              minWidth: 300,
-              maxWidth: 400,
-              ...Shadows.card,
-            }}
-          >
-            <ThemedText style={{ 
-              ...Typography.titleH2, 
-              color: Colors.textPrimary, 
-              marginBottom: Spacing.m,
-              textAlign: 'center'
-            }}>
-              Сброс пароля
-            </ThemedText>
-            
-            <ThemedText style={{ 
-              ...Typography.body, 
-              color: Colors.textSecondary, 
-              marginBottom: Spacing.l,
-              textAlign: 'center'
-            }}>
-              Новый пароль для пользователя{'\n'}
-              <ThemedText style={{ fontWeight: 'bold', color: Colors.textPrimary }}>
-                {resetPasswordUser.first_name} {resetPasswordUser.last_name}
-              </ThemedText>
-            </ThemedText>
-
-            <View style={{ marginBottom: Spacing.l }}>
-              <ThemedText style={{ 
-                ...Typography.body, 
-                color: Colors.textSecondary, 
-                marginBottom: Spacing.s 
-              }}>
-                Новый пароль
-              </ThemedText>
-              <TextInput
-                value={newPassword}
-                onChangeText={setNewPassword}
-                placeholder="Введите новый пароль (минимум 6 символов)"
-                autoFocus
-                style={{
-                  backgroundColor: Colors.surfaceSubtle,
-                  borderRadius: Radius.card,
-                  paddingHorizontal: Spacing.m,
-                  paddingVertical: Spacing.m,
-                  fontSize: 16,
-                  borderWidth: 1,
-                  borderColor: Colors.strokeSoft,
-                }}
-              />
-            </View>
-
-            <View style={{ flexDirection: 'row', gap: Spacing.m }}>
-              <Pressable
-                onPress={() => {
-                  setShowPasswordReset(false);
-                  setResetPasswordUser(null);
-                  setNewPassword('');
-                }}
-                style={{
-                  flex: 1,
-                  backgroundColor: Colors.surfaceSubtle,
-                  paddingVertical: Spacing.m,
-                  paddingHorizontal: Spacing.l,
-                  borderRadius: Radius.card,
-                  alignItems: 'center',
-                }}
-              >
-                <ThemedText style={{ 
-                  ...Typography.body, 
-                  color: Colors.textSecondary,
-                  fontWeight: '600'
-                }}>
-                  Отмена
-                </ThemedText>
-              </Pressable>
-              
-              <Pressable
-                onPress={confirmPasswordReset}
-                disabled={isResettingPassword}
-                style={{
-                  flex: 1,
-                  backgroundColor: isResettingPassword ? Colors.textSecondary : Colors.brandPrimary,
-                  paddingVertical: Spacing.m,
-                  paddingHorizontal: Spacing.l,
-                  borderRadius: Radius.card,
-                  alignItems: 'center',
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                }}
-              >
-                {isResettingPassword && (
-                  <ActivityIndicator size="small" color={Colors.surface} style={{ marginRight: Spacing.s }} />
-                )}
-                <ThemedText style={{ 
-                  ...Typography.body, 
-                  color: Colors.surface,
-                  fontWeight: '600'
-                }}>
-                  {isResettingPassword ? 'Сохранение...' : 'Сохранить'}
-                </ThemedText>
-              </Pressable>
-            </View>
-          </Animated.View>
-        </View>
-      )}
+      <PasswordResetModal
+        isVisible={showPasswordReset}
+        user={resetPasswordUser}
+        onClose={handleClosePasswordReset}
+        onReset={confirmPasswordReset}
+      />
     </SafeAreaView>
   );
 }
