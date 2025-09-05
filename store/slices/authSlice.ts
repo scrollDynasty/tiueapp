@@ -25,8 +25,13 @@ export const loginUser = createAsyncThunk<
 
 export const logoutUser = createAsyncThunk<void, void>(
   'auth/logout',
-  async () => {
-    await authApi.logout();
+  async (_, { rejectWithValue }) => {
+    try {
+      await authApi.logout();
+    } catch (error) {
+      // Даже если API logout не работает, мы все равно выходим локально
+      console.log('API logout failed, but continuing with local logout:', error);
+    }
   }
 );
 
@@ -99,6 +104,13 @@ const authSlice = createSlice({
       })
       // Logout
       .addCase(logoutUser.fulfilled, (state) => {
+        state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
+        state.error = null;
+      })
+      .addCase(logoutUser.rejected, (state) => {
+        // Даже если logout не удался, все равно выходим локально
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
