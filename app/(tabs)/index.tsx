@@ -9,6 +9,7 @@ import { useResponsive } from '@/hooks/useResponsive';
 import { fetchEvents } from '@/store/slices/eventsSlice';
 import { fetchNews } from '@/store/slices/newsSlice';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React from 'react';
 import { Dimensions, Pressable, ScrollView, View } from 'react-native';
 import Animated, {
@@ -75,6 +76,42 @@ export default function HomeScreen() {
   const importantNews = React.useMemo(() => {
     return newsData.filter(news => news.isImportant).slice(0, 2);
   }, [newsData]);
+
+  // Динамические данные для виджетов
+  const statsData = React.useMemo(() => {
+    const role = user?.role;
+    
+    // Количество курсов в зависимости от роли
+    let coursesCount = '0';
+    if (role === 'student') {
+      coursesCount = '8'; // Обычная нагрузка студента
+    } else if (role === 'professor') {
+      coursesCount = '5'; // Преподаватель ведет несколько курсов
+    } else if (role === 'admin') {
+      coursesCount = '12'; // Общее количество курсов в университете
+    }
+    
+    // Средний балл или показатель успеваемости
+    let gradeValue = '0';
+    let gradeTitle = 'Баллы';
+    if (role === 'student') {
+      gradeValue = '4.2'; // Средний балл студента
+      gradeTitle = 'Средний балл';
+    } else if (role === 'professor') {
+      gradeValue = '4.8'; // Средний балл по курсам преподавателя
+      gradeTitle = 'Ср. балл курсов';
+    } else if (role === 'admin') {
+      gradeValue = newsData.length.toString(); // Количество новостей для админа
+      gradeTitle = 'Новости';
+    }
+    
+    return {
+      courses: coursesCount,
+      events: eventsData.length.toString(),
+      grade: gradeValue,
+      gradeTitle: gradeTitle
+    };
+  }, [user?.role, newsData.length, eventsData.length]);
 
   const screenWidth = Dimensions.get('window').width;
 
@@ -243,14 +280,18 @@ export default function HomeScreen() {
                 color: '#FFFFFF',
                 marginBottom: 4,
               }}>
-                Добро пожаловать, {user?.first_name || 'Студент'}! 👋
+                Добро пожаловать, {user?.first_name || user?.username || 'Студент'}! 👋
               </ThemedText>
               <ThemedText style={{
                 fontSize: 14,
                 color: '#E0E7FF',
                 lineHeight: 20,
               }}>
-                Готовы к новому дню обучения?
+                {user?.role === 'student' 
+                  ? 'Готовы к новому дню обучения?' 
+                  : user?.role === 'professor' 
+                  ? 'Готовы делиться знаниями?' 
+                  : 'Управление университетом в ваших руках!'}
               </ThemedText>
             </View>
             <View style={{
@@ -258,7 +299,11 @@ export default function HomeScreen() {
               borderRadius: 50,
               padding: 12,
             }}>
-              <Ionicons name="school" size={24} color="#FFFFFF" />
+              <Ionicons 
+                name={user?.role === 'admin' ? 'settings' : user?.role === 'professor' ? 'library' : 'school'} 
+                size={24} 
+                color="#FFFFFF" 
+              />
             </View>
           </View>
         </Animated.View>
@@ -272,19 +317,19 @@ export default function HomeScreen() {
           <StatWidget 
             icon="book-outline" 
             title="Курсы" 
-            value="6" 
+            value={statsData.courses} 
             color="#3B82F6" 
           />
           <StatWidget 
             icon="calendar-outline" 
             title="События" 
-            value={eventsData.length.toString()} 
+            value={statsData.events} 
             color="#10B981" 
           />
           <StatWidget 
             icon="trophy-outline" 
-            title="Баллы" 
-            value="95" 
+            title={statsData.gradeTitle} 
+            value={statsData.grade} 
             color="#F59E0B" 
           />
         </View>
@@ -317,27 +362,27 @@ export default function HomeScreen() {
             }}
           >
             <ActionCard
-              title="COURSES"
+              title="КУРСЫ"
               icon="book-outline"
-              onPress={() => console.log('Courses pressed')}
+              onPress={() => router.push('/(tabs)/explore')}
               style={{ width: cardWidth, height: cardHeight }}
             />
             <ActionCard
-              title="SCHEDULE"
+              title="РАСПИСАНИЕ"
               icon="calendar-outline"
-              onPress={() => console.log('Schedule pressed')}
+              onPress={() => router.push('/(tabs)/schedule')}
               style={{ width: cardWidth, height: cardHeight }}
             />
             <ActionCard
-              title="ASSIGNMENTS"
+              title="ЗАДАНИЯ"
               icon="list-outline"
-              onPress={() => console.log('Assignments pressed')}
+              onPress={() => router.push('/(tabs)/explore')}
               style={{ width: cardWidth, height: cardHeight }}
             />
             <ActionCard
-              title="GRADES"
+              title="ОЦЕНКИ"
               icon="analytics-outline"
-              onPress={() => console.log('Grades pressed')}
+              onPress={() => router.push('/(tabs)/profile')}
               style={{ width: cardWidth, height: cardHeight }}
             />
           </View>
@@ -365,7 +410,7 @@ export default function HomeScreen() {
                   paddingVertical: 6,
                   borderRadius: 20,
                 }}
-                onPress={() => console.log('View all events')}
+                onPress={() => router.push('/(tabs)/events')}
               >
                 <ThemedText style={{
                   fontSize: 12,
@@ -407,7 +452,10 @@ export default function HomeScreen() {
                   paddingVertical: 6,
                   borderRadius: 20,
                 }}
-                onPress={() => console.log('View all news')}
+                onPress={() => {
+                  // Пока нет отдельной страницы новостей, можно остаться на главной
+                  console.log('View all news');
+                }}
               >
                 <ThemedText style={{
                   fontSize: 12,
@@ -599,7 +647,15 @@ export default function HomeScreen() {
           }}
         >
           <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-            <Pressable style={{ alignItems: 'center' }}>
+            <Pressable 
+              style={{ alignItems: 'center' }}
+              onPress={() => {
+                // Можно открыть модальное окно с помощью или перейти на страницу поддержки
+                console.log('Help pressed');
+                // Пример: показать alert с информацией о поддержке
+                alert('Помощь\n\nДля получения помощи обратитесь к администратору или в службу поддержки университета.\n\nТелефон: +7 (xxx) xxx-xx-xx\nEmail: support@university.edu');
+              }}
+            >
               <View style={{
                 backgroundColor: '#FEE2E2',
                 width: 40,
@@ -616,7 +672,13 @@ export default function HomeScreen() {
               </ThemedText>
             </Pressable>
             
-            <Pressable style={{ alignItems: 'center' }}>
+            <Pressable 
+              style={{ alignItems: 'center' }}
+              onPress={() => {
+                // Переходим на страницу чатов (events.tsx содержит чаты)
+                router.push('/(tabs)/events');
+              }}
+            >
               <View style={{
                 backgroundColor: '#DBEAFE',
                 width: 40,
@@ -633,7 +695,13 @@ export default function HomeScreen() {
               </ThemedText>
             </Pressable>
             
-            <Pressable style={{ alignItems: 'center' }}>
+            <Pressable 
+              style={{ alignItems: 'center' }}
+              onPress={() => {
+                // Переход на страницу настроек/профиля
+                router.push('/(tabs)/profile');
+              }}
+            >
               <View style={{
                 backgroundColor: '#D1FAE5',
                 width: 40,

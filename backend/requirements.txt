@@ -1,0 +1,10 @@
+asgiref==3.9.1
+Django==4.2.16
+django-cors-headers==4.7.0
+djangorestframework==3.15.2
+pillow==11.3.0
+PyMySQL==1.1.2
+python-decouple==3.8
+pytz==2025.2
+six==1.17.0
+sqlparse==0.5.3
