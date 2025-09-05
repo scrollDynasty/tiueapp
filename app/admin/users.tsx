@@ -3,6 +3,7 @@ import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/Design
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { authApi } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Switch, TextInput, View } from 'react-native';
@@ -53,6 +54,12 @@ export default function UsersManagementScreen() {
   const [users, setUsers] = React.useState<UserProfile[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = React.useState(true);
 
+  // Состояния для сброса пароля
+  const [showPasswordReset, setShowPasswordReset] = React.useState(false);
+  const [resetPasswordUser, setResetPasswordUser] = React.useState<UserProfile | null>(null);
+  const [newPassword, setNewPassword] = React.useState('');
+  const [isResettingPassword, setIsResettingPassword] = React.useState(false);
+
   // Загружаем пользователей при загрузке компонента
   React.useEffect(() => {
     loadUsers();
@@ -61,22 +68,33 @@ export default function UsersManagementScreen() {
   const loadUsers = async () => {
     setIsLoadingUsers(true);
     try {
+      console.log('Attempting to load users...');
+      
+      // Проверим, есть ли токен
+      const token = await AsyncStorage.getItem('authToken');
+      console.log('Auth token exists:', !!token);
+      
       const response = await authApi.getUsers();
       console.log('API Response:', response); // Для отладки
+      console.log('Response success:', response.success);
+      console.log('Response data:', response.data);
       
       if (response.success && response.data) {
         // Убеждаемся, что данные - это массив
         const usersData = Array.isArray(response.data) ? response.data : [];
+        console.log('Setting users data:', usersData);
         setUsers(usersData);
       } else {
         console.error('API Error:', response);
         setUsers([]); // Устанавливаем пустой массив при ошибке
-        Alert.alert('Ошибка', response.message || 'Не удалось загрузить список пользователей');
+        // Не показываем alert, только логируем
+        console.error('Failed to load users:', response.message || 'Unknown error');
       }
     } catch (error) {
       console.error('Error loading users:', error);
       setUsers([]); // Устанавливаем пустой массив при ошибке
-      Alert.alert('Ошибка', 'Не удалось загрузить список пользователей');
+      // Не показываем alert, только логируем
+      console.error('Exception while loading users');
     } finally {
       setIsLoadingUsers(false);
     }
@@ -108,12 +126,14 @@ export default function UsersManagementScreen() {
     onEdit,
     onToggleStatus, 
     onDelete,
+    onResetPassword,
     animationDelay = 0 
   }: { 
     user: UserProfile; 
     onEdit: (user: UserProfile) => void;
     onToggleStatus: (userId: string) => void;
     onDelete: (userId: string) => void;
+    onResetPassword: (userId: string) => void;
     animationDelay?: number;
   }) => (
     <Animated.View entering={FadeInDown.delay(animationDelay)}>
@@ -220,6 +240,24 @@ export default function UsersManagementScreen() {
               <Ionicons name="create-outline" size={18} color="#2563EB" />
             </Pressable>
 
+            {/* Кнопка сброса пароля */}
+            <Pressable
+              onPress={() => {
+                console.log('Reset password button pressed for user:', user.id);
+                onResetPassword(user.id);
+              }}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: '#FEF3C7',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Ionicons name="key-outline" size={18} color="#D97706" />
+            </Pressable>
+
             {/* Кнопка удаления */}
             <Pressable
               onPress={() => onDelete(user.id)}
@@ -283,7 +321,77 @@ export default function UsersManagementScreen() {
     setEditingUser(null);
   };
 
+  // Функция сброса пароля
+  const handleResetPassword = async (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    if (!user) {
+      console.log('User not found for ID:', userId);
+      return;
+    }
+
+    console.log('Opening password reset modal for user:', user.username);
+    setResetPasswordUser(user);
+    setNewPassword('');
+    setShowPasswordReset(true);
+  };
+
+  // Функция подтверждения сброса пароля
+  const confirmPasswordReset = async () => {
+    if (!resetPasswordUser || !newPassword.trim()) {
+      alert('❌ Введите новый пароль');
+      return;
+    }
+
+    if (newPassword.trim().length < 6) {
+      alert('❌ Пароль должен содержать минимум 6 символов');
+      return;
+    }
+
+    setIsResettingPassword(true);
+    
+    try {
+      console.log('Calling authApi.updateUser with password reset...');
+      console.log('User ID:', resetPasswordUser.id);
+      
+      // Отправляем полные данные пользователя с новым паролем
+      const updateData = {
+        first_name: resetPasswordUser.first_name,
+        last_name: resetPasswordUser.last_name,
+        username: resetPasswordUser.username,
+        email: resetPasswordUser.email,
+        role: resetPasswordUser.role,
+        is_active: resetPasswordUser.is_active,
+        password: newPassword.trim()
+      };
+      
+      console.log('Data being sent:', updateData);
+      
+      const response = await authApi.updateUser(resetPasswordUser.id, updateData as any);
+      console.log('Password reset response:', response);
+      
+      if (response.success) {
+        console.log('Password reset successful!');
+        alert(`✅ УСПЕШНО!\n\nПароль пользователя ${resetPasswordUser.username} изменен на: ${newPassword.trim()}\n\nТеперь можно войти с:\nEmail: ${resetPasswordUser.email}\nПароль: ${newPassword.trim()}`);
+        
+        // Закрываем модальное окно
+        setShowPasswordReset(false);
+        setResetPasswordUser(null);
+        setNewPassword('');
+      } else {
+        console.error('Password reset failed:', response);
+        alert(`❌ ОШИБКА!\n\n${response.error || 'Не удалось изменить пароль'}\n\nResponse: ${JSON.stringify(response)}`);
+      }
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      alert(`❌ ОШИБКА!\n\nНе удалось изменить пароль: ${error}`);
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
   const handleCreateUser = async () => {
+    console.log('handleCreateUser called');
+    
     if (!firstName.trim() || !lastName.trim() || !username.trim() || !email.trim()) {
       Alert.alert('Ошибка', 'Заполните все обязательные поля');
       return;
@@ -310,9 +418,14 @@ export default function UsersManagementScreen() {
         department: role === 'professor' ? department : undefined,
       };
 
+      console.log('User data to send:', userData);
+
       if (editingUser) {
         // Обновление существующего пользователя
+        console.log('Updating user:', editingUser.id);
         const response = await authApi.updateUser(editingUser.id, userData);
+        console.log('Update response:', response);
+        
         if (response.success && response.data) {
           setUsers(prev => prev.map(u => 
             u.id === editingUser.id 
@@ -321,6 +434,7 @@ export default function UsersManagementScreen() {
           ));
           Alert.alert('Успешно', 'Пользователь обновлен');
         } else {
+          console.error('Update failed:', response);
           Alert.alert('Ошибка', response.error || 'Не удалось обновить пользователя');
           return;
         }
@@ -331,11 +445,18 @@ export default function UsersManagementScreen() {
           password: password.trim(),
         };
         
+        console.log('Creating new user with data:', userDataWithPassword);
         const response = await authApi.createUser(userDataWithPassword);
+        console.log('Create response:', response);
+        
         if (response.success && response.data) {
+          console.log('User created successfully, adding to list');
           setUsers(prev => [...prev, response.data as UserProfile]);
           Alert.alert('Успешно', 'Пользователь создан');
+          // Перезагружаем список пользователей для синхронизации
+          loadUsers();
         } else {
+          console.error('Create failed:', response);
           Alert.alert('Ошибка', response.error || 'Не удалось создать пользователя');
           return;
         }
@@ -479,37 +600,39 @@ export default function UsersManagementScreen() {
         {/* Основная кнопка добавления пользователя */}
         {!showCreateForm && (
           <Animated.View entering={FadeInDown.duration(500).delay(300)}>
-            <Pressable
-              onPress={() => {
-                setShowCreateForm(true);
-                clearForm();
-              }}
-              style={{
-                backgroundColor: Colors.brandPrimary,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingVertical: Spacing.l,
-                paddingHorizontal: Spacing.l,
-                borderRadius: Radius.card,
-                marginBottom: Spacing.l,
-                ...Shadows.card,
-              }}
-            >
-              <Ionicons 
-                name="person-add" 
-                size={24} 
-                color={Colors.surface} 
-                style={{ marginRight: Spacing.s }}
-              />
-              <ThemedText style={{
-                ...Typography.titleH2,
-                color: Colors.surface,
-                fontWeight: '600',
-              }}>
-                Добавить нового пользователя
-              </ThemedText>
-            </Pressable>
+            <View style={{ flexDirection: 'row', gap: Spacing.m, marginBottom: Spacing.l }}>
+              <Pressable
+                onPress={() => {
+                  setShowCreateForm(true);
+                  clearForm();
+                }}
+                style={{
+                  flex: 1,
+                  backgroundColor: Colors.brandPrimary,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: Spacing.l,
+                  paddingHorizontal: Spacing.l,
+                  borderRadius: Radius.card,
+                  ...Shadows.card,
+                }}
+              >
+                <Ionicons 
+                  name="person-add" 
+                  size={24} 
+                  color={Colors.surface} 
+                  style={{ marginRight: Spacing.s }}
+                />
+                <ThemedText style={{
+                  ...Typography.titleH2,
+                  color: Colors.surface,
+                  fontWeight: '600',
+                }}>
+                  Добавить
+                </ThemedText>
+              </Pressable>
+            </View>
           </Animated.View>
         )}
 
@@ -850,7 +973,7 @@ export default function UsersManagementScreen() {
               </ThemedText>
             </View>
           ) : (
-            <View style={{ gap: Spacing.m }}>
+            <View style={{ gap: Spacing.m }}> 
               {filteredUsers.map((user, index) => (
                 <UserCard
                   key={user.id}
@@ -858,6 +981,7 @@ export default function UsersManagementScreen() {
                   onEdit={handleEditUser}
                   onToggleStatus={handleToggleUserStatus}
                   onDelete={handleDeleteUser}
+                  onResetPassword={handleResetPassword}
                   animationDelay={index * 100}
                 />
               ))}
@@ -865,6 +989,132 @@ export default function UsersManagementScreen() {
           )}
         </Animated.View>
       </ScrollView>
+
+      {/* Модальное окно сброса пароля */}
+      {showPasswordReset && resetPasswordUser && (
+        <View style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000,
+        }}>
+          <Animated.View 
+            entering={FadeInDown.duration(300)}
+            style={{
+              backgroundColor: Colors.surface,
+              borderRadius: Radius.card,
+              padding: Spacing.l,
+              margin: Spacing.l,
+              minWidth: 300,
+              maxWidth: 400,
+              ...Shadows.card,
+            }}
+          >
+            <ThemedText style={{ 
+              ...Typography.titleH2, 
+              color: Colors.textPrimary, 
+              marginBottom: Spacing.m,
+              textAlign: 'center'
+            }}>
+              Сброс пароля
+            </ThemedText>
+            
+            <ThemedText style={{ 
+              ...Typography.body, 
+              color: Colors.textSecondary, 
+              marginBottom: Spacing.l,
+              textAlign: 'center'
+            }}>
+              Новый пароль для пользователя{'\n'}
+              <ThemedText style={{ fontWeight: 'bold', color: Colors.textPrimary }}>
+                {resetPasswordUser.first_name} {resetPasswordUser.last_name}
+              </ThemedText>
+            </ThemedText>
+
+            <View style={{ marginBottom: Spacing.l }}>
+              <ThemedText style={{ 
+                ...Typography.body, 
+                color: Colors.textSecondary, 
+                marginBottom: Spacing.s 
+              }}>
+                Новый пароль
+              </ThemedText>
+              <TextInput
+                value={newPassword}
+                onChangeText={setNewPassword}
+                placeholder="Введите новый пароль (минимум 6 символов)"
+                autoFocus
+                style={{
+                  backgroundColor: Colors.surfaceSubtle,
+                  borderRadius: Radius.card,
+                  paddingHorizontal: Spacing.m,
+                  paddingVertical: Spacing.m,
+                  fontSize: 16,
+                  borderWidth: 1,
+                  borderColor: Colors.strokeSoft,
+                }}
+              />
+            </View>
+
+            <View style={{ flexDirection: 'row', gap: Spacing.m }}>
+              <Pressable
+                onPress={() => {
+                  setShowPasswordReset(false);
+                  setResetPasswordUser(null);
+                  setNewPassword('');
+                }}
+                style={{
+                  flex: 1,
+                  backgroundColor: Colors.surfaceSubtle,
+                  paddingVertical: Spacing.m,
+                  paddingHorizontal: Spacing.l,
+                  borderRadius: Radius.card,
+                  alignItems: 'center',
+                }}
+              >
+                <ThemedText style={{ 
+                  ...Typography.body, 
+                  color: Colors.textSecondary,
+                  fontWeight: '600'
+                }}>
+                  Отмена
+                </ThemedText>
+              </Pressable>
+              
+              <Pressable
+                onPress={confirmPasswordReset}
+                disabled={isResettingPassword}
+                style={{
+                  flex: 1,
+                  backgroundColor: isResettingPassword ? Colors.textSecondary : Colors.brandPrimary,
+                  paddingVertical: Spacing.m,
+                  paddingHorizontal: Spacing.l,
+                  borderRadius: Radius.card,
+                  alignItems: 'center',
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                }}
+              >
+                {isResettingPassword && (
+                  <ActivityIndicator size="small" color={Colors.surface} style={{ marginRight: Spacing.s }} />
+                )}
+                <ThemedText style={{ 
+                  ...Typography.body, 
+                  color: Colors.surface,
+                  fontWeight: '600'
+                }}>
+                  {isResettingPassword ? 'Сохранение...' : 'Сохранить'}
+                </ThemedText>
+              </Pressable>
+            </View>
+          </Animated.View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }

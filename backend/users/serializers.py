@@ -2,10 +2,52 @@ from rest_framework import serializers
 from .models import CustomUser, Student, Professor, Admin
 
 class CustomUserSerializer(serializers.ModelSerializer):
+    faculty = serializers.SerializerMethodField()
+    course = serializers.SerializerMethodField()
+    group = serializers.SerializerMethodField()
+    department = serializers.SerializerMethodField()
+    password = serializers.CharField(write_only=True, required=False)
+    
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'avatar', 'is_active', 'created_at', 'updated_at']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'avatar', 'is_active', 'created_at', 'updated_at', 'faculty', 'course', 'group', 'department', 'password']
         read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        user = CustomUser.objects.create(**validated_data)
+        if password:
+            user.set_password(password)
+            user.save()
+        return user
+    
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        user = super().update(instance, validated_data)
+        if password:
+            user.set_password(password)
+            user.save()
+        return user
+    
+    def get_faculty(self, obj):
+        if obj.role == 'student' and hasattr(obj, 'student_profile'):
+            return obj.student_profile.faculty
+        return None
+    
+    def get_course(self, obj):
+        if obj.role == 'student' and hasattr(obj, 'student_profile'):
+            return obj.student_profile.course
+        return None
+    
+    def get_group(self, obj):
+        if obj.role == 'student' and hasattr(obj, 'student_profile'):
+            return obj.student_profile.group.name if obj.student_profile.group else None
+        return None
+    
+    def get_department(self, obj):
+        if obj.role == 'professor' and hasattr(obj, 'professor_profile'):
+            return obj.professor_profile.department
+        return None
 
 class StudentSerializer(serializers.ModelSerializer):
     user = CustomUserSerializer(read_only=True)

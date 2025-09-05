@@ -3,6 +3,7 @@ import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/Design
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { logoutUser } from '@/store/slices/authSlice';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React from 'react';
 import { Alert, Pressable, ScrollView, Switch, View } from 'react-native';
@@ -497,18 +498,22 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
       </Animated.View>
 
       {/* Выход из системы */}
-      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ marginTop: Spacing.l }}>
+      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ marginTop: Spacing.l, zIndex: 999 }}>
         <Pressable
-          onPress={onLogout}
-          style={{
-            backgroundColor: Colors.error,
+          onPress={() => {
+            console.log('Logout button pressed!');
+            onLogout();
+          }}
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? '#dc2626' : Colors.error,
             borderRadius: Radius.card,
             padding: Spacing.l,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
+            opacity: pressed ? 0.8 : 1,
             ...Shadows.card,
-          }}
+          })}
         >
           <Ionicons name="log-out-outline" size={20} color="white" style={{ marginRight: Spacing.s }} />
           <ThemedText style={{ 
@@ -650,19 +655,23 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
       </Animated.View>
 
       {/* Выход */}
-      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ marginTop: Spacing.l }}>
+      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ marginTop: Spacing.l, zIndex: 999 }}>
         <Pressable
-          onPress={onLogout}
-          style={{
-            backgroundColor: '#ef4444',
+          onPress={() => {
+            console.log('Student logout button pressed!');
+            onLogout();
+          }}
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? '#dc2626' : '#ef4444',
             borderRadius: 12,
             padding: Spacing.m,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: Spacing.l,
+            opacity: pressed ? 0.8 : 1,
             ...Shadows.card,
-          }}
+          })}
         >
           <Ionicons name="log-out-outline" size={20} color="white" style={{ marginRight: Spacing.s }} />
           <ThemedText style={{ 
@@ -682,28 +691,36 @@ export default function ProfileScreen() {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Выход',
-      'Вы уверены, что хотите выйти из системы?',
-      [
-        { text: 'Отмена', style: 'cancel' },
-        { 
-          text: 'Выйти', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await dispatch(logoutUser()).unwrap();
-              router.replace('/(auth)/login' as any);
-            } catch (error) {
-              console.error('Logout error:', error);
-              // Все равно перенаправляем на логин даже если ошибка
-              router.replace('/(auth)/login' as any);
-            }
-          }
-        }
-      ]
-    );
+  const handleLogout = async () => {
+    console.log('handleLogout function called!');
+    
+    try {
+      console.log('Starting logout process...');
+      
+      // Выполняем logout через Redux
+      const result = await dispatch(logoutUser());
+      console.log('Logout result:', result);
+      
+      // Также очищаем токен напрямую для надежности
+      await AsyncStorage.removeItem('authToken');
+      
+      // Независимо от результата, перенаправляем на логин
+      console.log('Redirecting to login...');
+      router.replace('/login');
+      
+    } catch (error) {
+      console.error('Logout error:', error);
+      
+      // В случае ошибки, очищаем токен напрямую
+      try {
+        await AsyncStorage.removeItem('authToken');
+      } catch (storageError) {
+        console.error('Storage clear error:', storageError);
+      }
+      
+      // Все равно перенаправляем на логин
+      router.replace('/login');
+    }
   };
 
   // Если пользователь не авторизован

@@ -28,11 +28,11 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         await dispatch(checkAuthStatus());
       } else {
         // Токена нет, перенаправляем на логин
-        router.replace('/login' as any);
+        router.replace('/login');
       }
     } catch (error) {
       console.error('Auth initialization error:', error);
-      router.replace('/login' as any);
+      router.replace('/login');
     } finally {
       setIsInitializing(false);
     }
@@ -40,7 +40,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
 
   useEffect(() => {
     if (!isInitializing && !loading && !isAuthenticated) {
-      router.replace('/login' as any);
+      router.replace('/login');
     }
   }, [isAuthenticated, isInitializing, loading]);
 
