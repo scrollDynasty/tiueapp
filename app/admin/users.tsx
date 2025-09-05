@@ -62,13 +62,20 @@ export default function UsersManagementScreen() {
     setIsLoadingUsers(true);
     try {
       const response = await authApi.getUsers();
+      console.log('API Response:', response); // Для отладки
+      
       if (response.success && response.data) {
-        setUsers(response.data);
+        // Убеждаемся, что данные - это массив
+        const usersData = Array.isArray(response.data) ? response.data : [];
+        setUsers(usersData);
       } else {
-        Alert.alert('Ошибка', 'Не удалось загрузить список пользователей');
+        console.error('API Error:', response);
+        setUsers([]); // Устанавливаем пустой массив при ошибке
+        Alert.alert('Ошибка', response.message || 'Не удалось загрузить список пользователей');
       }
     } catch (error) {
       console.error('Error loading users:', error);
+      setUsers([]); // Устанавливаем пустой массив при ошибке
       Alert.alert('Ошибка', 'Не удалось загрузить список пользователей');
     } finally {
       setIsLoadingUsers(false);
@@ -77,6 +84,11 @@ export default function UsersManagementScreen() {
 
   // Фильтрация пользователей
   const filteredUsers = React.useMemo(() => {
+    // Убеждаемся, что users - это массив
+    if (!Array.isArray(users)) {
+      return [];
+    }
+    
     return users.filter(user => {
       const matchesSearch = 
         user.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
