@@ -690,9 +690,13 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
 export default function ProfileScreen() {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const [isLoggingOut, setIsLoggingOut] = React.useState(false);
 
     const handleLogout = async () => {
+    if (isLoggingOut) return; // Предотвращаем множественные вызовы
+    
     console.log('handleLogout function called!');
+    setIsLoggingOut(true);
     
     try {
       console.log('Starting logout process...');
@@ -714,6 +718,8 @@ export default function ProfileScreen() {
       
       // И перенаправляем на логин
       router.replace('/login');
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 

@@ -42,7 +42,7 @@ export const createNews = createAsyncThunk(
     category: string; 
     icon: string; 
     is_important: boolean;
-    image?: string;
+    image?: any; // Может быть строкой (URI) или объектом ImagePickerAsset
   }, { rejectWithValue }) => {
     try {
       const response = await authApi.createNews(newsData);

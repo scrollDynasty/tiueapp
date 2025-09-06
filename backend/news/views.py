@@ -30,6 +30,19 @@ class NewsViewSet(viewsets.ModelViewSet):
         if category is not None:
             queryset = queryset.filter(category=category)
         return queryset
+    
+    def create(self, request, *args, **kwargs):
+        """Создание новости с дополнительным логированием"""
+        print(f"Creating news with data: {request.data}")
+        print(f"Files: {request.FILES}")
+        print(f"Content-Type: {request.content_type}")
+        print(f"User: {request.user}, Role: {getattr(request.user, 'role', 'No role')}")
+        
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class EventViewSet(viewsets.ModelViewSet):

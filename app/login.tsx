@@ -197,7 +197,12 @@ export default function LoginScreen() {
                     style={styles.inputIcon}
                   />
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, {
+                      // Принудительно переопределяем все стили фокуса
+                      backgroundColor: 'transparent',
+                      borderColor: 'transparent',
+                      color: '#111827',
+                    }]}
                     placeholder="your.email@university.ru"
                     placeholderTextColor="#94a3b8"
                     value={credentials.email}
@@ -208,6 +213,9 @@ export default function LoginScreen() {
                     editable={!loading}
                     onFocus={() => setFocusedInput('email')}
                     onBlur={() => setFocusedInput(null)}
+                    underlineColorAndroid="transparent"
+                    selectTextOnFocus={false}
+                    blurOnSubmit={false}
                   />
                 </View>
               </View>
@@ -226,7 +234,12 @@ export default function LoginScreen() {
                     style={styles.inputIcon}
                   />
                   <TextInput
-                    style={styles.input}
+                    style={[styles.input, {
+                      // Принудительно переопределяем все стили фокуса
+                      backgroundColor: 'transparent',
+                      borderColor: 'transparent',
+                      color: '#111827',
+                    }]}
                     placeholder="Введите пароль"
                     placeholderTextColor="#94a3b8"
                     value={credentials.password}
@@ -237,6 +250,9 @@ export default function LoginScreen() {
                     editable={!loading}
                     onFocus={() => setFocusedInput('password')}
                     onBlur={() => setFocusedInput(null)}
+                    underlineColorAndroid="transparent"
+                    selectTextOnFocus={false}
+                    blurOnSubmit={false}
                   />
                   <TouchableOpacity
                     onPress={() => setShowPassword(!showPassword)}
@@ -420,6 +436,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowRadius: 4,
     elevation: 1,
+    // Предотвращаем системные изменения
+    overflow: 'hidden',
+    position: 'relative',
   },
   inputWrapperFocused: {
     borderColor: '#2563EB',
@@ -440,6 +459,24 @@ const styles = StyleSheet.create({
     height: '100%',
     paddingVertical: 0,
     textAlignVertical: 'center',
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    // Важно - убираем все margins и paddings которые может добавить система
+    margin: 0,
+    ...(Platform.OS === 'android' && {
+      includeFontPadding: false,
+      // Полностью убираем все возможные border эффекты
+      borderBottomWidth: 0,
+      borderTopWidth: 0,
+      borderLeftWidth: 0,
+      borderRightWidth: 0,
+      borderStyle: undefined,
+    }),
+    ...(Platform.OS === 'web' && {
+      outline: 'none',
+      // Убираем все веб-специфичные эффекты
+      boxShadow: 'none',
+    }),
   },
   passwordToggle: {
     padding: Spacing.xs,
