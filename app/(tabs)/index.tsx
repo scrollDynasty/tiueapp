@@ -460,8 +460,7 @@ export default function HomeScreen() {
                   borderRadius: 20,
                 }}
                 onPress={() => {
-                  // Пока нет отдельной страницы новостей, можно остаться на главной
-                  console.log('View all news');
+                  router.push('/news');
                 }}
               >
                 <ThemedText style={{
@@ -485,7 +484,7 @@ export default function HomeScreen() {
                   events={news.events || []}
                   icon={news.icon}
                   index={index}
-                  onPress={() => console.log(`Important news ${news.id} pressed`)}
+                  onPress={() => router.push(`/news/${news.id}`)}
                   onEventPress={(event) => console.log(`Event ${event.id} pressed from news ${news.id}`)}
                 />
               ))}
@@ -535,7 +534,7 @@ export default function HomeScreen() {
                   events={news.events || []}
                   icon={news.icon}
                   index={index}
-                  onPress={() => console.log(`News ${news.id} pressed`)}
+                  onPress={() => router.push(`/news/${news.id}`)}
                   onEventPress={(event) => console.log(`Event ${event.id} pressed from news ${news.id}`)}
                 />
               ))

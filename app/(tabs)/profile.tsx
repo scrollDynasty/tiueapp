@@ -1,7 +1,7 @@
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { logoutUser } from '@/store/slices/authSlice';
+import { clearCredentials, logoutUser } from '@/store/slices/authSlice';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
@@ -691,34 +691,28 @@ export default function ProfileScreen() {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
 
-  const handleLogout = async () => {
+    const handleLogout = async () => {
     console.log('handleLogout function called!');
     
     try {
       console.log('Starting logout process...');
       
-      // Выполняем logout через Redux
-      const result = await dispatch(logoutUser());
-      console.log('Logout result:', result);
+      // Выполняем logout через Redux (он сам очистит все данные)
+      await dispatch(logoutUser());
+      console.log('Logout completed successfully');
       
-      // Также очищаем токен напрямую для надежности
-      await AsyncStorage.removeItem('authToken');
-      
-      // Независимо от результата, перенаправляем на логин
+      // Перенаправляем на логин
       console.log('Redirecting to login...');
       router.replace('/login');
       
     } catch (error) {
       console.error('Logout error:', error);
       
-      // В случае ошибки, очищаем токен напрямую
-      try {
-        await AsyncStorage.removeItem('authToken');
-      } catch (storageError) {
-        console.error('Storage clear error:', storageError);
-      }
+      // В случае ошибки API, все равно очищаем локальные данные
+      dispatch(clearCredentials());
+      await AsyncStorage.removeItem('authToken');
       
-      // Все равно перенаправляем на логин
+      // И перенаправляем на логин
       router.replace('/login');
     }
   };

@@ -35,7 +35,15 @@ export const fetchNews = createAsyncThunk(
 
 export const createNews = createAsyncThunk(
   'news/createNews',
-  async (newsData: { title: string; subtitle: string; content: string; category: string; icon: string; is_important: boolean }, { rejectWithValue }) => {
+  async (newsData: { 
+    title: string; 
+    subtitle: string; 
+    content: string; 
+    category: string; 
+    icon: string; 
+    is_important: boolean;
+    image?: string;
+  }, { rejectWithValue }) => {
     try {
       const response = await authApi.createNews(newsData);
       if (response.success && response.data) {
