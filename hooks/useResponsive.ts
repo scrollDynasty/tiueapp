@@ -4,7 +4,7 @@ export function useResponsive() {
   const { width, height } = useWindowDimensions();
   
   // Определяем размер экрана
-  const isVerySmallScreen = width < 480;
+  const isVerySmallScreen = width < 470;
   const isSmallScreen = width < 375;
   const isMediumScreen = width >= 375 && width < 414;
   const isLargeScreen = width >= 414;

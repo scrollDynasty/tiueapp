@@ -15,10 +15,7 @@ import { Colors } from '@/constants/DesignTokens';
 
 export default function TabLayout() {
   const { width } = useWindowDimensions();
-  const isVerySmallScreen = width < 480;
-  
-  // Отладочное логирование
-  console.log('Screen width:', width, 'isVerySmallScreen:', isVerySmallScreen);
+  const isVerySmallScreen = width < 470;
   
   const screenOptions = useMemo(() => ({
     tabBarActiveTintColor: Colors.brandPrimary,
