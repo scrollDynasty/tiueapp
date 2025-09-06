@@ -1,5 +1,7 @@
 import { ThemedText } from '@/components/ThemedText';
+import { getThemeColors } from '@/constants/Colors';
 import { Colors } from '@/constants/DesignTokens';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,6 +11,8 @@ import Animated, { FadeInDown, FadeInUp, SlideInDown } from 'react-native-reanim
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ExploreScreen() {
+  const { isDarkMode } = useTheme();
+  const colors = getThemeColors(isDarkMode);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [focusedInput, setFocusedInput] = React.useState<string | null>(null);
   const { horizontalPadding, cardGap, cardWidth, cardHeight, isSmallScreen, fontSize, spacing } = useResponsive();

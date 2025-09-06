@@ -1,3 +1,5 @@
+import { getThemeColors } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { formatDateYMD } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
@@ -9,7 +11,7 @@ import Animated, {
     useSharedValue,
     withTiming,
 } from 'react-native-reanimated';
-import { Animation, Colors, Spacing } from '../constants/DesignTokens';
+import { Animation, Spacing } from '../constants/DesignTokens';
 import { ThemedText } from './ThemedText';
 
 interface Event {
@@ -48,6 +50,8 @@ export function NewsCard({
   style,
   index = 0 
 }: NewsCardProps) {
+  const { isDarkMode } = useTheme();
+  const colors = getThemeColors(isDarkMode);
   const pressed = useSharedValue(0);
 
   const handlePressIn = () => {
@@ -80,14 +84,14 @@ export function NewsCard({
         {
           borderRadius: 16,
           borderWidth: 1,
-          borderColor: '#E5EAF2',
-          backgroundColor: '#FFFFFF',
-          shadowColor: '#000',
+          borderColor: colors.border,
+          backgroundColor: isDarkMode ? colors.surfaceSecondary : colors.surface,
+          shadowColor: isDarkMode ? '#000' : '#000',
           shadowOffset: {
             width: 0,
             height: 6,
           },
-          shadowOpacity: 0.05,
+          shadowOpacity: isDarkMode ? 0.25 : 0.05,
           shadowRadius: 10,
           elevation: 8,
         },
@@ -121,7 +125,7 @@ export function NewsCard({
           style={{
             width: 6,
             height: 48,
-            backgroundColor: Colors.brandPrimary,
+            backgroundColor: colors.primary,
             borderRadius: 3,
             marginRight: Spacing.m,
           }}
@@ -134,7 +138,7 @@ export function NewsCard({
               fontSize: 16,
               lineHeight: 24,
               fontWeight: '600',
-              color: Colors.textPrimary,
+              color: colors.text,
               marginBottom: Spacing.xxs,
             }}
             numberOfLines={2}
@@ -147,7 +151,7 @@ export function NewsCard({
               fontSize: 13,
               lineHeight: 18,
               fontWeight: '500',
-              color: Colors.textSecondary,
+              color: colors.textSecondary,
               marginBottom: Spacing.xs,
             }}
             numberOfLines={2}
@@ -160,7 +164,7 @@ export function NewsCard({
               fontSize: 12,
               lineHeight: 16,
               fontWeight: '500',
-              color: Colors.textSecondary,
+              color: colors.textSecondary,
             }}
           >
             {formatDateYMD(date)}
@@ -173,7 +177,7 @@ export function NewsCard({
             width: 24,
             height: 24,
             borderRadius: 12,
-            backgroundColor: Colors.chipBg,
+            backgroundColor: isDarkMode ? `${colors.primary}20` : colors.backgroundSecondary,
             justifyContent: 'center',
             alignItems: 'center',
             marginLeft: Spacing.s,
@@ -182,7 +186,7 @@ export function NewsCard({
           <Ionicons 
             name={icon} 
             size={14} 
-            color={Colors.chipIcon} 
+            color={colors.primary} 
           />
         </View>
       </View>
@@ -192,7 +196,7 @@ export function NewsCard({
         <View
           style={{
             borderTopWidth: 1,
-            borderTopColor: '#E5EAF2',
+            borderTopColor: colors.border,
             paddingHorizontal: Spacing.m,
             paddingVertical: Spacing.s,
           }}
@@ -201,7 +205,7 @@ export function NewsCard({
             style={{
               fontSize: 14,
               fontWeight: '600',
-              color: Colors.textPrimary,
+              color: colors.text,
               marginBottom: Spacing.xs,
             }}
           >
@@ -213,19 +217,21 @@ export function NewsCard({
               key={event.id}
               onPress={() => onEventPress?.(event)}
               style={{
-                backgroundColor: '#F8FAFC',
+                backgroundColor: isDarkMode ? colors.background : colors.backgroundSecondary,
                 borderRadius: 8,
                 padding: Spacing.s,
                 marginBottom: Spacing.xs,
                 borderLeftWidth: 3,
-                borderLeftColor: Colors.brandPrimary,
+                borderLeftColor: colors.primary,
+                borderWidth: isDarkMode ? 1 : 0,
+                borderColor: isDarkMode ? colors.border : 'transparent',
               }}
             >
               <ThemedText
                 style={{
                   fontSize: 13,
                   fontWeight: '600',
-                  color: Colors.textPrimary,
+                  color: colors.text,
                   marginBottom: 2,
                 }}
                 numberOfLines={1}
@@ -236,7 +242,7 @@ export function NewsCard({
               <ThemedText
                 style={{
                   fontSize: 11,
-                  color: Colors.textSecondary,
+                  color: colors.textSecondary,
                 }}
               >
                 📍 {event.location} • {formatDateYMD(event.date)} в {event.time}

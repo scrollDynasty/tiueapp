@@ -11,37 +11,41 @@ import {
 } from '@/components/AnimatedTabIcons';
 import AuthGuard from '@/components/AuthGuard';
 import { ImmersiveContainer } from '@/components/ImmersiveContainer';
-import { Colors } from '@/constants/DesignTokens';
+import { getThemeColors } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function TabLayout() {
   const { width } = useWindowDimensions();
+  const { isDarkMode } = useTheme();
+  const colors = getThemeColors(isDarkMode);
   const isVerySmallScreen = width < 470;
   
   const screenOptions = useMemo(() => ({
-    tabBarActiveTintColor: Colors.brandPrimary,
-    tabBarInactiveTintColor: Colors.tabInactive,
+    tabBarActiveTintColor: colors.primary,
+    tabBarInactiveTintColor: colors.tabIconDefault,
     headerShown: false,
     tabBarStyle: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: colors.surface,
       borderTopWidth: 1,
-      borderTopColor: '#E5E7EB',
-      height: isVerySmallScreen ? 55 : 65, // Уменьшаем высоту на маленьких экранах
+      borderTopColor: colors.border,
+      height: isVerySmallScreen ? 55 : 65,
       paddingBottom: isVerySmallScreen ? 4 : 8,
       paddingTop: isVerySmallScreen ? 4 : 8,
       position: 'absolute' as const,
       bottom: 0,
       left: 0,
       right: 0,
-      // Убираем все тени для быстрой отзывчивости
-      elevation: 0,
-      shadowOpacity: 0,
-      // Добавляем дополнительные стили для лучшего прижатия к низу
+      elevation: isDarkMode ? 8 : 0,
+      shadowOpacity: isDarkMode ? 0.3 : 0,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: -2 },
+      shadowRadius: 8,
       zIndex: 1000,
     },
-  }), [isVerySmallScreen]);
+  }), [isVerySmallScreen, colors, isDarkMode]);
   return (
     <AuthGuard>
-      <ImmersiveContainer backgroundColor="#ffffff" includeNavigationBar={true}>
+      <ImmersiveContainer backgroundColor={colors.background} includeNavigationBar={true}>
       <Tabs screenOptions={screenOptions}>
       <Tabs.Screen
         name="index"

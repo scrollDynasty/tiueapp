@@ -4,7 +4,8 @@ import { CustomRefreshControl } from '@/components/CustomRefreshControl';
 import { NewsCard } from '@/components/NewsCard';
 import { NotificationModal } from '@/components/NotificationModal';
 import { ThemedText } from '@/components/ThemedText';
-import { Colors } from '@/constants/DesignTokens';
+import { getThemeColors } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { useResponsive } from '@/hooks/useResponsive';
 import { fetchEvents } from '@/store/slices/eventsSlice';
@@ -15,11 +16,11 @@ import { router } from 'expo-router';
 import React from 'react';
 import { Dimensions, Pressable, ScrollView, View } from 'react-native';
 import Animated, {
-    FadeInDown,
-    SlideInLeft,
-    SlideInRight,
-    useAnimatedScrollHandler,
-    useSharedValue,
+  FadeInDown,
+  SlideInLeft,
+  SlideInRight,
+  useAnimatedScrollHandler,
+  useSharedValue,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -27,6 +28,8 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
 export default function HomeScreen() {
   const dispatch = useAppDispatch();
+  const { isDarkMode } = useTheme();
+  const colors = getThemeColors(isDarkMode);
   const scrollY = useSharedValue(0);
   const [refreshing, setRefreshing] = React.useState(false);
   const [showNotifications, setShowNotifications] = React.useState(false);
@@ -128,18 +131,20 @@ export default function HomeScreen() {
     <Animated.View 
       entering={FadeInDown.delay(200)}
       style={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: isDarkMode ? colors.surfaceSecondary : colors.surface,
         borderRadius: 16,
         padding: isVerySmallScreen ? 12 : 16,
         flex: 1,
         marginHorizontal: 4,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
+        shadowOpacity: isDarkMode ? 0.2 : 0.08,
         shadowRadius: 12,
         elevation: 6,
         borderLeftWidth: 4,
         borderLeftColor: color,
+        borderWidth: isDarkMode ? 1 : 0,
+        borderColor: isDarkMode ? colors.border : 'transparent',
       }}
     >
       <View style={{ 
@@ -149,7 +154,7 @@ export default function HomeScreen() {
         justifyContent: 'center'
       }}>
         <View style={{
-          backgroundColor: `${color}15`,
+          backgroundColor: isDarkMode ? `${color}25` : `${color}15`,
           width: isVerySmallScreen ? 28 : 32,
           height: isVerySmallScreen ? 28 : 32,
           borderRadius: 8,
@@ -164,7 +169,7 @@ export default function HomeScreen() {
           <ThemedText style={{
             fontSize: 12,
             fontWeight: '600',
-            color: '#64748B',
+            color: colors.textSecondary,
             textTransform: 'uppercase',
             letterSpacing: 0.5,
           }}>
@@ -175,7 +180,7 @@ export default function HomeScreen() {
       <ThemedText style={{
         fontSize: isVerySmallScreen ? 20 : 24,
         fontWeight: '700',
-        color: '#1E293B',
+        color: colors.text,
         textAlign: 'center',
       }}>
         {value}
@@ -188,7 +193,7 @@ export default function HomeScreen() {
     <Animated.View
       entering={SlideInRight.delay(400 + index * 100)}
       style={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
@@ -198,7 +203,7 @@ export default function HomeScreen() {
         shadowRadius: 8,
         elevation: 4,
         borderLeftWidth: 3,
-        borderLeftColor: Colors.brandPrimary,
+        borderLeftColor: colors.primary,
       }}
     >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -206,26 +211,26 @@ export default function HomeScreen() {
           <ThemedText style={{
             fontSize: 14,
             fontWeight: '600',
-            color: '#1E293B',
+            color: colors.text,
             marginBottom: 4,
           }} numberOfLines={2}>
             {event.title}
           </ThemedText>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
-            <Ionicons name="calendar-outline" size={12} color="#64748B" />
+            <Ionicons name="calendar-outline" size={12} color={colors.textSecondary} />
             <ThemedText style={{
               fontSize: 12,
-              color: '#64748B',
+              color: colors.textSecondary,
               marginLeft: 4,
             }}>
               {formatDateYMD(event.date)}
             </ThemedText>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Ionicons name="location-outline" size={12} color="#64748B" />
+            <Ionicons name="location-outline" size={12} color={colors.textSecondary} />
             <ThemedText style={{
               fontSize: 12,
-              color: '#64748B',
+              color: colors.textSecondary,
               marginLeft: 4,
             }} numberOfLines={1}>
               {event.location}
@@ -233,7 +238,7 @@ export default function HomeScreen() {
           </View>
         </View>
         <View style={{
-          backgroundColor: '#F1F5F9',
+          backgroundColor: colors.backgroundSecondary,
           paddingHorizontal: 8,
           paddingVertical: 4,
           borderRadius: 6,
@@ -242,7 +247,7 @@ export default function HomeScreen() {
           <ThemedText style={{
             fontSize: 10,
             fontWeight: '600',
-            color: '#475569',
+            color: colors.textSecondary,
             textTransform: 'uppercase',
           }}>
             {event.category}
@@ -253,7 +258,7 @@ export default function HomeScreen() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.surface }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Верхняя панель */}
       <AnimatedHeader 
         userName={user?.first_name || user?.username || 'Пользователь'}
@@ -273,6 +278,8 @@ export default function HomeScreen() {
       <AnimatedScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         refreshControl={
           <CustomRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -293,19 +300,19 @@ export default function HomeScreen() {
             icon="book-outline" 
             title="Курсы" 
             value={statsData.courses} 
-            color="#3B82F6" 
+            color={colors.primary} 
           />
           <StatWidget 
             icon="calendar-outline" 
             title="События" 
             value={statsData.events} 
-            color="#10B981" 
+            color={colors.success} 
           />
           <StatWidget 
             icon="trophy-outline" 
             title={statsData.gradeTitle} 
             value={statsData.grade} 
-            color="#F59E0B" 
+            color={colors.warning} 
           />
         </View>
 
@@ -321,7 +328,7 @@ export default function HomeScreen() {
               fontSize: 18,
               lineHeight: 24,
               fontWeight: '700',
-              color: '#1E293B',
+              color: colors.text,
               marginBottom: 16,
               fontFamily: 'Inter',
             }}
@@ -405,7 +412,7 @@ export default function HomeScreen() {
                   fontSize: 18,
                   lineHeight: 24,
                   fontWeight: '700',
-                  color: '#1E293B',
+                  color: colors.text,
                   fontFamily: 'Inter',
                 }}
               >
@@ -413,7 +420,7 @@ export default function HomeScreen() {
               </ThemedText>
               <Pressable
                 style={{
-                  backgroundColor: '#F1F5F9',
+                  backgroundColor: colors.backgroundSecondary,
                   paddingHorizontal: 12,
                   paddingVertical: 6,
                   borderRadius: 20,
@@ -423,7 +430,7 @@ export default function HomeScreen() {
                 <ThemedText style={{
                   fontSize: 12,
                   fontWeight: '600',
-                  color: Colors.brandPrimary,
+                  color: colors.primary,
                 }}>
                   Все события
                 </ThemedText>
@@ -447,7 +454,7 @@ export default function HomeScreen() {
                   fontSize: 18,
                   lineHeight: 24,
                   fontWeight: '700',
-                  color: '#1E293B',
+                  color: isDarkMode ? colors.text : '#1E293B',
                   fontFamily: 'Inter',
                 }}
               >
@@ -455,7 +462,7 @@ export default function HomeScreen() {
               </ThemedText>
               <Pressable
                 style={{
-                  backgroundColor: '#FEF3C7',
+                  backgroundColor: isDarkMode ? `${colors.warning}20` : '#FEF3C7',
                   paddingHorizontal: 12,
                   paddingVertical: 6,
                   borderRadius: 20,
@@ -467,7 +474,7 @@ export default function HomeScreen() {
                 <ThemedText style={{
                   fontSize: 12,
                   fontWeight: '600',
-                  color: '#D97706',
+                  color: isDarkMode ? colors.warning : '#D97706',
                 }}>
                   Все новости
                 </ThemedText>
@@ -501,14 +508,14 @@ export default function HomeScreen() {
                 fontSize: 18,
                 lineHeight: 24,
                 fontWeight: '700',
-                color: '#1E293B',
+                color: isDarkMode ? colors.text : '#1E293B',
                 fontFamily: 'Inter',
               }}
             >
               📰 Последние новости
             </ThemedText>
             <View style={{
-              backgroundColor: '#E0F2FE',
+              backgroundColor: isDarkMode ? `${colors.primary}20` : '#ffffffff',
               paddingHorizontal: 10,
               paddingVertical: 4,
               borderRadius: 12,
@@ -516,7 +523,7 @@ export default function HomeScreen() {
               <ThemedText style={{
                 fontSize: 11,
                 fontWeight: '600',
-                color: '#0369A1',
+                color: isDarkMode ? colors.primary : '#0369A1',
               }}>
                 {newsData.length} новостей
               </ThemedText>
@@ -541,16 +548,16 @@ export default function HomeScreen() {
               ))
             ) : (
               <View style={{
-                backgroundColor: '#F8FAFC',
+                backgroundColor: colors.backgroundSecondary,
                 borderRadius: 16,
                 padding: 32,
                 alignItems: 'center',
                 borderWidth: 2,
-                borderColor: '#E2E8F0',
+                borderColor: colors.border,
                 borderStyle: 'dashed',
               }}>
                 <View style={{
-                  backgroundColor: '#E2E8F0',
+                  backgroundColor: colors.border,
                   width: 60,
                   height: 60,
                   borderRadius: 30,
@@ -558,12 +565,12 @@ export default function HomeScreen() {
                   alignItems: 'center',
                   marginBottom: 16,
                 }}>
-                  <Ionicons name="newspaper-outline" size={28} color="#64748B" />
+                  <Ionicons name="newspaper-outline" size={28} color={colors.textSecondary} />
                 </View>
                 <ThemedText style={{
                   fontSize: 16,
                   fontWeight: '600',
-                  color: '#475569',
+                  color: isDarkMode ? colors.text : '#475569',
                   textAlign: 'center',
                   marginBottom: 8,
                 }}>
@@ -571,7 +578,7 @@ export default function HomeScreen() {
                 </ThemedText>
                 <ThemedText style={{
                   fontSize: 14,
-                  color: '#94A3B8',
+                  color: isDarkMode ? colors.textSecondary : '#94A3B8',
                   textAlign: 'center',
                   lineHeight: 20,
                 }}>
@@ -592,13 +599,13 @@ export default function HomeScreen() {
           }}
         >
           <View style={{
-            backgroundColor: '#4F46E5',
+            backgroundColor: isDarkMode ? colors.surface : colors.primary,
             padding: 24,
             borderRadius: 20,
           }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
               <View style={{
-                backgroundColor: 'rgba(255,255,255,0.2)',
+                backgroundColor: isDarkMode ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255,255,255,0.2)',
                 width: 48,
                 height: 48,
                 borderRadius: 24,
@@ -606,20 +613,20 @@ export default function HomeScreen() {
                 alignItems: 'center',
                 marginRight: 16,
               }}>
-                <Ionicons name="bulb" size={24} color="#FFFFFF" />
+                <Ionicons name="bulb" size={24} color={isDarkMode ? colors.primary : "#FFFFFF"} />
               </View>
               <View style={{ flex: 1 }}>
                 <ThemedText style={{
                   fontSize: 16,
                   fontWeight: '700',
-                  color: '#FFFFFF',
+                  color: isDarkMode ? colors.text : '#FFFFFF',
                   marginBottom: 4,
                 }}>
                   Совет дня
                 </ThemedText>
                 <ThemedText style={{
                   fontSize: 12,
-                  color: '#C7D2FE',
+                  color: isDarkMode ? colors.textSecondary : '#C7D2FE',
                 }}>
                   Полезная информация для студентов
                 </ThemedText>
@@ -628,7 +635,7 @@ export default function HomeScreen() {
             <ThemedText style={{
               fontSize: 14,
               lineHeight: 20,
-              color: '#E0E7FF',
+              color: isDarkMode ? colors.textSecondary : '#E0E7FF',
               fontStyle: 'italic',
             }}>
               "Успех — это способность идти от неудачи к неудаче, не теряя энтузиазма." 
@@ -642,12 +649,12 @@ export default function HomeScreen() {
           entering={FadeInDown.delay(800)}
           style={{
             marginTop: 24,
-            backgroundColor: '#FFFFFF',
+            backgroundColor: colors.surface,
             borderRadius: 16,
             padding: 20,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.08,
+            shadowOpacity: isDarkMode ? 0.15 : 0.08,
             shadowRadius: 12,
             elevation: 6,
           }}
@@ -663,7 +670,7 @@ export default function HomeScreen() {
               }}
             >
               <View style={{
-                backgroundColor: '#FEE2E2',
+                backgroundColor: isDarkMode ? `${colors.error}25` : '#FEE2E2',
                 width: 40,
                 height: 40,
                 borderRadius: 20,
@@ -671,9 +678,9 @@ export default function HomeScreen() {
                 alignItems: 'center',
                 marginBottom: 8,
               }}>
-                <Ionicons name="help-circle" size={20} color="#DC2626" />
+                <Ionicons name="help-circle" size={20} color={colors.error} />
               </View>
-              <ThemedText style={{ fontSize: 12, color: '#64748B', fontWeight: '600' }}>
+              <ThemedText style={{ fontSize: 12, color: colors.textSecondary, fontWeight: '600' }}>
                 Помощь
               </ThemedText>
             </Pressable>
@@ -686,7 +693,7 @@ export default function HomeScreen() {
               }}
             >
               <View style={{
-                backgroundColor: '#DBEAFE',
+                backgroundColor: isDarkMode ? `${colors.primary}25` : '#DBEAFE',
                 width: 40,
                 height: 40,
                 borderRadius: 20,
@@ -694,9 +701,9 @@ export default function HomeScreen() {
                 alignItems: 'center',
                 marginBottom: 8,
               }}>
-                <Ionicons name="chatbubble" size={20} color="#2563EB" />
+                <Ionicons name="chatbubble" size={20} color={colors.primary} />
               </View>
-              <ThemedText style={{ fontSize: 12, color: '#64748B', fontWeight: '600' }}>
+              <ThemedText style={{ fontSize: 12, color: isDarkMode ? colors.textSecondary : '#64748B', fontWeight: '600' }}>
                 Чат
               </ThemedText>
             </Pressable>
@@ -709,7 +716,7 @@ export default function HomeScreen() {
               }}
             >
               <View style={{
-                backgroundColor: '#D1FAE5',
+                backgroundColor: isDarkMode ? `${colors.success}25` : '#D1FAE5',
                 width: 40,
                 height: 40,
                 borderRadius: 20,
@@ -717,9 +724,9 @@ export default function HomeScreen() {
                 alignItems: 'center',
                 marginBottom: 8,
               }}>
-                <Ionicons name="settings" size={20} color="#059669" />
+                <Ionicons name="settings" size={20} color={colors.success} />
               </View>
-              <ThemedText style={{ fontSize: 12, color: '#64748B', fontWeight: '600' }}>
+              <ThemedText style={{ fontSize: 12, color: colors.textSecondary, fontWeight: '600' }}>
                 Настройки
               </ThemedText>
             </Pressable>

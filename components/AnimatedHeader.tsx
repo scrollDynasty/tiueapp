@@ -1,15 +1,15 @@
+import { getThemeColors } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { Image, Pressable, View } from 'react-native';
-import Animated, {
-  SlideInLeft,
-  ZoomIn,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
+import {
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring
 } from 'react-native-reanimated';
-import { Animation, Colors, Spacing } from '../constants/DesignTokens';
+import { Animation, Spacing } from '../constants/DesignTokens';
 import { useResponsive } from '../hooks/useResponsive';
 import { ThemedText } from './ThemedText';
 
@@ -29,6 +29,8 @@ export function AnimatedHeader({
   onNotificationPress 
 }: HeaderProps) {
   const { isVerySmallScreen } = useResponsive();
+  const { isDarkMode } = useTheme();
+  const colors = getThemeColors(isDarkMode);
   const bellScale = useSharedValue(1);
 
   const handleBellPress = () => {
@@ -46,20 +48,20 @@ export function AnimatedHeader({
 
   return (
     <LinearGradient
-      colors={['#FFFFFF', '#F8FAFF', '#EEF4FF']}
+      colors={['transparent', 'transparent']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={{
-        borderBottomLeftRadius: 32,
-        borderBottomRightRadius: 32,
-        shadowColor: Colors.shadowUmbra,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
+        shadowColor: 'transparent',
         shadowOffset: {
           width: 0,
-          height: 4,
+          height: 0,
         },
-        shadowOpacity: 0.12,
-        shadowRadius: 12,
-        elevation: 5,
+        shadowOpacity: 0,
+        shadowRadius: 0,
+        elevation: 0,
       }}
     >
             <View
@@ -73,8 +75,7 @@ export function AnimatedHeader({
         }}
       >
         {/* Приветствие */}
-        <Animated.View 
-          entering={SlideInLeft.duration(600).delay(100)}
+        <View 
           style={{ 
             flex: 1, 
             paddingVertical: 16,
@@ -83,11 +84,11 @@ export function AnimatedHeader({
         >
           <View
             style={{
-              backgroundColor: 'rgba(74, 144, 226, 0.08)',
-              borderRadius: isVerySmallScreen ? 12 : 16,
-              padding: isVerySmallScreen ? 12 : 16,
-              borderLeftWidth: isVerySmallScreen ? 3 : 4,
-              borderLeftColor: Colors.brandPrimary,
+              backgroundColor: 'transparent',
+              borderRadius: 0,
+              padding: 0,
+              borderLeftWidth: 0,
+              borderLeftColor: 'transparent',
             }}
           >
             {/* Заголовок "Добро пожаловать" */}
@@ -95,14 +96,14 @@ export function AnimatedHeader({
               <Ionicons 
                 name="sunny" 
                 size={isVerySmallScreen ? 14 : 16} 
-                color={Colors.brandPrimary} 
+                color={colors.primary} 
                 style={{ marginRight: isVerySmallScreen ? 4 : 6 }}
               />
               <ThemedText
                 style={{
                   fontSize: isVerySmallScreen ? 12 : 14,
                   fontWeight: '600',
-                  color: Colors.textSecondary,
+                  color: colors.textSecondary,
                   textTransform: 'uppercase',
                   letterSpacing: 0.5,
                 }}
@@ -116,7 +117,7 @@ export function AnimatedHeader({
               style={{
                 fontSize: isVerySmallScreen ? 18 : 22,
                 fontWeight: '700',
-                color: Colors.textPrimary,
+                color: colors.text,
                 letterSpacing: -0.3,
                 lineHeight: isVerySmallScreen ? 22 : 26,
               }}
@@ -125,7 +126,7 @@ export function AnimatedHeader({
               <ThemedText style={{ fontSize: isVerySmallScreen ? 18 : 22 }}> 👋</ThemedText>
             </ThemedText>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Правая часть с уведомлениями и аватаром */}
         <View style={{ 
@@ -144,13 +145,13 @@ export function AnimatedHeader({
             position: 'relative',
           }}
         >
-          <Animated.View style={bellAnimatedStyle}>
+          <View>
             <Ionicons 
               name="notifications-outline" 
               size={isVerySmallScreen ? 24 : 28} 
-              color={Colors.textPrimary} 
+              color={colors.text} 
             />
-          </Animated.View>
+          </View>
           
           {notificationCount > 0 && (
             <View
@@ -158,7 +159,7 @@ export function AnimatedHeader({
                 position: 'absolute',
                 top: -4,
                 right: -4,
-                backgroundColor: Colors.brandPrimary,
+                backgroundColor: colors.primary,
                 borderRadius: 8,
                 minWidth: 16,
                 height: 16,
@@ -171,7 +172,7 @@ export function AnimatedHeader({
                 style={{
                   fontSize: 10,
                   fontWeight: '600',
-                  color: Colors.surface,
+                  color: colors.surface,
                 }}
               >
                 {notificationCount > 99 ? '99+' : notificationCount.toString()}
@@ -181,7 +182,7 @@ export function AnimatedHeader({
         </Pressable>
 
         {/* Аватар */}
-        <Animated.View entering={ZoomIn.duration(400).delay(200)}>
+        <View>
           <Pressable onPress={onAvatarPress}>
             {avatarUrl ? (
               <Image
@@ -191,7 +192,7 @@ export function AnimatedHeader({
                   height: isVerySmallScreen ? 40 : 48,
                   borderRadius: isVerySmallScreen ? 20 : 24,
                   borderWidth: 1,
-                  borderColor: Colors.strokeSoft,
+                  borderColor: colors.border,
                 }}
               />
             ) : (
@@ -200,9 +201,9 @@ export function AnimatedHeader({
                   width: isVerySmallScreen ? 40 : 48,
                   height: isVerySmallScreen ? 40 : 48,
                   borderRadius: isVerySmallScreen ? 20 : 24,
-                  backgroundColor: Colors.brandPrimary10,
+                  backgroundColor: `${colors.primary}20`,
                   borderWidth: 1,
-                  borderColor: Colors.strokeSoft,
+                  borderColor: colors.border,
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}
@@ -210,12 +211,12 @@ export function AnimatedHeader({
                 <Ionicons 
                   name="person" 
                   size={isVerySmallScreen ? 20 : 24} 
-                  color={Colors.brandPrimary} 
+                  color={colors.primary} 
                 />
               </View>
             )}
           </Pressable>
-        </Animated.View>
+        </View>
         </View>
       </View>
     </LinearGradient>

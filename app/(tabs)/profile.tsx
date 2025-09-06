@@ -1,9 +1,12 @@
 import { ThemedText } from '@/components/ThemedText';
+import { getThemeColors } from '@/constants/Colors';
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { clearCredentials, logoutUser } from '@/store/slices/authSlice';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
 import { Alert, Pressable, ScrollView, Switch, View } from 'react-native';
@@ -20,38 +23,54 @@ interface SettingsItemProps {
 }
 
 function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightComponent }: SettingsItemProps) {
+  const { isDarkMode } = useTheme();
+  const colors = getThemeColors(isDarkMode);
+  
+  const handlePress = () => {
+    console.log('SettingsItem pressed:', title);
+    if (onPress) {
+      onPress();
+    }
+  };
+  
   return (
     <Pressable
-      onPress={onPress}
-      style={{
+      onPress={handlePress}
+      style={({ pressed }) => ({
         flexDirection: 'row',
         alignItems: 'center',
         padding: Spacing.m,
-        backgroundColor: Colors.surface,
-        borderRadius: 16,
+        backgroundColor: pressed ? (isDarkMode ? colors.background : colors.backgroundSecondary) : (isDarkMode ? colors.surfaceSecondary : colors.surface),
+        borderRadius: 12,
         marginBottom: Spacing.s,
         ...Shadows.card,
-      }}
+        shadowOpacity: isDarkMode ? 0.2 : 0.03,
+        shadowRadius: 4,
+        elevation: isDarkMode ? 6 : 2,
+        borderWidth: isDarkMode ? 1 : 0.5,
+        borderColor: isDarkMode ? colors.border : colors.borderLight,
+      })}
     >
       <View
         style={{
-          width: 40,
-          height: 40,
-          borderRadius: 20,
-          backgroundColor: Colors.brandPrimary10,
+          width: 36,
+          height: 36,
+          borderRadius: 18,
+          backgroundColor: colors.primary + '15',
           justifyContent: 'center',
           alignItems: 'center',
           marginRight: Spacing.m,
         }}
       >
-        <Ionicons name={icon} size={20} color={Colors.brandPrimary} />
+        <Ionicons name={icon} size={18} color={colors.primary} />
       </View>
 
       <View style={{ flex: 1 }}>
         <ThemedText
           style={{
-            ...Typography.body,
-            color: Colors.textPrimary,
+            fontSize: 15,
+            fontWeight: '600',
+            color: colors.text,
             marginBottom: subtitle ? 2 : 0,
           }}
         >
@@ -60,8 +79,8 @@ function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightC
         {subtitle && (
           <ThemedText
             style={{
-              ...Typography.caption,
-              color: Colors.textSecondary,
+              fontSize: 12,
+              color: colors.textSecondary,
             }}
           >
             {subtitle}
@@ -70,7 +89,7 @@ function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightC
       </View>
 
       {rightComponent || (showArrow && (
-        <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+        <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
       ))}
     </Pressable>
   );
@@ -81,6 +100,8 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
   // Получаем данные из Redux для статистики
   const { items: newsItems } = useAppSelector((state) => state.news);
   const { items: eventsItems } = useAppSelector((state) => state.events);
+  const { isDarkMode } = useTheme();
+  const colors = getThemeColors(isDarkMode);
   
   const displayInfo = {
     name: `${user.first_name} ${user.last_name}`.trim() || user.username,
@@ -89,21 +110,20 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Современный заголовок админ панели */}
-      <Animated.View 
-        entering={SlideInRight.duration(400)}
-        style={{
-          backgroundColor: Colors.brandPrimary,
-          paddingHorizontal: Spacing.l,
-          paddingVertical: Spacing.xl,
-          marginTop: -Spacing.l,
-          marginHorizontal: -Spacing.l,
-          marginBottom: Spacing.l,
-          borderBottomLeftRadius: 24,
-          borderBottomRightRadius: 24,
-          ...Shadows.card,
-        }}
-      >
+      {/* Современный заголовок админ панели с градиентом */}
+      <Animated.View entering={SlideInRight.duration(400)} style={{ marginTop: -Spacing.l, marginHorizontal: -Spacing.l, marginBottom: Spacing.l }}>
+        <LinearGradient
+          colors={[Colors.brandPrimary, '#5B8DF7']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            paddingHorizontal: Spacing.l,
+            paddingVertical: Spacing.xl,
+            borderBottomLeftRadius: 24,
+            borderBottomRightRadius: 24,
+            ...Shadows.card,
+          }}
+        >
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.m }}>
           <View
             style={{
@@ -217,6 +237,7 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
             </ThemedText>
           </View>
         </View>
+        </LinearGradient>
       </Animated.View>
 
       {/* Современные карточки управления */}
@@ -311,24 +332,24 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
               width: 48,
               height: 48,
               borderRadius: 24,
-              backgroundColor: '#FEF3C7',
+              backgroundColor: isDarkMode ? `${colors.warning}25` : `${colors.warning}15`,
               justifyContent: 'center',
               alignItems: 'center',
               marginRight: Spacing.m,
             }}>
-              <Ionicons name="calendar-outline" size={24} color="#F59E0B" />
+              <Ionicons name="calendar-outline" size={24} color={colors.warning} />
             </View>
             <View style={{ flex: 1 }}>
               <ThemedText style={{ 
                 ...Typography.titleH2, 
-                color: Colors.textPrimary, 
+                color: colors.text, 
                 marginBottom: 4,
               }}>
                 Управление событиями
               </ThemedText>
               <ThemedText style={{ 
                 ...Typography.body, 
-                color: Colors.textSecondary,
+                color: colors.textSecondary,
                 fontSize: 14,
               }}>
                 {eventsItems.length} запланированных событий
@@ -363,19 +384,19 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
               alignItems: 'center',
               ...Shadows.card,
               borderWidth: 1,
-              borderColor: Colors.strokeSoft,
+              borderColor: colors.border,
             }}
           >
             <View style={{
               width: 48,
               height: 48,
               borderRadius: 24,
-              backgroundColor: '#D1FAE5',
+              backgroundColor: isDarkMode ? `${colors.success}25` : `${colors.success}15`,
               justifyContent: 'center',
               alignItems: 'center',
               marginRight: Spacing.m,
             }}>
-              <Ionicons name="time-outline" size={24} color="#10B981" />
+              <Ionicons name="time-outline" size={24} color={colors.success} />
             </View>
             <View style={{ flex: 1 }}>
               <ThemedText style={{ 
@@ -387,14 +408,14 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
               </ThemedText>
               <ThemedText style={{ 
                 ...Typography.body, 
-                color: Colors.textSecondary,
+                color: colors.textSecondary,
                 fontSize: 14,
               }}>
                 Составление и редактирование
               </ThemedText>
             </View>
             <View style={{
-              backgroundColor: '#D1FAE5',
+              backgroundColor: isDarkMode ? `${colors.success}25` : `${colors.success}15`,
               paddingHorizontal: Spacing.s,
               paddingVertical: Spacing.xs,
               borderRadius: Radius.icon,
@@ -532,68 +553,205 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
 // Компонент студент-профиля
 function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
+  const { theme, isDarkMode, setTheme } = useTheme();
+  const colors = getThemeColors(isDarkMode);
   
   const displayInfo = {
     name: `${user.first_name} ${user.last_name}`.trim() || user.username,
     subtitle: user.student?.group?.name ? `Группа ${user.student.group.name} • ${user.student.course || 1} курс` : 'Студент',
-    roleColor: '#2563eb'
+    roleColor: '#2563eb',
+    initials: getInitials(user.first_name, user.last_name, user.username)
+  };
+
+  // Функция для получения инициалов
+  function getInitials(firstName?: string, lastName?: string, username?: string): string {
+    if (firstName && lastName) {
+      return `${firstName[0]}${lastName[0]}`.toUpperCase();
+    }
+    if (firstName) return firstName[0].toUpperCase();
+    if (username) return username.slice(0, 2).toUpperCase();
+    return 'СТ';
+  }
+
+  // Получить название текущей темы для отображения
+  const getThemeDisplayName = () => {
+    switch (theme) {
+      case 'light': return 'Светлая';
+      case 'dark': return 'Темная';
+      default: return 'Светлая';
+    }
+  };
+
+  // Показать диалог выбора темы
+  const showThemeSelector = () => {
+    Alert.alert(
+      '🎨 Выберите тему',
+      'Какую тему вы хотите использовать?',
+      [
+        { 
+          text: '☀️ Светлая', 
+          onPress: () => {
+            setTheme('light');
+          }
+        },
+        { 
+          text: '🌙 Темная', 
+          onPress: () => {
+            setTheme('dark');
+          }
+        },
+        { text: 'Отмена', style: 'cancel' },
+      ],
+      { cancelable: true }
+    );
   };
 
   return (
     <>
-      {/* Профиль студента */}
-      <Animated.View 
-        entering={SlideInRight.duration(400)}
-        style={{
-          backgroundColor: Colors.surface,
-          borderRadius: 20,
-          padding: Spacing.l,
-          marginTop: Spacing.l,
-          marginBottom: Spacing.l,
-          alignItems: 'center',
-          ...Shadows.card,
-        }}
-      >
-        <View
+      {/* Компактный профиль студента */}
+      <Animated.View entering={SlideInRight.duration(400)} style={{ marginTop: Spacing.m, marginBottom: Spacing.m }}>
+        <LinearGradient
+          colors={['#FFFFFF', '#F8FAFC']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
           style={{
-            width: 80,
-            height: 80,
-            borderRadius: 40,
-            backgroundColor: Colors.brandPrimary10,
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginBottom: Spacing.m,
+            borderRadius: 16,
+            padding: Spacing.m,
             ...Shadows.card,
+            shadowOpacity: 0.05,
+            shadowRadius: 8,
+            elevation: 4,
           }}
         >
-          <Ionicons name="person" size={40} color={Colors.brandPrimary} />
-        </View>
-        
-        <ThemedText
-          style={{
-            ...Typography.displayH1,
-            color: Colors.textPrimary,
-            marginBottom: Spacing.xxs,
-          }}
-        >
-          {displayInfo.name}
-        </ThemedText>
-        
-        <ThemedText
-          style={{
-            ...Typography.body,
-            color: Colors.textSecondary,
-            marginBottom: Spacing.s,
-          }}
-        >
-          {displayInfo.subtitle}
-        </ThemedText>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            {/* Компактный аватар */}
+            <View
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: 30,
+                backgroundColor: Colors.brandPrimary,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginRight: Spacing.m,
+                ...Shadows.card,
+                shadowOpacity: 0.2,
+              }}
+            >
+              <ThemedText style={{
+                fontSize: 20,
+                fontWeight: '700',
+                color: 'white',
+              }}>
+                {displayInfo.initials}
+              </ThemedText>
+            </View>
+            
+            <View style={{ flex: 1 }}>
+              <ThemedText
+                style={{
+                  fontSize: 18,
+                  fontWeight: '700',
+                  color: Colors.textPrimary,
+                  marginBottom: 2,
+                }}
+              >
+                {displayInfo.name}
+              </ThemedText>
+              
+              <ThemedText
+                style={{
+                  fontSize: 13,
+                  color: Colors.textSecondary,
+                  marginBottom: 6,
+                }}
+              >
+                {displayInfo.subtitle}
+              </ThemedText>
+
+              {/* Компактные чипы */}
+              {!!user?.student && (
+                <View style={{ flexDirection: 'row', gap: 6 }}>
+                  {!!user.student?.group?.name && (
+                    <View style={{ 
+                      backgroundColor: Colors.brandPrimary + '15', 
+                      paddingHorizontal: 8, 
+                      paddingVertical: 3, 
+                      borderRadius: 12,
+                    }}>
+                      <ThemedText style={{ fontSize: 11, color: Colors.brandPrimary, fontWeight: '600' }}>
+                        {user.student.group.name}
+                      </ThemedText>
+                    </View>
+                  )}
+                  {!!user.student?.course && (
+                    <View style={{ 
+                      backgroundColor: isDarkMode ? `${colors.success}25` : `${colors.success}15`, 
+                      paddingHorizontal: 8, 
+                      paddingVertical: 3, 
+                      borderRadius: 12,
+                    }}>
+                      <ThemedText style={{ fontSize: 11, color: colors.success, fontWeight: '600' }}>
+                        {user.student.course} курс
+                      </ThemedText>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+          </View>
+
+          {/* Компактная статистика */}
+          <View style={{ 
+            flexDirection: 'row', 
+            marginTop: Spacing.m,
+            backgroundColor: isDarkMode ? colors.background : colors.backgroundSecondary,
+            borderRadius: 12,
+            padding: Spacing.s,
+            gap: 8,
+            borderWidth: isDarkMode ? 1 : 0,
+            borderColor: isDarkMode ? colors.border : 'transparent',
+          }}>
+            <View style={{ alignItems: 'center', flex: 1 }}>
+              <ThemedText style={{ fontSize: 16, fontWeight: '700', color: colors.primary }}>
+                4.2
+              </ThemedText>
+              <ThemedText style={{ fontSize: 10, color: colors.textSecondary }}>
+                Средний балл
+              </ThemedText>
+            </View>
+            
+            <View style={{ alignItems: 'center', flex: 1 }}>
+              <ThemedText style={{ fontSize: 16, fontWeight: '700', color: '#059669' }}>
+                12
+              </ThemedText>
+              <ThemedText style={{ fontSize: 10, color: Colors.textSecondary }}>
+                Предметов
+              </ThemedText>
+            </View>
+            
+            <View style={{ alignItems: 'center', flex: 1 }}>
+              <ThemedText style={{ fontSize: 16, fontWeight: '700', color: '#D97706' }}>
+                87%
+              </ThemedText>
+              <ThemedText style={{ fontSize: 10, color: Colors.textSecondary }}>
+                Посещаемость
+              </ThemedText>
+            </View>
+          </View>
+        </LinearGradient>
       </Animated.View>
 
       {/* Успеваемость */}
       <Animated.View entering={FadeInDown.duration(500).delay(200)}>
-        <ThemedText style={{ ...Typography.titleH2, color: Colors.textPrimary, marginBottom: Spacing.m }}>
-          Успеваемость
+        <ThemedText style={{ 
+          fontSize: 18, 
+          fontWeight: '700', 
+          color: Colors.textPrimary, 
+          marginBottom: Spacing.m,
+          marginLeft: 4,
+        }}>
+          📊 Успеваемость
         </ThemedText>
         
         <SettingsItem
@@ -616,17 +774,30 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
           icon="clipboard-outline"
           onPress={() => Alert.alert('Задания', 'Раздел с заданиями будет доступен в следующих версиях')}
         />
+
+        <SettingsItem
+          title="Библиотека"
+          subtitle="Учебные материалы и ресурсы"
+          icon="library-outline"
+          onPress={() => Alert.alert('Библиотека', 'Электронная библиотека будет доступна в следующих версиях')}
+        />
       </Animated.View>
 
       {/* Настройки */}
       <Animated.View entering={FadeInDown.duration(500).delay(300)} style={{ marginTop: Spacing.l }}>
-        <ThemedText style={{ ...Typography.titleH2, color: Colors.textPrimary, marginBottom: Spacing.m }}>
-          Настройки
+        <ThemedText style={{ 
+          fontSize: 18, 
+          fontWeight: '700', 
+          color: Colors.textPrimary, 
+          marginBottom: Spacing.m,
+          marginLeft: 4,
+        }}>
+          ⚙️ Настройки
         </ThemedText>
         
         <SettingsItem
           title="Уведомления"
-          subtitle="Настройка push-уведомлений"
+          subtitle="Push-уведомления и звуки"
           icon="notifications-outline"
           rightComponent={
             <Switch 
@@ -634,16 +805,42 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
               onValueChange={setNotificationsEnabled}
               trackColor={{ false: Colors.strokeSoft, true: Colors.brandPrimary }}
               thumbColor={notificationsEnabled ? Colors.surface : Colors.textSecondary}
+              style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
             />
           }
           showArrow={false}
         />
         
         <SettingsItem
+          title="Тема приложения"
+          subtitle={getThemeDisplayName()}
+          icon="moon-outline"
+          onPress={showThemeSelector}
+          rightComponent={
+            <Switch
+              value={isDarkMode}
+              onValueChange={(value) => {
+                console.log('Switch toggled to:', value);
+                setTheme(value ? 'dark' : 'light');
+              }}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              thumbColor={isDarkMode ? colors.surface : colors.surface}
+            />
+          }
+        />
+
+        <SettingsItem
           title="Язык приложения"
           subtitle="Русский"
           icon="language-outline"
           onPress={() => Alert.alert('Язык', 'Смена языка будет доступна в следующих версиях')}
+        />
+
+        <SettingsItem
+          title="Конфиденциальность"
+          subtitle="Управление данными"
+          icon="shield-checkmark-outline"
+          onPress={() => Alert.alert('Конфиденциальность', 'Настройки конфиденциальности будут доступны в следующих версиях')}
         />
         
         <SettingsItem
@@ -654,28 +851,27 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
         />
       </Animated.View>
 
-      {/* Выход */}
-      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ marginTop: Spacing.l, zIndex: 999 }}>
+      {/* Компактная кнопка выхода */}
+      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ marginTop: Spacing.l }}>
         <Pressable
-          onPress={() => {
-            console.log('Student logout button pressed!');
-            onLogout();
-          }}
+          onPress={onLogout}
           style={({ pressed }) => ({
-            backgroundColor: pressed ? '#dc2626' : '#ef4444',
+            backgroundColor: pressed ? '#DC2626' : colors.error,
             borderRadius: 12,
             padding: Spacing.m,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: Spacing.l,
-            opacity: pressed ? 0.8 : 1,
+            opacity: pressed ? 0.9 : 1,
             ...Shadows.card,
+            shadowOpacity: isDarkMode ? 0.3 : 0.1,
+            elevation: isDarkMode ? 6 : 4,
           })}
         >
-          <Ionicons name="log-out-outline" size={20} color="white" style={{ marginRight: Spacing.s }} />
+          <Ionicons name="log-out-outline" size={18} color="white" style={{ marginRight: Spacing.s }} />
           <ThemedText style={{ 
-            ...Typography.body, 
+            fontSize: 15,
             color: 'white',
             fontWeight: '600',
           }}>
@@ -691,27 +887,23 @@ export default function ProfileScreen() {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const [isLoggingOut, setIsLoggingOut] = React.useState(false);
+  const { isDarkMode } = useTheme();
+  const colors = getThemeColors(isDarkMode);
 
     const handleLogout = async () => {
     if (isLoggingOut) return; // Предотвращаем множественные вызовы
     
-    console.log('handleLogout function called!');
     setIsLoggingOut(true);
     
     try {
-      console.log('Starting logout process...');
       
       // Выполняем logout через Redux (он сам очистит все данные)
       await dispatch(logoutUser());
-      console.log('Logout completed successfully');
       
       // Перенаправляем на логин
-      console.log('Redirecting to login...');
       router.replace('/login');
       
     } catch (error) {
-      console.error('Logout error:', error);
-      
       // В случае ошибки API, все равно очищаем локальные данные
       dispatch(clearCredentials());
       await AsyncStorage.removeItem('authToken');
@@ -752,11 +944,21 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.surfaceSubtle }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      {/* Декоративный градиент фона вверху профиля */}
+      <LinearGradient
+        colors={['transparent', 'transparent']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 0 }}
+        pointerEvents="none"
+      />
       <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingHorizontal: Spacing.l,
           paddingBottom: 100,
+          paddingTop: Spacing.m,
         }}
       >
         {/* Рендерим разные интерфейсы в зависимости от роли */}

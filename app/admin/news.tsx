@@ -205,7 +205,10 @@ export default function NewsManagementScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.surfaceSubtle }}>
-      <ScrollView contentContainerStyle={{ padding: Spacing.l }}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false} 
+        contentContainerStyle={{ padding: Spacing.l }}
+      >
         {/* Заголовок */}
         <Animated.View entering={FadeInDown.duration(400)}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.l }}>

@@ -7,13 +7,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { NewsCard } from '@/components/NewsCard';
 import { ThemedText } from '@/components/ThemedText';
-import { Colors, Spacing, Typography } from '@/constants/DesignTokens';
+import { getThemeColors } from '@/constants/Colors';
+import { Spacing, Typography } from '@/constants/DesignTokens';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { fetchNews } from '@/store/slices/newsSlice';
 
 export default function AllNewsScreen() {
   const dispatch = useAppDispatch();
   const { items: newsData, isLoading } = useAppSelector(state => state.news);
+  const { isDarkMode } = useTheme();
+  const colors = getThemeColors(isDarkMode);
 
   React.useEffect(() => {
     dispatch(fetchNews());
@@ -36,7 +40,7 @@ export default function AllNewsScreen() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.surface }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
       <Animated.View 
         entering={FadeInDown.duration(300)}
@@ -45,9 +49,9 @@ export default function AllNewsScreen() {
           alignItems: 'center',
           paddingHorizontal: Spacing.m,
           paddingVertical: Spacing.s,
-          backgroundColor: Colors.surface,
+          backgroundColor: colors.surface,
           borderBottomWidth: 1,
-          borderBottomColor: Colors.strokeSoft,
+          borderBottomColor: colors.border,
         }}
       >
         <Pressable
@@ -56,20 +60,20 @@ export default function AllNewsScreen() {
             width: 40,
             height: 40,
             borderRadius: 20,
-            backgroundColor: Colors.surfaceSubtle,
+            backgroundColor: colors.surfaceSecondary,
             alignItems: 'center',
             justifyContent: 'center',
             marginRight: Spacing.m,
           }}
         >
-          <Ionicons name="arrow-back" size={20} color={Colors.textPrimary} />
+          <Ionicons name="arrow-back" size={20} color={colors.text} />
         </Pressable>
         
         <View style={{ flex: 1 }}>
-          <ThemedText style={{ ...Typography.titleH2, color: Colors.textPrimary }}>
+          <ThemedText style={{ ...Typography.titleH2, color: colors.text }}>
             Все новости
           </ThemedText>
-          <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary }}>
+          <ThemedText style={{ ...Typography.caption, color: colors.textSecondary }}>
             {newsData.length} {newsData.length === 1 ? 'новость' : newsData.length < 5 ? 'новости' : 'новостей'}
           </ThemedText>
         </View>
@@ -98,10 +102,10 @@ export default function AllNewsScreen() {
             padding: Spacing.xl
           }}
         >
-          <Ionicons name="newspaper-outline" size={64} color={Colors.textSecondary} />
+          <Ionicons name="newspaper-outline" size={64} color={colors.textSecondary} />
           <ThemedText style={{ 
             ...Typography.titleH2, 
-            color: Colors.textSecondary,
+            color: colors.text,
             marginTop: Spacing.m,
             textAlign: 'center'
           }}>
@@ -109,7 +113,7 @@ export default function AllNewsScreen() {
           </ThemedText>
           <ThemedText style={{ 
             ...Typography.body, 
-            color: Colors.textSecondary,
+            color: colors.textSecondary,
             marginTop: Spacing.s,
             textAlign: 'center'
           }}>
