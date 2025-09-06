@@ -2,6 +2,7 @@ import { ActionCard } from '@/components/ActionCard';
 import { AnimatedHeader } from '@/components/AnimatedHeader';
 import { CustomRefreshControl } from '@/components/CustomRefreshControl';
 import { NewsCard } from '@/components/NewsCard';
+import { NotificationModal } from '@/components/NotificationModal';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/DesignTokens';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
@@ -27,6 +28,7 @@ export default function HomeScreen() {
   const dispatch = useAppDispatch();
   const scrollY = useSharedValue(0);
   const [refreshing, setRefreshing] = React.useState(false);
+  const [showNotifications, setShowNotifications] = React.useState(false);
   const { horizontalPadding, cardGap, cardWidth, cardHeight, isVerySmallScreen } = useResponsive();
   const { user } = useAppSelector((state) => state.auth);
 
@@ -254,12 +256,20 @@ export default function HomeScreen() {
       {/* Верхняя панель */}
       <AnimatedHeader 
         userName={user?.first_name || user?.username || 'Пользователь'}
-        notificationCount={3}
+        notificationCount={0}
         onAvatarPress={() => router.push('/(tabs)/profile')}
-        onNotificationPress={() => console.log('Notifications pressed')}
+        onNotificationPress={() => setShowNotifications(prev => !prev)}
       />
 
-              <AnimatedScrollView
+      {/* Dropdown уведомлений */}
+      {showNotifications && (
+        <NotificationModal
+          isVisible={showNotifications}
+          onClose={() => setShowNotifications(false)}
+        />
+      )}
+
+      <AnimatedScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         refreshControl={
@@ -565,7 +575,6 @@ export default function HomeScreen() {
                   textAlign: 'center',
                   lineHeight: 20,
                 }}>
-                  Администратор может добавить{'\n'}первые новости
                 </ThemedText>
               </View>
             )}
