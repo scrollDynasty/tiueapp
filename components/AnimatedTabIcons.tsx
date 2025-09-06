@@ -75,6 +75,16 @@ export function MessagesTabIcon({ focused, onPress }: { focused: boolean; onPres
 export function ScheduleTabIcon({ focused, onPress }: { focused: boolean; onPress?: () => void }) {
   return (
     <AnimatedTabIcon
+      name={focused ? "time" : "time-outline"}
+      focused={focused}
+      onPress={onPress}
+    />
+  );
+}
+
+export function EventsTabIcon({ focused, onPress }: { focused: boolean; onPress?: () => void }) {
+  return (
+    <AnimatedTabIcon
       name={focused ? "calendar" : "calendar-outline"}
       focused={focused}
       onPress={onPress}
