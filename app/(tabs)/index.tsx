@@ -10,6 +10,7 @@ import { useResponsive } from '@/hooks/useResponsive';
 import { fetchEvents } from '@/store/slices/eventsSlice';
 import { fetchNews } from '@/store/slices/newsSlice';
 import { Ionicons } from '@expo/vector-icons';
+import { formatDateYMD } from '@/utils/date';
 import { router } from 'expo-router';
 import React from 'react';
 import { Dimensions, Pressable, ScrollView, View } from 'react-native';
@@ -217,7 +218,7 @@ export default function HomeScreen() {
               color: '#64748B',
               marginLeft: 4,
             }}>
-              {event.date}
+              {formatDateYMD(event.date)}
             </ThemedText>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>

@@ -1,6 +1,7 @@
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
+import { formatDateYMD } from '@/utils/date';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { authApi } from '@/services/api';
 import { addEvent, createEvent, fetchEvents } from '@/store/slices/eventsSlice';
@@ -382,7 +383,7 @@ export default function EventsManagementScreen() {
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <Ionicons name="time-outline" size={14} color={Colors.textSecondary} />
                     <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary, marginLeft: 4 }}>
-                      {item.date} в {item.time}
+                      {formatDateYMD(item.date)} в {item.time}
                     </ThemedText>
                   </View>
                 </View>

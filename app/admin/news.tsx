@@ -1,6 +1,7 @@
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
+import { formatDateYMD } from '@/utils/date';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { authApi } from '@/services/api';
 import { fetchEvents } from '@/store/slices/eventsSlice';
@@ -518,7 +519,7 @@ export default function NewsManagementScreen() {
                           {item.subtitle}
                         </ThemedText>
                         <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary, marginTop: 4 }}>
-                          {item.date} • {item.author}
+                          {formatDateYMD(item.date)} • {item.author}
                         </ThemedText>
                       </View>
                     </View>

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
-import { Dimensions, Image, Modal, Platform, Pressable, ScrollView, View } from 'react-native';
+import { Image, Modal, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -10,13 +10,16 @@ import { ThemedText } from '@/components/ThemedText';
 import { Colors, Spacing } from '@/constants/DesignTokens';
 import { useAppSelector } from '@/hooks/redux';
 import { useResponsive } from '@/hooks/useResponsive';
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+import { formatDateYMD } from '@/utils/date';
 
 export default function NewsDetailScreen() {
   const { id } = useLocalSearchParams();
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const { isSmallScreen, spacing, fontSize } = useResponsive();
+  const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
+  // Динамическая высота изображения, которая обновляется при изменении размера окна/экрана
+  const baseImageHeight = (isSmallScreen ? 0.35 : 0.4) * viewportHeight;
+  const imageHeight = Math.max(220, Math.min(baseImageHeight, 520));
   
   // Приводим ID к строке и ищем новость
   const newsId = Array.isArray(id) ? id[0] : id;
@@ -29,11 +32,7 @@ export default function NewsDetailScreen() {
     return itemIdString === searchIdString;
   });
 
-  console.log('NewsDetailScreen:', { 
-    searchId: newsId, 
-    availableNews: newsItems.map(n => ({ id: n.id, title: n.title })),
-    foundNews: news 
-  });
+  // Debug logs removed to reduce noise and overhead
 
   if (!news) {
     return (
@@ -82,8 +81,8 @@ export default function NewsDetailScreen() {
             <Image
               source={{ uri: news.image }}
               style={{
-                width: screenWidth,
-                height: isSmallScreen ? screenHeight * 0.35 : screenHeight * 0.4,
+                width: '100%',
+                height: imageHeight,
                 backgroundColor: Colors.surfaceSubtle,
               }}
               resizeMode="cover"
@@ -281,7 +280,7 @@ export default function NewsDetailScreen() {
                 fontWeight: '500',
                 marginLeft: 6,
               }}>
-                {news.date}
+                {formatDateYMD(news.date)}
               </ThemedText>
             </View>
           </View>
@@ -414,8 +413,8 @@ export default function NewsDetailScreen() {
             <Image
               source={{ uri: news.image }}
               style={{
-                width: screenWidth * (isSmallScreen ? 0.95 : 0.9),
-                height: screenHeight * (isSmallScreen ? 0.7 : 0.8),
+                width: Math.min(viewportWidth * (isSmallScreen ? 0.95 : 0.9), 1200),
+                height: Math.min(viewportHeight * (isSmallScreen ? 0.7 : 0.8), 1000),
               }}
               resizeMode="contain"
             />

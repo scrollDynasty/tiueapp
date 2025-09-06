@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Animation, Colors, Spacing } from '../constants/DesignTokens';
 import { ThemedText } from './ThemedText';
+import { formatDateYMD } from '@/utils/date';
 
 interface Event {
   id: number;
@@ -162,7 +163,7 @@ export function NewsCard({
               color: Colors.textSecondary,
             }}
           >
-            {date}
+            {formatDateYMD(date)}
           </ThemedText>
         </View>
 
@@ -238,7 +239,7 @@ export function NewsCard({
                   color: Colors.textSecondary,
                 }}
               >
-                📍 {event.location} • {event.date} в {event.time}
+                📍 {event.location} • {formatDateYMD(event.date)} в {event.time}
               </ThemedText>
             </Pressable>
           ))}
