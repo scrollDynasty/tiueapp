@@ -27,7 +27,7 @@ export default function HomeScreen() {
   const dispatch = useAppDispatch();
   const scrollY = useSharedValue(0);
   const [refreshing, setRefreshing] = React.useState(false);
-  const { horizontalPadding, cardGap, cardWidth, cardHeight } = useResponsive();
+  const { horizontalPadding, cardGap, cardWidth, cardHeight, isVerySmallScreen } = useResponsive();
   const { user } = useAppSelector((state) => state.auth);
 
   const scrollHandler = useAnimatedScrollHandler({
@@ -127,7 +127,7 @@ export default function HomeScreen() {
       style={{
         backgroundColor: '#FFFFFF',
         borderRadius: 16,
-        padding: 16,
+        padding: isVerySmallScreen ? 12 : 16,
         flex: 1,
         marginHorizontal: 4,
         shadowColor: '#000',
@@ -139,32 +139,41 @@ export default function HomeScreen() {
         borderLeftColor: color,
       }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+      <View style={{ 
+        flexDirection: isVerySmallScreen ? 'column' : 'row', 
+        alignItems: 'center', 
+        marginBottom: isVerySmallScreen ? 6 : 8,
+        justifyContent: 'center'
+      }}>
         <View style={{
           backgroundColor: `${color}15`,
-          width: 32,
-          height: 32,
+          width: isVerySmallScreen ? 28 : 32,
+          height: isVerySmallScreen ? 28 : 32,
           borderRadius: 8,
           justifyContent: 'center',
           alignItems: 'center',
-          marginRight: 8,
+          marginRight: isVerySmallScreen ? 0 : 8,
+          marginBottom: isVerySmallScreen ? 4 : 0,
         }}>
-          <Ionicons name={icon} size={18} color={color} />
+          <Ionicons name={icon} size={isVerySmallScreen ? 16 : 18} color={color} />
         </View>
-        <ThemedText style={{
-          fontSize: 12,
-          fontWeight: '600',
-          color: '#64748B',
-          textTransform: 'uppercase',
-          letterSpacing: 0.5,
-        }}>
-          {title}
-        </ThemedText>
+        {!isVerySmallScreen && (
+          <ThemedText style={{
+            fontSize: 12,
+            fontWeight: '600',
+            color: '#64748B',
+            textTransform: 'uppercase',
+            letterSpacing: 0.5,
+          }}>
+            {title}
+          </ThemedText>
+        )}
       </View>
       <ThemedText style={{
-        fontSize: 24,
+        fontSize: isVerySmallScreen ? 20 : 24,
         fontWeight: '700',
         color: '#1E293B',
+        textAlign: 'center',
       }}>
         {value}
       </ThemedText>
@@ -246,7 +255,7 @@ export default function HomeScreen() {
       <AnimatedHeader 
         userName={user?.first_name || user?.username || 'Пользователь'}
         notificationCount={3}
-        onAvatarPress={() => console.log('Avatar pressed')}
+        onAvatarPress={() => router.push('/(tabs)/profile')}
         onNotificationPress={() => console.log('Notifications pressed')}
       />
 
@@ -261,52 +270,7 @@ export default function HomeScreen() {
           paddingBottom: 100,
         }}
       >
-        {/* Приветственная секция с градиентом */}
-        <Animated.View
-          entering={FadeInDown.delay(100)}
-          style={{
-            backgroundColor: Colors.brandPrimary,
-            borderRadius: 20,
-            padding: 24,
-            marginBottom: 24,
-            marginTop: 8,
-          }}
-        >
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <View style={{ flex: 1 }}>
-              <ThemedText style={{
-                fontSize: 18,
-                fontWeight: '700',
-                color: '#FFFFFF',
-                marginBottom: 4,
-              }}>
-                Добро пожаловать, {user?.first_name || user?.username || 'Студент'}! 👋
-              </ThemedText>
-              <ThemedText style={{
-                fontSize: 14,
-                color: '#E0E7FF',
-                lineHeight: 20,
-              }}>
-                {user?.role === 'student' 
-                  ? 'Готовы к новому дню обучения?' 
-                  : user?.role === 'professor' 
-                  ? 'Готовы делиться знаниями?' 
-                  : 'Управление университетом в ваших руках!'}
-              </ThemedText>
-            </View>
-            <View style={{
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              borderRadius: 50,
-              padding: 12,
-            }}>
-              <Ionicons 
-                name={user?.role === 'admin' ? 'settings' : user?.role === 'professor' ? 'library' : 'school'} 
-                size={24} 
-                color="#FFFFFF" 
-              />
-            </View>
-          </View>
-        </Animated.View>
+
 
         {/* Статистические виджеты */}
         <View style={{

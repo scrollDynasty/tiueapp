@@ -1,14 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { Image, Pressable, View } from 'react-native';
 import Animated, {
-    SlideInLeft,
-    ZoomIn,
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
+  SlideInLeft,
+  ZoomIn,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
 } from 'react-native-reanimated';
 import { Animation, Colors, Spacing } from '../constants/DesignTokens';
+import { useResponsive } from '../hooks/useResponsive';
 import { ThemedText } from './ThemedText';
 
 interface HeaderProps {
@@ -26,6 +28,7 @@ export function AnimatedHeader({
   onAvatarPress,
   onNotificationPress 
 }: HeaderProps) {
+  const { isVerySmallScreen } = useResponsive();
   const bellScale = useSharedValue(1);
 
   const handleBellPress = () => {
@@ -42,32 +45,94 @@ export function AnimatedHeader({
   });
 
   return (
-    <View
+    <LinearGradient
+      colors={['#FFFFFF', '#F8FAFF', '#EEF4FF']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
       style={{
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: Spacing.l,
-        paddingTop: Spacing.xl,
-        paddingBottom: Spacing.l,
+        borderBottomLeftRadius: 32,
+        borderBottomRightRadius: 32,
+        shadowColor: Colors.shadowUmbra,
+        shadowOffset: {
+          width: 0,
+          height: 4,
+        },
+        shadowOpacity: 0.12,
+        shadowRadius: 12,
+        elevation: 5,
       }}
     >
-      {/* Приветствие */}
-      <Animated.View entering={SlideInLeft.duration(400)} style={{ flex: 1 }}>
-        <ThemedText
-          style={{
-            fontSize: 24,
-            fontWeight: '700',
-            color: '#1E1E1E',
-            fontFamily: 'Inter',
+            <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingHorizontal: Spacing.l,
+          paddingTop: Spacing.xl,
+          paddingBottom: Spacing.m,
+        }}
+      >
+        {/* Приветствие */}
+        <Animated.View 
+          entering={SlideInLeft.duration(600).delay(100)}
+          style={{ 
+            flex: 1, 
+            paddingVertical: 16,
+            paddingRight: 20,
           }}
         >
-          Добро пожаловать, {userName}
-        </ThemedText>
-      </Animated.View>
+          <View
+            style={{
+              backgroundColor: 'rgba(74, 144, 226, 0.08)',
+              borderRadius: isVerySmallScreen ? 12 : 16,
+              padding: isVerySmallScreen ? 12 : 16,
+              borderLeftWidth: isVerySmallScreen ? 3 : 4,
+              borderLeftColor: Colors.brandPrimary,
+            }}
+          >
+            {/* Заголовок "Добро пожаловать" */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isVerySmallScreen ? 4 : 6 }}>
+              <Ionicons 
+                name="sunny" 
+                size={isVerySmallScreen ? 14 : 16} 
+                color={Colors.brandPrimary} 
+                style={{ marginRight: isVerySmallScreen ? 4 : 6 }}
+              />
+              <ThemedText
+                style={{
+                  fontSize: isVerySmallScreen ? 12 : 14,
+                  fontWeight: '600',
+                  color: Colors.textSecondary,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                }}
+              >
+                Добро пожаловать
+              </ThemedText>
+            </View>
+            
+            {/* Имя пользователя */}
+            <ThemedText
+              style={{
+                fontSize: isVerySmallScreen ? 18 : 22,
+                fontWeight: '700',
+                color: Colors.textPrimary,
+                letterSpacing: -0.3,
+                lineHeight: isVerySmallScreen ? 22 : 26,
+              }}
+            >
+              {userName}
+              <ThemedText style={{ fontSize: isVerySmallScreen ? 18 : 22 }}> 👋</ThemedText>
+            </ThemedText>
+          </View>
+        </Animated.View>
 
-      {/* Правая часть с уведомлениями и аватаром */}
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        {/* Правая часть с уведомлениями и аватаром */}
+        <View style={{ 
+          flexDirection: 'row', 
+          alignItems: 'center',
+          paddingTop: 8,
+        }}>
         {/* Колокольчик с счётчиком */}
         <Pressable
           onPress={() => {
@@ -82,7 +147,7 @@ export function AnimatedHeader({
           <Animated.View style={bellAnimatedStyle}>
             <Ionicons 
               name="notifications-outline" 
-              size={24} 
+              size={isVerySmallScreen ? 24 : 28} 
               color={Colors.textPrimary} 
             />
           </Animated.View>
@@ -122,9 +187,9 @@ export function AnimatedHeader({
               <Image
                 source={{ uri: avatarUrl }}
                 style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
+                  width: isVerySmallScreen ? 40 : 48,
+                  height: isVerySmallScreen ? 40 : 48,
+                  borderRadius: isVerySmallScreen ? 20 : 24,
                   borderWidth: 1,
                   borderColor: Colors.strokeSoft,
                 }}
@@ -132,9 +197,9 @@ export function AnimatedHeader({
             ) : (
               <View
                 style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
+                  width: isVerySmallScreen ? 40 : 48,
+                  height: isVerySmallScreen ? 40 : 48,
+                  borderRadius: isVerySmallScreen ? 20 : 24,
                   backgroundColor: Colors.brandPrimary10,
                   borderWidth: 1,
                   borderColor: Colors.strokeSoft,
@@ -144,14 +209,15 @@ export function AnimatedHeader({
               >
                 <Ionicons 
                   name="person" 
-                  size={20} 
+                  size={isVerySmallScreen ? 20 : 24} 
                   color={Colors.brandPrimary} 
                 />
               </View>
             )}
           </Pressable>
         </Animated.View>
+        </View>
       </View>
-    </View>
+    </LinearGradient>
   );
 }
