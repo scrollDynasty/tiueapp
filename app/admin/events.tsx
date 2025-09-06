@@ -1,6 +1,8 @@
+import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { authApi } from '@/services/api';
 import { addEvent, createEvent, fetchEvents } from '@/store/slices/eventsSlice';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -18,12 +20,11 @@ export default function EventsManagementScreen() {
   const [description, setDescription] = React.useState('');
   const [location, setLocation] = React.useState('');
   const [date, setDate] = React.useState('');
-
-  // Загружаем события при открытии страницы
-  React.useEffect(() => {
-    dispatch(fetchEvents());
-  }, [dispatch]);
   const [time, setTime] = React.useState('');
+
+  // Состояния для удаления события
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+  const [eventToDelete, setEventToDelete] = React.useState<{ id: string; title: string } | null>(null);
 
   // Проверяем права доступа
   if (!user || user.role !== 'admin') {
@@ -105,6 +106,39 @@ export default function EventsManagementScreen() {
       setTime('');
       
       Alert.alert('Внимание', 'Событие добавлено локально. Проверьте подключение к серверу для синхронизации с базой данных.');
+    }
+  };
+
+  // Функция удаления события
+  const handleDeleteEvent = (eventId: string, eventTitle: string) => {
+    setEventToDelete({ id: eventId, title: eventTitle });
+    setShowDeleteConfirm(true);
+  };
+
+  // Подтверждение удаления события
+  const confirmDeleteEvent = async () => {
+    if (!eventToDelete) return;
+
+    try {
+      // API вызов для удаления события
+      const response = await authApi.deleteEvent(eventToDelete.id);
+      
+      // Закрываем модальное окно
+      setShowDeleteConfirm(false);
+      setEventToDelete(null);
+      
+      // Обновляем список событий
+      dispatch(fetchEvents());
+      
+      // Показываем уведомление об успешном удалении
+      Alert.alert('Успешно', 'Событие удалено');
+      
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      // Закрываем модальное окно даже при ошибке
+      setShowDeleteConfirm(false);
+      setEventToDelete(null);
+      Alert.alert('Ошибка', 'Не удалось удалить событие');
     }
   };
 
@@ -315,9 +349,27 @@ export default function EventsManagementScreen() {
                     ...Shadows.card,
                   }}
                 >
-                  <ThemedText style={{ ...Typography.body, color: Colors.textPrimary, marginBottom: 4, fontWeight: '600' }}>
-                    {item.title}
-                  </ThemedText>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                    <View style={{ flex: 1 }}>
+                      <ThemedText style={{ ...Typography.body, color: Colors.textPrimary, marginBottom: 4, fontWeight: '600' }}>
+                        {item.title}
+                      </ThemedText>
+                    </View>
+                    <Pressable
+                      onPress={() => handleDeleteEvent(item.id, item.title)}
+                      style={{
+                        backgroundColor: '#FEE2E2',
+                        width: 32,
+                        height: 32,
+                        borderRadius: 16,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginLeft: 8,
+                      }}
+                    >
+                      <Ionicons name="trash-outline" size={16} color="#DC2626" />
+                    </Pressable>
+                  </View>
                   <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary, marginBottom: 8 }}>
                     {item.description}
                   </ThemedText>
@@ -339,6 +391,25 @@ export default function EventsManagementScreen() {
           )}
         </Animated.View>
       </ScrollView>
+
+      {/* Модальное окно подтверждения удаления */}
+      <ConfirmationModal
+        isVisible={showDeleteConfirm}
+        title="Удалить событие?"
+        message={
+          eventToDelete 
+            ? `Вы уверены, что хотите удалить событие "${eventToDelete.title}"?\n\nЭто действие нельзя отменить!`
+            : ''
+        }
+        confirmText="Удалить"
+        cancelText="Отмена"
+        onConfirm={confirmDeleteEvent}
+        onCancel={() => {
+          setShowDeleteConfirm(false);
+          setEventToDelete(null);
+        }}
+        isDangerous={true}
+      />
     </SafeAreaView>
   );
 }
