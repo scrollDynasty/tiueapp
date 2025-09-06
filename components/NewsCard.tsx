@@ -1,3 +1,4 @@
+import { formatDateYMD } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Image, Pressable, View, ViewStyle } from 'react-native';
@@ -10,7 +11,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Animation, Colors, Spacing } from '../constants/DesignTokens';
 import { ThemedText } from './ThemedText';
-import { formatDateYMD } from '@/utils/date';
 
 interface Event {
   id: number;
