@@ -1,3 +1,4 @@
+import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
@@ -224,6 +225,10 @@ export default function UsersManagementScreen() {
   // Состояния для сброса пароля
   const [showPasswordReset, setShowPasswordReset] = React.useState(false);
   const [resetPasswordUser, setResetPasswordUser] = React.useState<UserProfile | null>(null);
+
+  // Состояния для удаления пользователя
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+  const [userToDelete, setUserToDelete] = React.useState<UserProfile | null>(null);
 
   // Загружаем пользователей при загрузке компонента
   React.useEffect(() => {
@@ -674,31 +679,43 @@ export default function UsersManagementScreen() {
   };
 
   const handleDeleteUser = (userId: string) => {
-    Alert.alert(
-      'Подтверждение',
-      'Вы уверены, что хотите удалить этого пользователя?',
-      [
-        { text: 'Отмена', style: 'cancel' },
-        { 
-          text: 'Удалить', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const response = await authApi.deleteUser(userId);
-              if (response.success) {
-                setUsers(prev => prev.filter(u => u.id !== userId));
-                Alert.alert('Успешно', 'Пользователь удален');
-              } else {
-                Alert.alert('Ошибка', response.error || 'Не удалось удалить пользователя');
-              }
-            } catch (error) {
-              console.error('Error deleting user:', error);
-              Alert.alert('Ошибка', 'Не удалось удалить пользователя');
-            }
-          }
-        }
-      ]
-    );
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      setUserToDelete(user);
+      setShowDeleteConfirm(true);
+    }
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+    
+    try {
+      console.log('Attempting to delete user:', userToDelete.id);
+      const response = await authApi.deleteUser(userToDelete.id);
+      console.log('Delete response:', response);
+      
+      // Закрываем модальное окно в любом случае
+      setShowDeleteConfirm(false);
+      setUserToDelete(null);
+      
+      // Проверяем успешность удаления
+      if (response.success !== false) { // Считаем успешным, если нет явного false
+        console.log('User deleted successfully, reloading users list');
+        // Перезагружаем список пользователей с сервера
+        await loadUsers();
+        // Показываем уведомление об успешном удалении
+        Alert.alert('Успешно', 'Пользователь удален');
+      } else {
+        console.error('Delete failed:', response.error || response.message);
+        Alert.alert('Ошибка', response.message || 'Не удалось удалить пользователя');
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      // Закрываем модальное окно даже при ошибке
+      setShowDeleteConfirm(false);
+      setUserToDelete(null);
+      Alert.alert('Ошибка', 'Произошла ошибка при удалении пользователя');
+    }
   };
 
   return (
@@ -1158,6 +1175,21 @@ export default function UsersManagementScreen() {
         user={resetPasswordUser}
         onClose={handleClosePasswordReset}
         onReset={confirmPasswordReset}
+      />
+
+      {/* Модальное окно подтверждения удаления */}
+      <ConfirmationModal
+        isVisible={showDeleteConfirm}
+        title="Удалить пользователя"
+        message={`Вы уверены, что хотите удалить пользователя "${userToDelete?.first_name} ${userToDelete?.last_name}"?\n\nЭто действие необратимо!`}
+        confirmText="Удалить"
+        cancelText="Отмена"
+        isDangerous={true}
+        onConfirm={confirmDeleteUser}
+        onCancel={() => {
+          setShowDeleteConfirm(false);
+          setUserToDelete(null);
+        }}
       />
     </SafeAreaView>
   );

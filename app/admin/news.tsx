@@ -1,6 +1,8 @@
+import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { authApi } from '@/services/api';
 import { fetchEvents } from '@/store/slices/eventsSlice';
 import { addNews, createNews, fetchNews } from '@/store/slices/newsSlice';
 import { News } from '@/types';
@@ -23,6 +25,10 @@ export default function NewsManagementScreen() {
   const [imageUrl, setImageUrl] = React.useState('');
   const [selectedEventIds, setSelectedEventIds] = React.useState<number[]>([]);
   const [selectedIcon, setSelectedIcon] = React.useState<'school-outline' | 'trophy-outline' | 'people-outline' | 'megaphone-outline' | 'calendar-outline'>('megaphone-outline');
+
+  // Состояния для удаления новости
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+  const [newsToDelete, setNewsToDelete] = React.useState<{ id: string; title: string } | null>(null);
 
   // Загружаем новости и события при открытии страницы
   React.useEffect(() => {
@@ -126,6 +132,39 @@ export default function NewsManagementScreen() {
       setSelectedIcon('megaphone-outline');
       
       Alert.alert('Внимание', 'Новость добавлена локально. Проверьте подключение к серверу для синхронизации с базой данных.');
+    }
+  };
+
+  // Функция удаления новости
+  const handleDeleteNews = (newsId: string, newsTitle: string) => {
+    setNewsToDelete({ id: newsId, title: newsTitle });
+    setShowDeleteConfirm(true);
+  };
+
+  // Подтверждение удаления новости
+  const confirmDeleteNews = async () => {
+    if (!newsToDelete) return;
+
+    try {
+      // API вызов для удаления новости
+      const response = await authApi.deleteNews(newsToDelete.id);
+      
+      // Закрываем модальное окно
+      setShowDeleteConfirm(false);
+      setNewsToDelete(null);
+      
+      // Обновляем список новостей
+      dispatch(fetchNews());
+      
+      // Показываем уведомление об успешном удалении
+      Alert.alert('Успешно', 'Новость удалена');
+      
+    } catch (error) {
+      console.error('Error deleting news:', error);
+      // Закрываем модальное окно даже при ошибке
+      setShowDeleteConfirm(false);
+      setNewsToDelete(null);
+      Alert.alert('Ошибка', 'Не удалось удалить новость');
     }
   };
 
@@ -377,29 +416,45 @@ export default function NewsManagementScreen() {
                     ...Shadows.card,
                   }}
                 >
-                  <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-                    <View style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 16,
-                      backgroundColor: Colors.brandPrimary10,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      marginRight: Spacing.s,
-                    }}>
-                      <Ionicons name={item.icon} size={16} color={Colors.brandPrimary} />
+                  <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', flex: 1 }}>
+                      <View style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 16,
+                        backgroundColor: Colors.brandPrimary10,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginRight: Spacing.s,
+                      }}>
+                        <Ionicons name={item.icon} size={16} color={Colors.brandPrimary} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <ThemedText style={{ ...Typography.body, color: Colors.textPrimary, marginBottom: 2 }}>
+                          {item.title}
+                        </ThemedText>
+                        <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary }}>
+                          {item.subtitle}
+                        </ThemedText>
+                        <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary, marginTop: 4 }}>
+                          {item.date} • {item.author}
+                        </ThemedText>
+                      </View>
                     </View>
-                    <View style={{ flex: 1 }}>
-                      <ThemedText style={{ ...Typography.body, color: Colors.textPrimary, marginBottom: 2 }}>
-                        {item.title}
-                      </ThemedText>
-                      <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary }}>
-                        {item.subtitle}
-                      </ThemedText>
-                      <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary, marginTop: 4 }}>
-                        {item.date} • {item.author}
-                      </ThemedText>
-                    </View>
+                    <Pressable
+                      onPress={() => handleDeleteNews(item.id, item.title)}
+                      style={{
+                        backgroundColor: '#FEE2E2',
+                        width: 32,
+                        height: 32,
+                        borderRadius: 16,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginLeft: 8,
+                      }}
+                    >
+                      <Ionicons name="trash-outline" size={16} color="#DC2626" />
+                    </Pressable>
                   </View>
                 </View>
               ))}
@@ -407,6 +462,25 @@ export default function NewsManagementScreen() {
           )}
         </Animated.View>
       </ScrollView>
+
+      {/* Модальное окно подтверждения удаления */}
+      <ConfirmationModal
+        isVisible={showDeleteConfirm}
+        title="Удалить новость?"
+        message={
+          newsToDelete 
+            ? `Вы уверены, что хотите удалить новость "${newsToDelete.title}"?\n\nЭто действие нельзя отменить!`
+            : ''
+        }
+        confirmText="Удалить"
+        cancelText="Отмена"
+        onConfirm={confirmDeleteNews}
+        onCancel={() => {
+          setShowDeleteConfirm(false);
+          setNewsToDelete(null);
+        }}
+        isDangerous={true}
+      />
     </SafeAreaView>
   );
 }
