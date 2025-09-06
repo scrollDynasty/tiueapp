@@ -364,7 +364,7 @@ export default function HomeScreen() {
                 />
                 <ActionCard
                   title="РАСПИСАНИЕ"
-                  icon="calendar-outline"
+                  icon="time-outline"
                   onPress={() => router.push('/(tabs)/schedule')}
                   style={{ width: cardWidth, height: cardHeight }}
                 />
