@@ -4,12 +4,13 @@ import { Colors, Shadows } from '@/constants/DesignTokens';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { ScrollView, TextInput, View } from 'react-native';
+import { ScrollView, TextInput, View, Platform } from 'react-native';
 import Animated, { FadeInDown, SlideInRight } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ExploreScreen() {
   const [searchQuery, setSearchQuery] = React.useState('');
+  const [focusedInput, setFocusedInput] = React.useState<string | null>(null);
   const { horizontalPadding, cardGap, cardWidth, cardHeight, isSmallScreen, fontSize, spacing } = useResponsive();
 
   const categories = [
@@ -74,7 +75,7 @@ export default function ExploreScreen() {
           <Ionicons 
             name="search-outline" 
             size={isSmallScreen ? 18 : 20} 
-            color={Colors.textSecondary} 
+            color={focusedInput === 'search' ? Colors.brandPrimary : Colors.textSecondary}
             style={{ marginRight: spacing.sm }}
           />
           <TextInput
@@ -85,8 +86,25 @@ export default function ExploreScreen() {
               flex: 1,
               fontSize: fontSize.body,
               color: Colors.textPrimary,
+              backgroundColor: 'transparent',
+              borderWidth: 0,
+              margin: 0,
+              padding: 0,
+              ...(Platform.OS === 'android' && {
+                includeFontPadding: false,
+                textAlignVertical: 'center',
+              }),
+              ...(Platform.OS === 'web' && {
+                outline: 'none',
+                boxShadow: 'none',
+              }),
             }}
             placeholderTextColor={Colors.textSecondary}
+            onFocus={() => setFocusedInput('search')}
+            onBlur={() => setFocusedInput(null)}
+            underlineColorAndroid="transparent"
+            selectTextOnFocus={false}
+            blurOnSubmit={false}
           />
         </Animated.View>
 
