@@ -1,12 +1,12 @@
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
-import { formatDateYMD } from '@/utils/date';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { authApi } from '@/services/api';
 import { fetchEvents } from '@/store/slices/eventsSlice';
 import { addNews, createNews, fetchNews } from '@/store/slices/newsSlice';
 import { News } from '@/types';
+import { formatDateYMD } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';

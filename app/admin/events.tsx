@@ -1,10 +1,10 @@
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
-import { formatDateYMD } from '@/utils/date';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { authApi } from '@/services/api';
 import { addEvent, createEvent, fetchEvents } from '@/store/slices/eventsSlice';
+import { formatDateYMD } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
