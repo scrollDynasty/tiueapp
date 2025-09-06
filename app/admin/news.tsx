@@ -114,10 +114,11 @@ export default function NewsManagementScreen() {
       category: 'announcement' as const,
       icon: selectedIcon,
       is_important: false,
-      image: selectedImage?.uri || undefined,
+      image: selectedImage || undefined,
     };
 
     console.log('Sending news data:', newNewsData);
+    console.log('Selected image object:', selectedImage);
 
     try {
       // Сначала пытаемся сохранить через API

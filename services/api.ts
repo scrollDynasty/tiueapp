@@ -188,10 +188,58 @@ class ApiService {
   }
 
   async createNews(newsData: any): Promise<ApiResponse<any>> {
-    return this.request<any>('/news/', {
-      method: 'POST',
-      body: JSON.stringify(newsData),
-    });
+    console.log('=== CREATE NEWS START ===');
+    console.log('Raw newsData received:', JSON.stringify(newsData, null, 2));
+    
+    // Если есть изображение, конвертируем его в base64 и отправляем как JSON
+    if (newsData.image) {
+      try {
+        console.log('=== IMAGE UPLOAD MODE ===');
+        console.log('Original image data:', newsData.image);
+        
+        // Получаем URI изображения
+        const imageUri = newsData.image.uri || newsData.image;
+        console.log('Image URI:', imageUri);
+        
+        // Конвертируем изображение в base64
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
+        const base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(blob);
+        });
+        
+        console.log('Base64 image length:', base64.length);
+        
+        // Отправляем как JSON с base64 изображением
+        const requestData = {
+          ...newsData,
+          image_base64: base64,
+        };
+        delete requestData.image; // Удаляем оригинальный объект image
+        
+        console.log('Sending JSON request with base64 image');
+        
+        return this.request<any>('/news/', {
+          method: 'POST',
+          body: JSON.stringify(requestData),
+        });
+      } catch (error) {
+        console.error('Base64 conversion error:', error);
+        return {
+          success: false,
+          error: 'Failed to process image',
+        };
+      }
+    } else {
+      console.log('=== JSON MODE (NO IMAGE) ===');
+      // Без изображения отправляем как JSON
+      return this.request<any>('/news/', {
+        method: 'POST',
+        body: JSON.stringify(newsData),
+      });
+    }
   }
 
   async updateNews(newsId: string, newsData: any): Promise<ApiResponse<any>> {
