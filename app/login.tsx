@@ -12,6 +12,7 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Platform,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -19,9 +20,7 @@ import {
   View
 } from 'react-native';
 import Animated, {
-  FadeInDown,
   FadeInUp,
-  SlideInDown,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -40,23 +39,36 @@ export default function LoginScreen() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
   
   const dispatch = useAppDispatch();
   const { loading, error, isAuthenticated } = useAppSelector((state) => state.auth);
 
   // Анимационные значения
-  const formScale = useSharedValue(0.8);
+  const logoScale = useSharedValue(0.8);
+  const logoOpacity = useSharedValue(0);
+  const formTranslateY = useSharedValue(50);
   const formOpacity = useSharedValue(0);
   const buttonScale = useSharedValue(1);
 
   useEffect(() => {
-    // Анимация появления формы с более плавными переходами
-    formScale.value = withSpring(1, { 
-      damping: 12, 
-      stiffness: 100,
-      mass: 0.8
+    // Анимация появления логотипа
+    logoScale.value = withSpring(1, { 
+      damping: 15, 
+      stiffness: 120,
+      mass: 1
     });
-    formOpacity.value = withTiming(1, { duration: 1200 });
+    logoOpacity.value = withTiming(1, { duration: 800 });
+
+    // Анимация появления формы
+    setTimeout(() => {
+      formTranslateY.value = withSpring(0, { 
+        damping: 12, 
+        stiffness: 100 
+      });
+      formOpacity.value = withTiming(1, { duration: 1000 });
+    }, 200);
   }, []);
 
   useEffect(() => {
@@ -79,8 +91,8 @@ export default function LoginScreen() {
       return;
     }
 
-    // Более эффектная анимация кнопки
-    buttonScale.value = withSpring(0.92, { 
+    // Анимация кнопки
+    buttonScale.value = withSpring(0.95, { 
       damping: 10,
       stiffness: 300
     }, () => {
@@ -101,41 +113,30 @@ export default function LoginScreen() {
     setCredentials({ ...credentials, password });
   };
 
-  const formAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: formScale.value }],
-      opacity: formOpacity.value,
-    };
-  });
+  const logoAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: logoScale.value }],
+    opacity: logoOpacity.value,
+  }));
 
-  const buttonAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: buttonScale.value }],
-    };
-  });
+  const formAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: formTranslateY.value }],
+    opacity: formOpacity.value,
+  }));
+
+  const buttonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonScale.value }],
+  }));
 
   return (
     <View style={styles.container}>
-      {/* Элегантный фон с вашей цветовой палитрой */}
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.surface} />
+      
+      {/* Современный градиентный фон в стиле LoginScreen */}
       <LinearGradient
-        colors={[Colors.surface, Colors.surfaceSubtle, '#E5EAF2']}
+        colors={['#f7f9fc', '#eef2f7', Colors.surfaceSubtle]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFillObject}
-      />
-      
-      {/* Элегантные декоративные элементы */}
-      <Animated.View 
-        entering={FadeInUp.delay(200).duration(1500).springify().damping(15)}
-        style={[styles.decorativeCircle, styles.circle1]} 
-      />
-      <Animated.View 
-        entering={FadeInUp.delay(400).duration(1500).springify().damping(12)}
-        style={[styles.decorativeCircle, styles.circle2]} 
-      />
-      <Animated.View 
-        entering={FadeInUp.delay(600).duration(1500).springify().damping(10)}
-        style={[styles.decorativeCircle, styles.circle3]} 
       />
 
       <SafeAreaView style={styles.safeArea}>
@@ -143,21 +144,21 @@ export default function LoginScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          <Animated.View style={[styles.content, formAnimatedStyle]}>
-            {/* Header */}
-            <Animated.View 
-              entering={FadeInDown.delay(300).duration(1200).springify().damping(8)}
-              style={styles.header}
-            >
-              <Text style={styles.title}>Добро пожаловать</Text>
-              <Text style={styles.subtitle}>Войдите в университетскую систему</Text>
+          <View style={styles.content}>
+            {/* Логотип-иконка в стиле LoginScreen */}
+            <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
+              <View style={styles.logoWrapper}>
+                <LinearGradient
+                  colors={[Colors.brandPrimary, '#1D4ED8']}
+                  style={styles.logoGradient}
+                >
+                  <Ionicons name="school-outline" size={40} color={Colors.surface} />
+                </LinearGradient>
+              </View>
             </Animated.View>
 
-            {/* Login Form */}
-            <Animated.View 
-              entering={SlideInDown.delay(500).duration(1000).springify().damping(12)}
-              style={styles.formCard}
-            >
+            {/* Главная форма в стиле LoginScreen */}
+            <Animated.View style={[styles.formContainer, formAnimatedStyle]}>
               {/* Email Input */}
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Email</Text>
@@ -168,7 +169,7 @@ export default function LoginScreen() {
                   <Ionicons 
                     name="mail-outline" 
                     size={20} 
-                    color={focusedInput === 'email' ? '#2563EB' : '#64748b'} 
+                    color={focusedInput === 'email' ? Colors.brandPrimary : Colors.textSecondary}
                     style={styles.inputIcon}
                   />
                   <TextInput
@@ -205,23 +206,20 @@ export default function LoginScreen() {
                   <Ionicons 
                     name="lock-closed-outline" 
                     size={20} 
-                    color={focusedInput === 'password' ? '#2563EB' : '#64748b'} 
+                    color={focusedInput === 'password' ? Colors.brandPrimary : Colors.textSecondary}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={[styles.input, {
-                      // Принудительно переопределяем все стили фокуса
                       backgroundColor: 'transparent',
                       borderColor: 'transparent',
                       color: '#111827',
                     }]}
-                    placeholder="Введите пароль"
+                    placeholder="Введите ваш пароль"
                     placeholderTextColor="#94a3b8"
                     value={credentials.password}
                     onChangeText={handlePasswordChange}
                     secureTextEntry={!showPassword}
-                    autoCapitalize="none"
-                    autoCorrect={false}
                     editable={!loading}
                     onFocus={() => setFocusedInput('password')}
                     onBlur={() => setFocusedInput(null)}
@@ -232,59 +230,63 @@ export default function LoginScreen() {
                   <TouchableOpacity
                     onPress={() => setShowPassword(!showPassword)}
                     style={styles.passwordToggle}
+                    activeOpacity={0.7}
                   >
                     <Ionicons 
                       name={showPassword ? "eye-off-outline" : "eye-outline"} 
                       size={20} 
-                      color="#64748b" 
+                      color={Colors.textSecondary}
                     />
                   </TouchableOpacity>
                 </View>
               </View>
 
               {/* Login Button */}
-              <AnimatedTouchableOpacity
-                style={[styles.loginButton, buttonAnimatedStyle, loading && styles.loginButtonDisabled]}
-                onPress={handleLogin}
-                disabled={loading}
-              >
-                <LinearGradient
-                  colors={loading ? ['#94a3b8', '#64748b'] : ['#2563EB', '#1D4ED8']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.loginButtonGradient}
+              <Animated.View style={[styles.loginButton, buttonAnimatedStyle]}>
+                <TouchableOpacity
+                  style={[styles.loginButtonTouchable, loading && styles.loginButtonDisabled]}
+                  onPress={handleLogin}
+                  disabled={loading}
+                  activeOpacity={0.9}
                 >
-                  {loading ? (
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <LoadingAnimation 
-                          color="#ffffff" 
-                          size={20}
-                      />
-                      <Text style={[styles.loginButtonText, { marginLeft: 8 }]}>Вход...</Text>
-                    </View>
-                  ) : (
-                    <>
-                      <Text style={styles.loginButtonText}>Войти</Text>
-                      <Ionicons name="arrow-forward" size={20} color="#ffffff" style={{ marginLeft: 8 }} />
-                    </>
-                  )}
-                </LinearGradient>
-              </AnimatedTouchableOpacity>
+                  <LinearGradient
+                    colors={loading ? [Colors.surfaceSubtle, Colors.textSecondary] : [Colors.brandPrimary, '#1D4ED8']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.buttonGradient}
+                  >
+                    {loading ? (
+                      <View style={styles.buttonContent}>
+                        <LoadingAnimation color={Colors.surface} size={20} />
+                        <Text style={styles.buttonText}>Вход...</Text>
+                      </View>
+                    ) : (
+                      <View style={styles.buttonContent}>
+                        <Text style={styles.buttonText}>Войти</Text>
+                        <Ionicons name="arrow-forward" size={20} color={Colors.surface} />
+                      </View>
+                    )}
+                  </LinearGradient>
+                </TouchableOpacity>
+              </Animated.View>
             </Animated.View>
 
-            {/* Footer */}
+            {/* Информационная карточка внизу */}
             <Animated.View 
-              entering={FadeInUp.delay(700).duration(1000).springify().damping(15)}
-              style={styles.footer}
+              entering={FadeInUp.delay(800).duration(1000)}
+              style={styles.infoCard}
             >
-              <View style={styles.footerCard}>
-                <Ionicons name="information-circle-outline" size={16} color="#2563EB" style={{ marginRight: 8 }} />
-                <Text style={styles.footerText}>
-                  Используйте учетные данные, предоставленные администрацией университета
-                </Text>
-              </View>
+              <Ionicons 
+                name="information-circle-outline" 
+                size={16} 
+                color={Colors.brandPrimary} 
+                style={styles.infoIcon}
+              />
+              <Text style={styles.infoText}>
+                Используйте учетные данные, предоставленные администрацией
+              </Text>
             </Animated.View>
-          </Animated.View>
+          </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
@@ -294,7 +296,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.surface,
+    backgroundColor: '#f7f9fc',
   },
   safeArea: {
     flex: 1,
@@ -306,67 +308,64 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.l,
     justifyContent: 'center',
-    minHeight: height,
+    alignItems: 'center',
   },
-  // Декоративные элементы
-  decorativeCircle: {
-    position: 'absolute',
-    borderRadius: 999,
-    backgroundColor: Colors.brandPrimary10,
+  
+  // Логотип в стиле LoginScreen reference
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+  },
+  logoWrapper: {
+    marginBottom: Spacing.m,
+  },
+  logoGradient: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Colors.brandPrimary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+
+  // Основная форма в стиле LoginScreen reference
+  formContainer: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: Colors.surface,
+    borderRadius: 24,
+    padding: Spacing.xl * 1.2,
+    shadowColor: 'rgba(0, 0, 0, 0.15)',
+    shadowOffset: { width: 0, height: 24 },
+    shadowOpacity: 1,
+    shadowRadius: 32,
+    elevation: 15,
     borderWidth: 1,
-    borderColor: Colors.strokeSoft,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
-  circle1: {
-    width: 200,
-    height: 200,
-    top: -100,
-    right: -100,
-  },
-  circle2: {
-    width: 150,
-    height: 150,
-    top: height * 0.15,
-    left: -75,
-  },
-  circle3: {
-    width: 100,
-    height: 100,
-    bottom: height * 0.2,
-    right: -50,
-  },
-  // Header
-  header: {
+  welcomeHeader: {
     alignItems: 'center',
     marginBottom: Spacing.xl * 1.5,
   },
-  title: {
-    fontSize: 32,
+  welcomeTitle: {
+    fontSize: 28,
     fontWeight: '700',
     color: Colors.textPrimary,
     marginBottom: Spacing.xs,
     textAlign: 'center',
   },
-  subtitle: {
+  welcomeSubtitle: {
     fontSize: 16,
     color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 24,
     fontWeight: '400',
+    textAlign: 'center',
   },
-  // Form
-  formCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 20,
-    padding: Spacing.xl,
-    marginBottom: Spacing.l,
-    shadowColor: Colors.shadowUmbra,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 1,
-    shadowRadius: 24,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: Colors.strokeSoft,
-  },
+
+  // Инпуты - те самые хорошие, что понравились
   inputContainer: {
     marginBottom: Spacing.l,
   },
@@ -426,55 +425,66 @@ const styles = StyleSheet.create({
     padding: Spacing.xs,
     marginLeft: Spacing.xs,
   },
-  // Button
+
+  // Кнопка в стиле LoginScreen reference
   loginButton: {
-    borderRadius: 12,
     marginTop: Spacing.l,
     height: 56,
+    borderRadius: 16,
     shadowColor: Colors.brandPrimary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  loginButtonTouchable: {
+    flex: 1,
+    borderRadius: 16,
   },
   loginButtonDisabled: {
-    shadowOpacity: 0.1,
-    elevation: 2,
+    shadowOpacity: 0.15,
+    elevation: 4,
   },
-  loginButtonGradient: {
+  buttonGradient: {
     flex: 1,
-    borderRadius: 12,
-    flexDirection: 'row',
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Spacing.l,
   },
-  loginButtonText: {
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
     color: Colors.surface,
     fontSize: 16,
     fontWeight: '600',
   },
-  // Footer
-  footer: {
-    alignItems: 'center',
-    marginTop: Spacing.l,
-  },
-  footerCard: {
+
+  // Информационная карточка в стиле LoginScreen reference
+  infoCard: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(37, 99, 235, 0.1)',
-    borderRadius: 12,
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(37, 99, 235, 0.08)',
+    borderRadius: 16,
     paddingHorizontal: Spacing.m,
-    paddingVertical: Spacing.s,
+    paddingVertical: Spacing.m,
+    marginTop: Spacing.xl,
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.15)',
+    borderColor: 'rgba(37, 99, 235, 0.12)',
+    maxWidth: 320,
   },
-  footerText: {
+  infoIcon: {
+    marginRight: Spacing.s,
+    marginTop: 2,
+  },
+  infoText: {
     fontSize: 14,
-    color: '#475569',
-    textAlign: 'center',
-    lineHeight: 20,
+    color: Colors.textSecondary,
     fontWeight: '400',
+    lineHeight: 20,
     flex: 1,
   },
 });
