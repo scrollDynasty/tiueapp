@@ -7,6 +7,7 @@ import { fetchEvents } from '@/store/slices/eventsSlice';
 import { addNews, createNews, fetchNews } from '@/store/slices/newsSlice';
 import { News } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, TextInput, View } from 'react-native';
@@ -22,13 +23,41 @@ export default function NewsManagementScreen() {
   const [title, setTitle] = React.useState('');
   const [subtitle, setSubtitle] = React.useState('');
   const [content, setContent] = React.useState('');
-  const [imageUrl, setImageUrl] = React.useState('');
+  const [selectedImage, setSelectedImage] = React.useState<ImagePicker.ImagePickerAsset | null>(null);
   const [selectedEventIds, setSelectedEventIds] = React.useState<number[]>([]);
   const [selectedIcon, setSelectedIcon] = React.useState<'school-outline' | 'trophy-outline' | 'people-outline' | 'megaphone-outline' | 'calendar-outline'>('megaphone-outline');
 
   // Состояния для удаления новости
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [newsToDelete, setNewsToDelete] = React.useState<{ id: string; title: string } | null>(null);
+
+  // Функция выбора изображения
+  const pickImage = async () => {
+    // Запрашиваем разрешение на доступ к медиатеке
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      Alert.alert('Разрешение требуется', 'Разрешите доступ к фотографиям для загрузки изображений');
+      return;
+    }
+
+    // Открываем выбор изображения
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setSelectedImage(result.assets[0]);
+    }
+  };
+
+  // Функция удаления выбранного изображения
+  const removeImage = () => {
+    setSelectedImage(null);
+  };
 
   // Загружаем новости и события при открытии страницы
   React.useEffect(() => {
@@ -85,12 +114,15 @@ export default function NewsManagementScreen() {
       category: 'announcement' as const,
       icon: selectedIcon,
       is_important: false,
-      image: imageUrl.trim() || undefined,
+      image: selectedImage?.uri || undefined,
     };
+
+    console.log('Sending news data:', newNewsData);
 
     try {
       // Сначала пытаемся сохранить через API
-      await dispatch(createNews(newNewsData)).unwrap();
+      const result = await dispatch(createNews(newNewsData)).unwrap();
+      console.log('Create news result:', result);
       
       // Перезагружаем список новостей
       dispatch(fetchNews());
@@ -99,13 +131,14 @@ export default function NewsManagementScreen() {
       setTitle('');
       setSubtitle('');
       setContent('');
-      setImageUrl('');
+      setSelectedImage(null);
       setSelectedEventIds([]);
       setSelectedIcon('megaphone-outline');
       
       Alert.alert('Успешно', 'Новость добавлена и сохранена в базе данных');
     } catch (error) {
       console.error('API Error:', error);
+      Alert.alert('Ошибка', `Не удалось создать новость: ${error}`);
       
       // Если API не работает, сохраняем локально
       const fallbackNews: News = {
@@ -115,7 +148,7 @@ export default function NewsManagementScreen() {
         content: content.trim(),
         category: 'announcement' as const,
         icon: selectedIcon,
-        image: imageUrl.trim() || undefined,
+        image: selectedImage?.uri || undefined,
         author: `${user.first_name} ${user.last_name}`.trim() || user.username,
         date: 'только что',
         isImportant: false,
@@ -127,7 +160,7 @@ export default function NewsManagementScreen() {
       setTitle('');
       setSubtitle('');
       setContent('');
-      setImageUrl('');
+      setSelectedImage(null);
       setSelectedEventIds([]);
       setSelectedIcon('megaphone-outline');
       
@@ -277,43 +310,90 @@ export default function NewsManagementScreen() {
             />
           </View>
 
-          {/* URL изображения */}
+          {/* Выбор изображения */}
           <View style={{ marginBottom: Spacing.l }}>
             <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
-              URL изображения (необязательно)
+              Изображение (необязательно)
             </ThemedText>
-            <TextInput
-              value={imageUrl}
-              onChangeText={setImageUrl}
-              placeholder="https://example.com/image.jpg"
-              style={{
-                backgroundColor: Colors.surfaceSubtle,
-                borderRadius: 12,
-                padding: Spacing.m,
-                fontSize: 16,
-                color: Colors.textPrimary,
-              }}
-              placeholderTextColor={Colors.textSecondary}
-            />
-            {imageUrl.trim() && (
-              <View style={{ marginTop: Spacing.s }}>
-                <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary, marginBottom: Spacing.xs }}>
-                  Предварительный просмотр:
-                </ThemedText>
+            
+            {selectedImage ? (
+              // Показываем выбранное изображение
+              <View>
                 <Image
-                  source={{ uri: imageUrl }}
+                  source={{ uri: selectedImage.uri }}
                   style={{
                     width: '100%',
-                    height: 150,
-                    borderRadius: 8,
-                    backgroundColor: Colors.surfaceSubtle,
+                    height: 200,
+                    borderRadius: 12,
+                    marginBottom: Spacing.s,
                   }}
                   resizeMode="cover"
-                  onError={() => {
-                    Alert.alert('Ошибка', 'Не удалось загрузить изображение по указанному URL');
-                  }}
                 />
+                <View style={{ flexDirection: 'row', gap: Spacing.s }}>
+                  <Pressable
+                    onPress={pickImage}
+                    style={{
+                      flex: 1,
+                      backgroundColor: Colors.brandPrimary,
+                      borderRadius: 8,
+                      paddingVertical: Spacing.s,
+                      alignItems: 'center',
+                      flexDirection: 'row',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Ionicons name="image-outline" size={18} color="white" style={{ marginRight: 6 }} />
+                    <ThemedText style={{ color: 'white', fontWeight: '600' }}>
+                      Заменить
+                    </ThemedText>
+                  </Pressable>
+                  <Pressable
+                    onPress={removeImage}
+                    style={{
+                      backgroundColor: Colors.error + '20',
+                      borderRadius: 8,
+                      paddingVertical: Spacing.s,
+                      paddingHorizontal: Spacing.m,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Ionicons name="trash-outline" size={18} color={Colors.error} />
+                  </Pressable>
+                </View>
               </View>
+            ) : (
+              // Кнопка выбора изображения
+              <Pressable
+                onPress={pickImage}
+                style={{
+                  backgroundColor: Colors.surfaceSubtle,
+                  borderRadius: 12,
+                  padding: Spacing.l,
+                  alignItems: 'center',
+                  borderWidth: 2,
+                  borderColor: Colors.strokeSoft,
+                  borderStyle: 'dashed',
+                }}
+              >
+                <Ionicons name="cloud-upload-outline" size={32} color={Colors.textSecondary} />
+                <ThemedText style={{ 
+                  ...Typography.body, 
+                  color: Colors.textSecondary, 
+                  marginTop: Spacing.s,
+                  textAlign: 'center'
+                }}>
+                  Нажмите для выбора изображения
+                </ThemedText>
+                <ThemedText style={{ 
+                  ...Typography.caption, 
+                  color: Colors.textSecondary, 
+                  marginTop: 4,
+                  textAlign: 'center'
+                }}>
+                  JPG, PNG до 10MB
+                </ThemedText>
+              </Pressable>
             )}
           </View>
 
