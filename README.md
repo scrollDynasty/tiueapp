@@ -3,10 +3,11 @@
 <div align="center">
 
 ![TIUE Logo](https://img.shields.io/badge/TIUE-Mobile%20App-blue?style=for-the-badge&logo=react)
-[![React Native](https://img.shields.io/badge/React%20Native-0.76.4-61DAFB?style=flat&logo=react)](https://reactnative.dev/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.79.6-61DAFB?style=flat&logo=react)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-~53.0.22-000020?style=flat&logo=expo)](https://expo.dev/)
-[![Django](https://img.shields.io/badge/Django-5.0+-092E20?style=flat&logo=django)](https://djangoproject.com/)
-[![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=flat&logo=python)](https://python.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-22.19.0-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
+[![Django](https://img.shields.io/badge/Django-4.2.16-092E20?style=flat&logo=django)](https://djangoproject.com/)
+[![Python](https://img.shields.io/badge/Python-3.12.6-3776AB?style=flat&logo=python)](https://python.org/)
 
 **Мобильное приложение для студентов и администрации ТИУЭ**
 
@@ -29,7 +30,7 @@ TIUE Mobile App - это комплексное мобильное прилож�
 ## 🏗️ Технологический стек
 
 ### Frontend (React Native)
-- **React Native** `0.76.4` - кроссплатформенная мобильная разработка
+- **React Native** `0.79.6` - кроссплатформенная мобильная разработка
 - **Expo** `~53.0.22` - платформа для быстрой разработки
 - **TypeScript** - типизированный JavaScript
 - **Redux Toolkit** - управление состоянием приложения
@@ -39,9 +40,9 @@ TIUE Mobile App - это комплексное мобильное прилож�
 - **Expo Linear Gradient** - градиентные фоны
 
 ### Backend (Django)
-- **Django** `5.0+` - веб-фреймворк на Python
+- **Django** `4.2.16` - веб-фреймворк на Python
 - **Django REST Framework** - API для мобильного приложения
-- **Python** `3.9+` - серверная логика
+- **Python** `3.12.6` - серверная логика
 - **SQLite/PostgreSQL** - база данных
 - **Django CORS Headers** - поддержка CORS
 
@@ -51,8 +52,9 @@ TIUE Mobile App - это комплексное мобильное прилож�
 
 Убедитесь, что у вас установлено:
 
-- **Node.js** (версия 18 или выше) - [Скачать](https://nodejs.org/)
-- **Python** (версия 3.9 или выше) - [Скачать](https://python.org/)
+- **Node.js** (версия 22.19.0 или выше) - [Скачать](https://nodejs.org/)
+- **npm** (версия 11.6.0 или выше) - устанавливается с Node.js
+- **Python** (версия 3.12.6 или выше) - [Скачать](https://python.org/)
 - **Git** - [Скачать](https://git-scm.com/)
 - **Expo CLI** (глобально):
   ```bash
