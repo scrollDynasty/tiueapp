@@ -1,5 +1,7 @@
 import { ThemedText } from '@/components/ThemedText';
+import { getThemeColors } from '@/constants/Colors';
 import { Colors, Spacing } from '@/constants/DesignTokens';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAppSelector } from '@/hooks/redux';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,6 +24,8 @@ interface ScheduleCardProps {
 }
 
 function ScheduleCard({ item, index }: ScheduleCardProps) {
+  const { isDarkMode } = useTheme();
+  const colors = getThemeColors(isDarkMode);
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'lecture':
@@ -65,7 +69,7 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
     <Animated.View
       entering={FadeInUp.duration(600).delay(index * 100).springify()}
       style={{
-        backgroundColor: Colors.surface,
+        backgroundColor: colors.surface,
         borderRadius: 20,
         padding: Spacing.l,
         marginBottom: Spacing.m,
@@ -75,7 +79,7 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
         shadowRadius: 16,
         elevation: 6,
         borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.04)',
+        borderColor: colors.border,
       }}
     >
       {/* Время и тип */}
@@ -107,7 +111,7 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
         </View>
         
         <View style={{
-          backgroundColor: Colors.brandPrimary + '15',
+          backgroundColor: colors.primary + '15',
           paddingHorizontal: Spacing.s,
           paddingVertical: Spacing.xs,
           borderRadius: 10,
@@ -116,7 +120,7 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
             style={{
               fontSize: 14,
               fontWeight: '700',
-              color: Colors.brandPrimary,
+              color: colors.primary,
               letterSpacing: -0.2,
             }}
           >
@@ -193,6 +197,8 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
 }
 
 export default function ScheduleScreen() {
+  const { isDarkMode } = useTheme();
+  const colors = getThemeColors(isDarkMode);
   const [selectedDay, setSelectedDay] = React.useState<string>('Понедельник');
   const { user } = useAppSelector((state) => state.auth);
 
@@ -267,7 +273,7 @@ export default function ScheduleScreen() {
     <View style={{ flex: 1 }}>
       {/* Градиентный фон */}
       <LinearGradient
-        colors={['#FAFAFA', '#F8FAFC', '#EEF2F7']}
+        colors={isDarkMode ? [colors.background, colors.backgroundSecondary] : ['#FAFAFA', '#F8FAFC', '#EEF2F7']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
@@ -286,7 +292,7 @@ export default function ScheduleScreen() {
             <View style={{
               width: 4,
               height: 32,
-              backgroundColor: Colors.brandPrimary,
+              backgroundColor: colors.primary,
               borderRadius: 2,
               marginRight: Spacing.s
             }} />

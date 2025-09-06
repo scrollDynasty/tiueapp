@@ -1,3 +1,5 @@
+import { getThemeColors } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -27,6 +29,8 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
   const pressed = useSharedValue(0);
   const hovered = useSharedValue(0);
   const { isSmallScreen, fontSize } = useResponsive();
+  const { isDarkMode } = useTheme();
+  const colors = getThemeColors(isDarkMode);
 
   const handlePressIn = () => {
     'worklet';
@@ -75,13 +79,13 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
     return {
       transform: [{ scale: scale.value }],
       shadowOpacity,
-      borderColor: pressed.value > 0.5 ? '#007BFF' : '#E0E7FF',
+      borderColor: pressed.value > 0.5 ? colors.primary : colors.border,
     };
   });
 
   const backgroundStyle = useAnimatedStyle(() => {
     return {
-      backgroundColor: pressed.value > 0.5 ? '#F8FAFF' : '#FFFFFF',
+      backgroundColor: pressed.value > 0.5 ? colors.backgroundSecondary : colors.surface,
     };
   });
 
@@ -140,7 +144,7 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
           <Ionicons 
             name={icon} 
             size={isSmallScreen ? 24 : 28} 
-            color="#007BFF"
+            color={colors.primary}
           />
         </Animated.View>
         
@@ -149,7 +153,7 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
             fontSize: fontSize.small,
             lineHeight: fontSize.small * 1.4,
             fontWeight: '500',
-            color: '#6C757D',
+            color: colors.textSecondary,
             letterSpacing: 0.5,
             textTransform: 'uppercase',
           }}

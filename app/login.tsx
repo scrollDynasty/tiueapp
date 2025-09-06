@@ -1,5 +1,7 @@
 import { LoadingAnimation } from '@/components/LoadingAnimation';
+import { getThemeColors } from '@/constants/Colors';
 import { Colors, Spacing } from '@/constants/DesignTokens';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { clearError, loginUser } from '@/store/slices/authSlice';
 import { LoginCredentials } from '@/types';
@@ -20,7 +22,6 @@ import {
   View
 } from 'react-native';
 import Animated, {
-  FadeInUp,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -33,6 +34,9 @@ const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function LoginScreen() {
+  const { theme } = useTheme();
+  const themeColors = getThemeColors(theme === 'dark');
+  
   const [credentials, setCredentials] = useState<LoginCredentials>({
     email: '',
     password: '',
@@ -177,10 +181,10 @@ export default function LoginScreen() {
                       // Принудительно переопределяем все стили фокуса
                       backgroundColor: 'transparent',
                       borderColor: 'transparent',
-                      color: '#111827',
+                      color: Colors.textPrimary,
                     }]}
                     placeholder="your.email@university.ru"
-                    placeholderTextColor="#94a3b8"
+                    placeholderTextColor={Colors.textSecondary}
                     value={credentials.email}
                     onChangeText={handleEmailChange}
                     keyboardType="email-address"
@@ -213,10 +217,11 @@ export default function LoginScreen() {
                     style={[styles.input, {
                       backgroundColor: 'transparent',
                       borderColor: 'transparent',
-                      color: '#111827',
+                      color: Colors.textPrimary,
+                      paddingRight: 60, // Увеличиваем отступ справа для кнопки глазика
                     }]}
                     placeholder="Введите ваш пароль"
-                    placeholderTextColor="#94a3b8"
+                    placeholderTextColor={Colors.textSecondary}
                     value={credentials.password}
                     onChangeText={handlePasswordChange}
                     secureTextEntry={!showPassword}
@@ -269,22 +274,6 @@ export default function LoginScreen() {
                   </LinearGradient>
                 </TouchableOpacity>
               </Animated.View>
-            </Animated.View>
-
-            {/* Информационная карточка внизу */}
-            <Animated.View 
-              entering={FadeInUp.delay(800).duration(1000)}
-              style={styles.infoCard}
-            >
-              <Ionicons 
-                name="information-circle-outline" 
-                size={16} 
-                color={Colors.brandPrimary} 
-                style={styles.infoIcon}
-              />
-              <Text style={styles.infoText}>
-                Используйте учетные данные, предоставленные администрацией
-              </Text>
             </Animated.View>
           </View>
         </KeyboardAvoidingView>
@@ -416,14 +405,17 @@ const styles = StyleSheet.create({
       includeFontPadding: false,
       textAlignVertical: 'center',
     }),
-    ...(Platform.OS === 'web' && {
-      outline: 'none',
-      boxShadow: 'none',
-    }),
   },
   passwordToggle: {
-    padding: Spacing.xs,
-    marginLeft: Spacing.xs,
+    position: 'absolute',
+    right: Spacing.m,
+    top: 0,
+    bottom: 0,
+    width: 44,
+    height: 56, // Высота такая же как у inputWrapper
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
   },
 
   // Кнопка в стиле LoginScreen reference

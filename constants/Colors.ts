@@ -33,28 +33,33 @@ export const Colors = {
     shadow: 'rgba(0, 0, 0, 0.1)',
   },
   dark: {
-    text: '#F9FAFB',          // Gray-50
-    textSecondary: '#D1D5DB',  // Gray-300
-    background: '#111827',     // Gray-900
-    backgroundSecondary: '#1F2937', // Gray-800
-    surface: '#1F2937',        // Gray-800
-    surfaceSecondary: '#374151', // Gray-700
-    primary: primaryDark,
-    secondary: secondaryDark,
-    accent: '#34D399',         // Emerald-400
-    success: '#10B981',        // Emerald-500
-    warning: '#FBBF24',        // Amber-400
-    error: '#F87171',          // Red-400
-    tint: primaryDark,
-    icon: '#D1D5DB',
-    tabIconDefault: '#9CA3AF', // Gray-400
-    tabIconSelected: primaryDark,
-    border: '#374151',         // Gray-700
-    borderLight: '#4B5563',    // Gray-600
-    card: '#1F2937',
-    notification: '#F87171',
-    shadow: 'rgba(0, 0, 0, 0.3)',
+    text: '#F1F5F9',          // Slate-100 (более яркий белый)
+    textSecondary: '#E2E8F0',  // Slate-200 (более яркий серый)
+    background: '#0F172A',     // Slate-900
+    backgroundSecondary: '#1E293B', // Slate-800
+    surface: '#1E293B',        // Slate-800
+    surfaceSecondary: '#334155', // Slate-700
+    primary: '#6366F1',        // Indigo-500 (более яркий в темной теме)
+    secondary: '#EC4899',      // Pink-500
+    accent: '#10B981',         // Emerald-500
+    success: '#22C55E',        // Green-500
+    warning: '#F59E0B',        // Amber-500
+    error: '#EF4444',          // Red-500
+    tint: '#6366F1',
+    icon: '#E2E8F0',           // Slate-200 (ярче)
+    tabIconDefault: '#94A3B8', // Slate-400 (ярче)
+    tabIconSelected: '#6366F1',
+    border: '#475569',         // Slate-600 (ярче для лучшей видимости)
+    borderLight: '#64748B',    // Slate-500
+    card: '#1E293B',
+    notification: '#EF4444',
+    shadow: 'rgba(0, 0, 0, 0.4)',
   },
+};
+
+// Функция для получения цветов текущей темы
+export const getThemeColors = (isDarkMode: boolean) => {
+  return isDarkMode ? Colors.dark : Colors.light;
 };
 
 export const Gradients = {
