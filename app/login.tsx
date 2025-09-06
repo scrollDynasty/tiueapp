@@ -1,5 +1,5 @@
 import { LoadingAnimation } from '@/components/LoadingAnimation';
-import { Spacing } from '@/constants/DesignTokens';
+import { Colors, Spacing } from '@/constants/DesignTokens';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { clearError, loginUser } from '@/store/slices/authSlice';
 import { LoginCredentials } from '@/types';
@@ -48,7 +48,6 @@ export default function LoginScreen() {
   const formScale = useSharedValue(0.8);
   const formOpacity = useSharedValue(0);
   const buttonScale = useSharedValue(1);
-  const logoRotation = useSharedValue(0);
 
   useEffect(() => {
     // Анимация появления формы с более плавными переходами
@@ -58,13 +57,6 @@ export default function LoginScreen() {
       mass: 0.8
     });
     formOpacity.value = withTiming(1, { duration: 1200 });
-    
-    // Анимация вращения логотипа
-    logoRotation.value = withTiming(360, { 
-      duration: 2000 
-    }, () => {
-      logoRotation.value = 0;
-    });
   }, []);
 
   useEffect(() => {
@@ -122,26 +114,17 @@ export default function LoginScreen() {
     };
   });
 
-  const logoAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ rotate: `${logoRotation.value}deg` }],
-    };
-  });
-
   return (
     <View style={styles.container}>
-      {/* Фоновый градиент - более мягкая сине-белая схема */}
+      {/* Элегантный фон с вашей цветовой палитрой */}
       <LinearGradient
-        colors={['#f8fafc', '#e2e8f0', '#cbd5e1', '#94a3b8']}
+        colors={[Colors.surface, Colors.surfaceSubtle, '#E5EAF2']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[StyleSheet.absoluteFillObject, { height: height * 1.2 }]}
+        style={StyleSheet.absoluteFillObject}
       />
       
-      {/* Дополнительный фоновый слой */}
-      <View style={[StyleSheet.absoluteFillObject, { backgroundColor: '#f1f5f9' }]} />
-      
-      {/* Декоративные элементы с продвинутыми анимациями */}
+      {/* Элегантные декоративные элементы */}
       <Animated.View 
         entering={FadeInUp.delay(200).duration(1500).springify().damping(15)}
         style={[styles.decorativeCircle, styles.circle1]} 
@@ -166,16 +149,8 @@ export default function LoginScreen() {
               entering={FadeInDown.delay(300).duration(1200).springify().damping(8)}
               style={styles.header}
             >
-              <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
-                <LinearGradient
-                  colors={['#ffffff', '#f8fafc']}
-                  style={styles.logoGradient}
-                >
-                  <Ionicons name="school" size={40} color="#2563EB" />
-                </LinearGradient>
-              </Animated.View>
-              <Text style={styles.title}>Добро пожаловать!</Text>
-              <Text style={styles.subtitle}>Войдите в ваш университетский аккаунт</Text>
+              <Text style={styles.title}>Добро пожаловать</Text>
+              <Text style={styles.subtitle}>Войдите в университетскую систему</Text>
             </Animated.View>
 
             {/* Login Form */}
@@ -319,7 +294,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: Colors.surface,
   },
   safeArea: {
     flex: 1,
@@ -331,15 +306,15 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.l,
     justifyContent: 'center',
-    minHeight: height, // Минимальная высота для предотвращения прокрутки
+    minHeight: height,
   },
   // Декоративные элементы
   decorativeCircle: {
     position: 'absolute',
     borderRadius: 999,
-    backgroundColor: 'rgba(37, 99, 235, 0.05)',
+    backgroundColor: Colors.brandPrimary10,
     borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.1)',
+    borderColor: Colors.strokeSoft,
   },
   circle1: {
     width: 200,
@@ -364,53 +339,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: Spacing.xl * 1.5,
   },
-  logoContainer: {
-    marginBottom: Spacing.l,
-  },
-  logoGradient: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#2563EB',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.1)',
-  },
   title: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#0F172A',
+    color: Colors.textPrimary,
     marginBottom: Spacing.xs,
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.1)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
   },
   subtitle: {
     fontSize: 16,
-    color: '#475569',
+    color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
     fontWeight: '400',
   },
   // Form
   formCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: Colors.surface,
     borderRadius: 20,
     padding: Spacing.xl,
     marginBottom: Spacing.l,
-    shadowColor: '#0F172A',
+    shadowColor: Colors.shadowUmbra,
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
+    shadowOpacity: 1,
+    shadowRadius: 24,
     elevation: 8,
     borderWidth: 1,
-    borderColor: 'rgba(229, 234, 242, 0.6)',
+    borderColor: Colors.strokeSoft,
   },
   inputContainer: {
     marginBottom: Spacing.l,
@@ -418,35 +373,29 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: Colors.textPrimary,
     marginBottom: Spacing.xs,
     marginLeft: 4,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#E5EAF2',
+    borderWidth: 1,
+    borderColor: Colors.strokeSoft,
     borderRadius: 12,
-    backgroundColor: '#F5F7FB',
+    backgroundColor: Colors.surfaceSubtle,
     paddingHorizontal: Spacing.m,
-    height: 60,
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 1,
-    // Предотвращаем системные изменения
-    overflow: 'hidden',
+    height: 56,
     position: 'relative',
   },
   inputWrapperFocused: {
-    borderColor: '#2563EB',
-    backgroundColor: '#ffffff',
-    shadowColor: '#2563EB',
-    shadowOpacity: 0.1,
+    borderColor: Colors.brandPrimary,
+    backgroundColor: Colors.surface,
+    shadowColor: Colors.tabActiveShadow,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 4,
   },
   inputIcon: {
     marginRight: Spacing.s,
@@ -454,27 +403,22 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#111827',
+    color: Colors.textPrimary,
     fontWeight: '500',
     height: '100%',
     paddingVertical: 0,
-    textAlignVertical: 'center',
     backgroundColor: 'transparent',
+    // Полностью убираем все системные стили
     borderWidth: 0,
-    // Важно - убираем все margins и paddings которые может добавить система
     margin: 0,
+    padding: 0,
+    outlineWidth: 0,
     ...(Platform.OS === 'android' && {
       includeFontPadding: false,
-      // Полностью убираем все возможные border эффекты
-      borderBottomWidth: 0,
-      borderTopWidth: 0,
-      borderLeftWidth: 0,
-      borderRightWidth: 0,
-      borderStyle: undefined,
+      textAlignVertical: 'center',
     }),
     ...(Platform.OS === 'web' && {
       outline: 'none',
-      // Убираем все веб-специфичные эффекты
       boxShadow: 'none',
     }),
   },
@@ -487,7 +431,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginTop: Spacing.l,
     height: 56,
-    shadowColor: '#2563EB',
+    shadowColor: Colors.brandPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
@@ -506,10 +450,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.l,
   },
   loginButtonText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    color: Colors.surface,
+    fontSize: 16,
+    fontWeight: '600',
   },
   // Footer
   footer: {
