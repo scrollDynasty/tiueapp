@@ -9,228 +9,228 @@
 [![Django](https://img.shields.io/badge/Django-4.2.16-092E20?style=flat&logo=django)](https://djangoproject.com/)
 [![Python](https://img.shields.io/badge/Python-3.12.6-3776AB?style=flat&logo=python)](https://python.org/)
 
-**Мобильное приложение для студентов и администрации TIUE**
+**Mobile application for TIUE students and administration**
 
 </div>
 
-## 📱 О проекте
+## 📱 About the Project
 
-TIUE Mobile App - это комплексное мобильное приложение для студентов и администрации Ташкентского международного университета образования (Tashkent International University of Education). Приложение предоставляет удобный доступ к академической информации, новостям, расписанию и другим университетским услугам.
+TIUE Mobile App is a comprehensive mobile application for students and administration of Tashkent International University of Education (TIUE). The application provides convenient access to academic information, news, schedules, and other university services.
 
-### ✨ Основные возможности
+### ✨ Key Features
 
-- 🔐 **Система аутентификации** - безопасный вход для студентов и администраторов
-- 📰 **Новости университета** - актуальные новости с изображениями и событиями
-- 📅 **Расписание занятий** - персональное расписание для каждого студента
-- 👥 **Управление пользователями** - административная панель для управления студентами
-- 🌙 **Темная тема** - поддержка светлой и темной тем с переключением
-- 📱 **Адаптивный дизайн** - оптимизация для различных размеров экранов
-- 🔄 **Синхронизация данных** - автоматическое обновление информации
+- 🔐 **Authentication System** - secure login for students and administrators
+- 📰 **University News** - latest news with images and events
+- 📅 **Class Schedule** - personalized schedule for each student
+- 👥 **User Management** - administrative panel for managing students
+- 🌙 **Dark Theme** - support for light and dark themes with toggle
+- 📱 **Responsive Design** - optimization for different screen sizes
+- 🔄 **Data Synchronization** - automatic information updates
 
-## 🏗️ Технологический стек
+## 🏗️ Technology Stack
 
 ### Frontend (React Native)
-- **React Native** `0.79.6` - кроссплатформенная мобильная разработка
-- **Expo** `~53.0.22` - платформа для быстрой разработки
-- **TypeScript** - типизированный JavaScript
-- **Redux Toolkit** - управление состоянием приложения
-- **React Navigation** - навигация между экранами
-- **Expo Router** - файловая маршрутизация
-- **React Native Reanimated** - плавные анимации
-- **Expo Linear Gradient** - градиентные фоны
+- **React Native** `0.79.6` - cross-platform mobile development
+- **Expo** `~53.0.22` - rapid development platform
+- **TypeScript** - typed JavaScript
+- **Redux Toolkit** - application state management
+- **React Navigation** - screen navigation
+- **Expo Router** - file-based routing
+- **React Native Reanimated** - smooth animations
+- **Expo Linear Gradient** - gradient backgrounds
 
 ### Backend (Django)
-- **Django** `4.2.16` - веб-фреймворк на Python
-- **Django REST Framework** - API для мобильного приложения
-- **Python** `3.12.6` - серверная логика
-- **MariaDB/MySQL** - база данных
-- **Django CORS Headers** - поддержка CORS
+- **Django** `4.2.16` - Python web framework
+- **Django REST Framework** - API for mobile application
+- **Python** `3.12.6` - server-side logic
+- **MariaDB/MySQL** - database
+- **Django CORS Headers** - CORS support
 
-## 🚀 Быстрый старт
+## 🚀 Quick Start
 
-### Предварительные требования
+### Prerequisites
 
-Убедитесь, что у вас установлено:
+Make sure you have installed:
 
-- **Node.js** (версия 22.19.0 или выше) - [Скачать](https://nodejs.org/)
-- **npm** (версия 11.6.0 или выше) - устанавливается с Node.js
-- **Python** (версия 3.12.6 или выше) - [Скачать](https://python.org/)
-- **MariaDB/MySQL** - база данных
-- **Git** - [Скачать](https://git-scm.com/)
-- **Expo CLI** (глобально):
+- **Node.js** (version 22.19.0 or higher) - [Download](https://nodejs.org/)
+- **npm** (version 11.6.0 or higher) - comes with Node.js
+- **Python** (version 3.12.6 or higher) - [Download](https://python.org/)
+- **MariaDB/MySQL** - database
+- **Git** - [Download](https://git-scm.com/)
+- **Expo CLI** (globally):
   ```bash
   npm install -g @expo/cli
   ```
 
-### 📦 Установка
+### 📦 Installation
 
-#### 1. Клонирование репозитория
+#### 1. Clone the repository
 ```bash
 git clone https://github.com/scrollDynasty/tiueapp.git
 cd tiueapp
 ```
 
-#### 2. Настройка Frontend (React Native)
+#### 2. Frontend Setup (React Native)
 ```bash
-# Установка зависимостей
+# Install dependencies
 npm install
 
-# Или с yarn
+# Or with yarn
 yarn install
 ```
 
-#### 3. Настройка Backend (Django)
+#### 3. Backend Setup (Django)
 ```bash
-# Переход в папку backend
+# Navigate to backend folder
 cd backend
 
-# Создание виртуального окружения
+# Create virtual environment
 python -m venv venv
 
-# Активация виртуального окружения
-# На Windows:
+# Activate virtual environment
+# On Windows:
 venv\Scripts\activate
-# На macOS/Linux:
+# On macOS/Linux:
 source venv/bin/activate
 
-# Установка зависимостей Python
+# Install Python dependencies
 pip install -r requirements.txt
 
-# Применение миграций базы данных
+# Apply database migrations
 python manage.py migrate
 
-# Создание суперпользователя (администратора)
+# Create superuser (administrator)
 python manage.py createsuperuser
 
-# Возврат в корневую папку
+# Return to root folder
 cd ..
 ```
 
-## 🎮 Запуск приложения
+## 🎮 Running the Application
 
-### Backend сервер (Django)
+### Backend Server (Django)
 ```bash
-# В папке backend с активированным venv
+# In backend folder with activated venv
 cd backend
 python manage.py runserver
 
-# Сервер будет доступен по адресу: http://localhost:8000
+# Server will be available at: http://localhost:8000
 ```
 
-### Frontend приложение (React Native)
+### Frontend Application (React Native)
 ```bash
-# В корневой папке проекта
+# In project root folder
 npx expo start
 
-# Или для запуска с очисткой кеша
+# Or to start with cache clearing
 npx expo start --clear
 ```
 
-### 📱 Варианты запуска мобильного приложения
+### 📱 Mobile App Launch Options
 
-После выполнения `npx expo start` выберите один из вариантов:
+After running `npx expo start`, choose one of the options:
 
-1. **📱 Expo Go** (для быстрого тестирования):
-   - Установите [Expo Go](https://expo.dev/go) на телефон
-   - Отсканируйте QR-код с терминала
+1. **📱 Expo Go** (for quick testing):
+   - Install [Expo Go](https://expo.dev/go) on your phone
+   - Scan the QR code from terminal
 
-2. **🤖 Android эмулятор**:
+2. **🤖 Android emulator**:
    ```bash
    npx expo run:android
    ```
 
-3. **🍎 iOS симулятор** (только на macOS):
+3. **🍎 iOS simulator** (macOS only):
    ```bash
    npx expo run:ios
    ```
 
-4. **🌐 Веб-версия**:
+4. **🌐 Web version**:
    ```bash
    npx expo start --web
    ```
 
-## 📂 Структура проекта
+## 📂 Project Structure
 
 ```
 tiueapp/
-├── 📱 app/                    # React Native приложение
-│   ├── (auth)/               # Экраны аутентификации
-│   ├── (tabs)/               # Основные вкладки приложения
-│   ├── admin/                # Административные экраны
-│   ├── news/                 # Экраны новостей
-│   └── login.tsx             # Экран входа
-├── 🎨 components/            # Переиспользуемые компоненты
-├── 🎯 constants/             # Константы (цвета, стили)
-├── 🔄 contexts/              # React контексты (темы)
-├── 🪝 hooks/                 # Пользовательские хуки
-├── 🏪 store/                 # Redux store и слайсы
-├── 🔧 services/              # API сервисы
-├── 📐 types/                 # TypeScript типы
-├── 🎨 styles/                # Глобальные стили
-├── 🖼️ assets/               # Изображения, шрифты
+├── 📱 app/                    # React Native application
+│   ├── (auth)/               # Authentication screens
+│   ├── (tabs)/               # Main app tabs
+│   ├── admin/                # Administrative screens
+│   ├── news/                 # News screens
+│   └── login.tsx             # Login screen
+├── 🎨 components/            # Reusable components
+├── 🎯 constants/             # Constants (colors, styles)
+├── 🔄 contexts/              # React contexts (themes)
+├── 🪝 hooks/                 # Custom hooks
+├── 🏪 store/                 # Redux store and slices
+├── 🔧 services/              # API services
+├── 📐 types/                 # TypeScript types
+├── 🎨 styles/                # Global styles
+├── 🖼️ assets/               # Images, fonts
 └── 🗄️ backend/              # Django backend
-    ├── authentication/       # Аутентификация
-    ├── users/               # Управление пользователями
-    ├── news/                # Новости
-    ├── schedule/            # Расписание
-    ├── groups/              # Учебные группы
-    └── tiuebackend/         # Настройки Django
+    ├── authentication/       # Authentication
+    ├── users/               # User management
+    ├── news/                # News
+    ├── schedule/            # Schedule
+    ├── groups/              # Study groups
+    └── tiuebackend/         # Django settings
 ```
 
-## 🛠️ Доступные команды
+## 🛠️ Available Commands
 
-### Frontend команды
+### Frontend Commands
 ```bash
-# Запуск в режиме разработки
+# Start in development mode
 npm start
 
-# Запуск на Android
+# Run on Android
 npm run android
 
-# Запуск на iOS
+# Run on iOS
 npm run ios
 
-# Запуск в веб-браузере
+# Run in web browser
 npm run web
 
-# Линтинг кода
+# Code linting
 npm run lint
 
-# Сброс проекта к начальному состоянию
+# Reset project to initial state
 npm run reset-project
 ```
 
-### Backend команды
+### Backend Commands
 ```bash
-# Запуск сервера разработки
+# Start development server
 python manage.py runserver
 
-# Создание миграций
+# Create migrations
 python manage.py makemigrations
 
-# Применение миграций
+# Apply migrations
 python manage.py migrate
 
-# Создание суперпользователя
+# Create superuser
 python manage.py createsuperuser
 
-# Открытие Django shell
+# Open Django shell
 python manage.py shell
 ```
 
-## 🎨 Особенности дизайна
+## 🎨 Design Features
 
-- **🌙 Адаптивная тема** - поддержка светлой и темной тем
-- **📱 Мобильный дизайн** - оптимизация для мобильных устройств
-- **🎭 Плавные анимации** - использование React Native Reanimated
-- **🎨 Современный UI** - Material Design принципы
-- **♿ Доступность** - поддержка accessibility features
+- **🌙 Adaptive Theme** - support for light and dark themes
+- **📱 Mobile Design** - mobile device optimization
+- **🎭 Smooth Animations** - using React Native Reanimated
+- **🎨 Modern UI** - Material Design principles
+- **♿ Accessibility** - accessibility features support
 
-## 🔧 Конфигурация
+## 🔧 Configuration
 
 ### Environment Variables
 
-Создайте файл `.env` в папке `backend/`:
+Create a `.env` file in the `backend/` folder:
 
 ```env
 SECRET_KEY=your-secret-key-here
@@ -246,77 +246,77 @@ DB_PORT=3306
 
 ### API Endpoints
 
-Backend предоставляет следующие API endpoints:
+Backend provides the following API endpoints:
 
-- `POST /api/auth/login/` - Вход в систему
-- `POST /api/auth/logout/` - Выход из системы
-- `GET /api/news/` - Список новостей
-- `GET /api/schedule/` - Расписание
-- `GET /api/users/` - Управление пользователями (только админ)
+- `POST /api/auth/login/` - Login
+- `POST /api/auth/logout/` - Logout
+- `GET /api/news/` - News list
+- `GET /api/schedule/` - Schedule
+- `GET /api/users/` - User management (admin only)
 
-## 🧪 Тестирование
+## 🧪 Testing
 
 ```bash
-# Запуск тестов React Native
+# Run React Native tests
 npm test
 
-# Запуск тестов Django
+# Run Django tests
 cd backend
 python manage.py test
 ```
 
-## 📱 Сборка для продакшена
+## 📱 Production Build
 
 ### Android APK
 ```bash
-# Сборка APK
+# Build APK
 npx expo build:android
 
-# Или создание standalone приложения
+# Or create standalone app
 eas build --platform android
 ```
 
 ### iOS App Store
 ```bash
-# Сборка для iOS (требуется macOS)
+# Build for iOS (requires macOS)
 npx expo build:ios
 
-# Или с EAS Build
+# Or with EAS Build
 eas build --platform ios
 ```
 
-## 🤝 Вклад в проект
+## 🤝 Contributing
 
-1. Форкните репозиторий
-2. Создайте ветку для фичи (`git checkout -b feature/amazing-feature`)
-3. Зафиксируйте изменения (`git commit -m 'Add amazing feature'`)
-4. Отправьте в ветку (`git push origin feature/amazing-feature`)
-5. Откройте Pull Request
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 📄 Лицензия
+## 📄 License
 
-Этот проект распространяется под лицензией MIT. Подробности в файле [LICENSE](LICENSE).
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-## 👥 Команда
+## 👥 Team
 
-- **Разработчик**: scrollDynasty
-- **Университет**: TIUE (Tashkent International University of Education)
-- **Контакты**: 
+- **Developer**: scrollDynasty
+- **University**: TIUE (Tashkent International University of Education)
+- **Contacts**: 
   - 📧 Email: ymarumar502@gmail.com
   - 💬 Telegram: @scroll_be
 
-## 📞 Поддержка
+## 📞 Support
 
-Если у вас есть вопросы или проблемы:
+If you have questions or issues:
 
-- 🐛 [Создайте Issue](https://github.com/scrollDynasty/tiueapp/issues)
-- 📧 Напишите на email: ymarumar502@gmail.com
+- 🐛 [Create an Issue](https://github.com/scrollDynasty/tiueapp/issues)
+- 📧 Email: ymarumar502@gmail.com
 - 💬 Telegram: @scroll_be
 
 ---
 
 <div align="center">
 
-**Сделано с ❤️ для студентов TIUE**
+**Made with ❤️ for TIUE students**
 
 </div>
