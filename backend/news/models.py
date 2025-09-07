@@ -47,11 +47,9 @@ class Event(models.Model):
         ('sports', 'Спортивные'),
         ('cultural', 'Культурные'),
         ('social', 'Социальные'),
+        ('club', 'Клубные'),
         ('other', 'Другие'),
     ]
-    
-    # Связь с новостью
-    news = models.ForeignKey(News, on_delete=models.CASCADE, related_name='events', verbose_name='Связанная новость')
     
     title = models.CharField(max_length=200, verbose_name='Название')
     description = models.TextField(verbose_name='Описание')

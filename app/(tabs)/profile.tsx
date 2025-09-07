@@ -9,7 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { Alert, Pressable, ScrollView, Switch, View } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, Switch, View } from 'react-native';
 import Animated, { FadeInDown, SlideInRight } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -24,7 +24,6 @@ interface SettingsItemProps {
 
 function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightComponent }: SettingsItemProps) {
   const { isDarkMode } = useTheme();
-  const colors = getThemeColors(isDarkMode);
   
   const handlePress = () => {
     console.log('SettingsItem pressed:', title);
@@ -37,40 +36,42 @@ function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightC
     <Pressable
       onPress={handlePress}
       style={({ pressed }) => ({
+        backgroundColor: pressed 
+          ? isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
+          : isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
+        borderRadius: 12,
+        padding: Spacing.m,
+        marginBottom: Spacing.s,
         flexDirection: 'row',
         alignItems: 'center',
-        padding: Spacing.m,
-        backgroundColor: pressed ? (isDarkMode ? colors.background : colors.backgroundSecondary) : (isDarkMode ? colors.surfaceSecondary : colors.surface),
-        borderRadius: 12,
-        marginBottom: Spacing.s,
-        ...Shadows.card,
-        shadowOpacity: isDarkMode ? 0.2 : 0.03,
-        shadowRadius: 4,
-        elevation: isDarkMode ? 6 : 2,
-        borderWidth: isDarkMode ? 1 : 0.5,
-        borderColor: isDarkMode ? colors.border : colors.borderLight,
+        borderWidth: 1,
+        borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
       })}
     >
       <View
         style={{
-          width: 36,
-          height: 36,
-          borderRadius: 18,
-          backgroundColor: colors.primary + '15',
+          width: 38,
+          height: 38,
+          borderRadius: 10,
+          backgroundColor: isDarkMode ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.1)',
           justifyContent: 'center',
           alignItems: 'center',
           marginRight: Spacing.m,
         }}
       >
-        <Ionicons name={icon} size={18} color={colors.primary} />
+        <Ionicons 
+          name={icon} 
+          size={20} 
+          color={isDarkMode ? '#8B5CF6' : '#6366F1'} 
+        />
       </View>
 
       <View style={{ flex: 1 }}>
         <ThemedText
           style={{
-            fontSize: 15,
+            fontSize: 16,
             fontWeight: '600',
-            color: colors.text,
+            color: isDarkMode ? '#F1F5F9' : '#1E293B',
             marginBottom: subtitle ? 2 : 0,
           }}
         >
@@ -79,8 +80,8 @@ function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightC
         {subtitle && (
           <ThemedText
             style={{
-              fontSize: 12,
-              color: colors.textSecondary,
+              fontSize: 13,
+              color: isDarkMode ? '#94A3B8' : '#64748B',
             }}
           >
             {subtitle}
@@ -89,7 +90,11 @@ function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightC
       </View>
 
       {rightComponent || (showArrow && (
-        <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+        <Ionicons 
+          name="chevron-forward" 
+          size={18} 
+          color={isDarkMode ? '#64748B' : '#94A3B8'} 
+        />
       ))}
     </Pressable>
   );
@@ -519,26 +524,27 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
       </Animated.View>
 
       {/* Выход из системы */}
-      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ marginTop: Spacing.l, zIndex: 999 }}>
+      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ marginTop: Spacing.l }}>
         <Pressable
           onPress={() => {
             console.log('Logout button pressed!');
             onLogout();
           }}
           style={({ pressed }) => ({
-            backgroundColor: pressed ? '#dc2626' : Colors.error,
-            borderRadius: Radius.card,
+            backgroundColor: pressed ? '#DC2626' : '#EF4444',
+            borderRadius: 12,
             padding: Spacing.l,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            opacity: pressed ? 0.8 : 1,
-            ...Shadows.card,
+            borderWidth: 1,
+            borderColor: pressed ? '#B91C1C' : '#DC2626',
+            opacity: pressed ? 0.9 : 1,
           })}
         >
           <Ionicons name="log-out-outline" size={20} color="white" style={{ marginRight: Spacing.s }} />
           <ThemedText style={{ 
-            ...Typography.body, 
+            fontSize: 16,
             color: 'white',
             fontWeight: '600',
           }}>
@@ -553,6 +559,19 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
 // Компонент студент-профиля
 function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
+  const [notificationsModalVisible, setNotificationsModalVisible] = React.useState(false);
+  const [notificationSettings, setNotificationSettings] = React.useState({
+    push: true,
+    email: true,
+    sms: false,
+    schedule: true,
+    grades: true,
+    news: true,
+    events: true,
+    assignments: false,
+    sound: true,
+    vibration: true,
+  });
   const { theme, isDarkMode, setTheme } = useTheme();
   const colors = getThemeColors(isDarkMode);
   
@@ -606,54 +625,74 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
     );
   };
 
+  // Обновить конкретную настройку уведомлений
+  const updateNotificationSetting = (key: keyof typeof notificationSettings, value: boolean) => {
+    setNotificationSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  // Показать модальное окно настроек уведомлений
+  const showNotificationsModal = () => {
+    setNotificationsModalVisible(true);
+  };
+
   return (
     <>
-      {/* Компактный профиль студента */}
+      {/* Красивый профиль студента */}
       <Animated.View entering={SlideInRight.duration(400)} style={{ marginTop: Spacing.m, marginBottom: Spacing.m }}>
-        <LinearGradient
-          colors={['#FFFFFF', '#F8FAFC']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+        <View
           style={{
-            borderRadius: 16,
-            padding: Spacing.m,
-            ...Shadows.card,
-            shadowOpacity: 0.05,
-            shadowRadius: 8,
-            elevation: 4,
+            borderRadius: 20,
+            padding: Spacing.l,
+            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.95)',
+            borderWidth: 1,
+            borderColor: isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            {/* Компактный аватар */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.m }}>
+            {/* Красивый аватар */}
             <View
               style={{
-                width: 60,
-                height: 60,
-                borderRadius: 30,
-                backgroundColor: Colors.brandPrimary,
-                justifyContent: 'center',
-                alignItems: 'center',
+                width: 70,
+                height: 70,
+                borderRadius: 35,
                 marginRight: Spacing.m,
-                ...Shadows.card,
-                shadowOpacity: 0.2,
+                overflow: 'hidden',
               }}
             >
-              <ThemedText style={{
-                fontSize: 20,
-                fontWeight: '700',
-                color: 'white',
-              }}>
-                {displayInfo.initials}
-              </ThemedText>
+              <LinearGradient
+                colors={isDarkMode 
+                  ? ['#4F46E5', '#7C3AED', '#1E293B'] 
+                  : ['#6366F1', '#8B5CF6', '#EC4899']
+                }
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  width: 70,
+                  height: 70,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <ThemedText style={{
+                  fontSize: 24,
+                  fontWeight: '700',
+                  color: 'white',
+                }}>
+                  {displayInfo.initials}
+                </ThemedText>
+              </LinearGradient>
             </View>
             
             <View style={{ flex: 1 }}>
               <ThemedText
                 style={{
-                  fontSize: 18,
+                  fontSize: 20,
                   fontWeight: '700',
-                  color: Colors.textPrimary,
-                  marginBottom: 2,
+                  color: isDarkMode ? '#FFFFFF' : '#1E293B',
+                  marginBottom: 4,
                 }}
               >
                 {displayInfo.name}
@@ -661,37 +700,37 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
               
               <ThemedText
                 style={{
-                  fontSize: 13,
-                  color: Colors.textSecondary,
-                  marginBottom: 6,
+                  fontSize: 14,
+                  color: isDarkMode ? '#94A3B8' : '#64748B',
+                  marginBottom: 8,
                 }}
               >
                 {displayInfo.subtitle}
               </ThemedText>
 
-              {/* Компактные чипы */}
+              {/* Красивые чипы */}
               {!!user?.student && (
-                <View style={{ flexDirection: 'row', gap: 6 }}>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
                   {!!user.student?.group?.name && (
                     <View style={{ 
-                      backgroundColor: Colors.brandPrimary + '15', 
-                      paddingHorizontal: 8, 
-                      paddingVertical: 3, 
-                      borderRadius: 12,
+                      backgroundColor: isDarkMode ? '#6366F1' : '#6366F1',
+                      paddingHorizontal: 10, 
+                      paddingVertical: 4, 
+                      borderRadius: 14,
                     }}>
-                      <ThemedText style={{ fontSize: 11, color: Colors.brandPrimary, fontWeight: '600' }}>
+                      <ThemedText style={{ fontSize: 12, color: 'white', fontWeight: '600' }}>
                         {user.student.group.name}
                       </ThemedText>
                     </View>
                   )}
                   {!!user.student?.course && (
                     <View style={{ 
-                      backgroundColor: isDarkMode ? `${colors.success}25` : `${colors.success}15`, 
-                      paddingHorizontal: 8, 
-                      paddingVertical: 3, 
-                      borderRadius: 12,
+                      backgroundColor: isDarkMode ? '#8B5CF6' : '#8B5CF6',
+                      paddingHorizontal: 10, 
+                      paddingVertical: 4, 
+                      borderRadius: 14,
                     }}>
-                      <ThemedText style={{ fontSize: 11, color: colors.success, fontWeight: '600' }}>
+                      <ThemedText style={{ fontSize: 12, color: 'white', fontWeight: '600' }}>
                         {user.student.course} курс
                       </ThemedText>
                     </View>
@@ -701,45 +740,74 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
             </View>
           </View>
 
-          {/* Компактная статистика */}
+          {/* Красивая статистика */}
           <View style={{ 
             flexDirection: 'row', 
-            marginTop: Spacing.m,
-            backgroundColor: isDarkMode ? colors.background : colors.backgroundSecondary,
-            borderRadius: 12,
-            padding: Spacing.s,
-            gap: 8,
-            borderWidth: isDarkMode ? 1 : 0,
-            borderColor: isDarkMode ? colors.border : 'transparent',
+            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(99,102,241,0.05)',
+            borderRadius: 16,
+            padding: Spacing.m,
+            gap: 12,
+            borderWidth: 1,
+            borderColor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(99,102,241,0.1)',
           }}>
             <View style={{ alignItems: 'center', flex: 1 }}>
-              <ThemedText style={{ fontSize: 16, fontWeight: '700', color: colors.primary }}>
-                4.2
-              </ThemedText>
-              <ThemedText style={{ fontSize: 10, color: colors.textSecondary }}>
+              <View style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: isDarkMode ? '#6366F1' : '#8B5CF6',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: 4,
+              }}>
+                <ThemedText style={{ fontSize: 16, fontWeight: '700', color: 'white' }}>
+                  4.2
+                </ThemedText>
+              </View>
+              <ThemedText style={{ fontSize: 11, color: isDarkMode ? '#94A3B8' : '#64748B', textAlign: 'center' }}>
                 Средний балл
               </ThemedText>
             </View>
             
             <View style={{ alignItems: 'center', flex: 1 }}>
-              <ThemedText style={{ fontSize: 16, fontWeight: '700', color: '#059669' }}>
-                12
-              </ThemedText>
-              <ThemedText style={{ fontSize: 10, color: Colors.textSecondary }}>
+              <View style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: isDarkMode ? '#8B5CF6' : '#EC4899',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: 4,
+              }}>
+                <ThemedText style={{ fontSize: 16, fontWeight: '700', color: 'white' }}>
+                  12
+                </ThemedText>
+              </View>
+              <ThemedText style={{ fontSize: 11, color: isDarkMode ? '#94A3B8' : '#64748B', textAlign: 'center' }}>
                 Предметов
               </ThemedText>
             </View>
             
             <View style={{ alignItems: 'center', flex: 1 }}>
-              <ThemedText style={{ fontSize: 16, fontWeight: '700', color: '#D97706' }}>
-                87%
-              </ThemedText>
-              <ThemedText style={{ fontSize: 10, color: Colors.textSecondary }}>
+              <View style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: isDarkMode ? '#EC4899' : '#6366F1',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginBottom: 4,
+              }}>
+                <ThemedText style={{ fontSize: 14, fontWeight: '700', color: 'white' }}>
+                  87%
+                </ThemedText>
+              </View>
+              <ThemedText style={{ fontSize: 11, color: isDarkMode ? '#94A3B8' : '#64748B', textAlign: 'center' }}>
                 Посещаемость
               </ThemedText>
             </View>
           </View>
-        </LinearGradient>
+        </View>
       </Animated.View>
 
       {/* Успеваемость */}
@@ -747,7 +815,7 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
         <ThemedText style={{ 
           fontSize: 18, 
           fontWeight: '700', 
-          color: Colors.textPrimary, 
+          color: isDarkMode ? '#FFFFFF' : '#FFFFFF', 
           marginBottom: Spacing.m,
           marginLeft: 4,
         }}>
@@ -788,7 +856,7 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
         <ThemedText style={{ 
           fontSize: 18, 
           fontWeight: '700', 
-          color: Colors.textPrimary, 
+          color: isDarkMode ? '#FFFFFF' : '#FFFFFF', 
           marginBottom: Spacing.m,
           marginLeft: 4,
         }}>
@@ -799,16 +867,19 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
           title="Уведомления"
           subtitle="Push-уведомления и звуки"
           icon="notifications-outline"
+          onPress={showNotificationsModal}
           rightComponent={
             <Switch 
               value={notificationsEnabled} 
               onValueChange={setNotificationsEnabled}
-              trackColor={{ false: Colors.strokeSoft, true: Colors.brandPrimary }}
-              thumbColor={notificationsEnabled ? Colors.surface : Colors.textSecondary}
-              style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }}
+              trackColor={{ 
+                false: isDarkMode ? '#374151' : '#E5E7EB', 
+                true: isDarkMode ? '#6366F1' : '#8B5CF6' 
+              }}
+              thumbColor={notificationsEnabled ? '#ffffff' : '#ffffff'}
+              style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
             />
           }
-          showArrow={false}
         />
         
         <SettingsItem
@@ -823,8 +894,12 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
                 console.log('Switch toggled to:', value);
                 setTheme(value ? 'dark' : 'light');
               }}
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={isDarkMode ? colors.surface : colors.surface}
+              trackColor={{ 
+                false: isDarkMode ? '#374151' : '#E5E7EB', 
+                true: isDarkMode ? '#6366F1' : '#8B5CF6' 
+              }}
+              thumbColor={isDarkMode ? '#ffffff' : '#ffffff'}
+              style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
             />
           }
         />
@@ -856,17 +931,16 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
         <Pressable
           onPress={onLogout}
           style={({ pressed }) => ({
-            backgroundColor: pressed ? '#DC2626' : colors.error,
+            backgroundColor: pressed ? '#DC2626' : '#EF4444',
             borderRadius: 12,
             padding: Spacing.m,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: Spacing.l,
+            borderWidth: 1,
+            borderColor: pressed ? '#B91C1C' : '#DC2626',
             opacity: pressed ? 0.9 : 1,
-            ...Shadows.card,
-            shadowOpacity: isDarkMode ? 0.3 : 0.1,
-            elevation: isDarkMode ? 6 : 4,
           })}
         >
           <Ionicons name="log-out-outline" size={18} color="white" style={{ marginRight: Spacing.s }} />
@@ -879,6 +953,303 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
           </ThemedText>
         </Pressable>
       </Animated.View>
+
+      {/* Модальное окно настроек уведомлений */}
+      <Modal
+        visible={notificationsModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setNotificationsModalVisible(false)}
+      >
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+          {/* Заголовок модального окна */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: Spacing.l,
+            paddingVertical: Spacing.m,
+            borderBottomWidth: 1,
+            borderBottomColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+          }}>
+            <ThemedText style={{
+              fontSize: 20,
+              fontWeight: '700',
+              color: isDarkMode ? '#FFFFFF' : '#1E293B',
+            }}>
+              🔔 Настройки уведомлений
+            </ThemedText>
+            <Pressable
+              onPress={() => setNotificationsModalVisible(false)}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Ionicons name="close" size={18} color={isDarkMode ? '#FFFFFF' : '#1E293B'} />
+            </Pressable>
+          </View>
+
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: Spacing.l }}>
+            {/* Общие настройки */}
+            <View style={{ marginBottom: Spacing.l }}>
+              <ThemedText style={{
+                fontSize: 16,
+                fontWeight: '600',
+                color: isDarkMode ? '#F1F5F9' : '#374151',
+                marginBottom: Spacing.m,
+              }}>
+                📱 Общие настройки
+              </ThemedText>
+
+              <SettingsItem
+                title="Push-уведомления"
+                subtitle="Уведомления в системе"
+                icon="phone-portrait-outline"
+                rightComponent={
+                  <Switch
+                    value={notificationSettings.push}
+                    onValueChange={(value) => updateNotificationSetting('push', value)}
+                    trackColor={{ 
+                      false: isDarkMode ? '#374151' : '#E5E7EB', 
+                      true: isDarkMode ? '#6366F1' : '#8B5CF6' 
+                    }}
+                    thumbColor={'#ffffff'}
+                    style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+                  />
+                }
+                showArrow={false}
+              />
+
+              <SettingsItem
+                title="Email уведомления"
+                subtitle="Уведомления на почту"
+                icon="mail-outline"
+                rightComponent={
+                  <Switch
+                    value={notificationSettings.email}
+                    onValueChange={(value) => updateNotificationSetting('email', value)}
+                    trackColor={{ 
+                      false: isDarkMode ? '#374151' : '#E5E7EB', 
+                      true: isDarkMode ? '#6366F1' : '#8B5CF6' 
+                    }}
+                    thumbColor={'#ffffff'}
+                    style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+                  />
+                }
+                showArrow={false}
+              />
+
+              <SettingsItem
+                title="SMS уведомления"
+                subtitle="Текстовые сообщения"
+                icon="chatbubble-outline"
+                rightComponent={
+                  <Switch
+                    value={notificationSettings.sms}
+                    onValueChange={(value) => updateNotificationSetting('sms', value)}
+                    trackColor={{ 
+                      false: isDarkMode ? '#374151' : '#E5E7EB', 
+                      true: isDarkMode ? '#6366F1' : '#8B5CF6' 
+                    }}
+                    thumbColor={'#ffffff'}
+                    style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+                  />
+                }
+                showArrow={false}
+              />
+            </View>
+
+            {/* Типы уведомлений */}
+            <View style={{ marginBottom: Spacing.l }}>
+              <ThemedText style={{
+                fontSize: 16,
+                fontWeight: '600',
+                color: isDarkMode ? '#F1F5F9' : '#374151',
+                marginBottom: Spacing.m,
+              }}>
+                📝 Типы уведомлений
+              </ThemedText>
+
+              <SettingsItem
+                title="Расписание"
+                subtitle="Напоминания о занятиях"
+                icon="calendar-outline"
+                rightComponent={
+                  <Switch
+                    value={notificationSettings.schedule}
+                    onValueChange={(value) => updateNotificationSetting('schedule', value)}
+                    trackColor={{ 
+                      false: isDarkMode ? '#374151' : '#E5E7EB', 
+                      true: isDarkMode ? '#6366F1' : '#8B5CF6' 
+                    }}
+                    thumbColor={'#ffffff'}
+                    style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+                  />
+                }
+                showArrow={false}
+              />
+
+              <SettingsItem
+                title="Оценки"
+                subtitle="Новые оценки и результаты"
+                icon="school-outline"
+                rightComponent={
+                  <Switch
+                    value={notificationSettings.grades}
+                    onValueChange={(value) => updateNotificationSetting('grades', value)}
+                    trackColor={{ 
+                      false: isDarkMode ? '#374151' : '#E5E7EB', 
+                      true: isDarkMode ? '#6366F1' : '#8B5CF6' 
+                    }}
+                    thumbColor={'#ffffff'}
+                    style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+                  />
+                }
+                showArrow={false}
+              />
+
+              <SettingsItem
+                title="Новости"
+                subtitle="Университетские новости"
+                icon="newspaper-outline"
+                rightComponent={
+                  <Switch
+                    value={notificationSettings.news}
+                    onValueChange={(value) => updateNotificationSetting('news', value)}
+                    trackColor={{ 
+                      false: isDarkMode ? '#374151' : '#E5E7EB', 
+                      true: isDarkMode ? '#6366F1' : '#8B5CF6' 
+                    }}
+                    thumbColor={'#ffffff'}
+                    style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+                  />
+                }
+                showArrow={false}
+              />
+
+              <SettingsItem
+                title="События"
+                subtitle="Мероприятия и события"
+                icon="flag-outline"
+                rightComponent={
+                  <Switch
+                    value={notificationSettings.events}
+                    onValueChange={(value) => updateNotificationSetting('events', value)}
+                    trackColor={{ 
+                      false: isDarkMode ? '#374151' : '#E5E7EB', 
+                      true: isDarkMode ? '#6366F1' : '#8B5CF6' 
+                    }}
+                    thumbColor={'#ffffff'}
+                    style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+                  />
+                }
+                showArrow={false}
+              />
+
+              <SettingsItem
+                title="Задания"
+                subtitle="Домашние задания"
+                icon="clipboard-outline"
+                rightComponent={
+                  <Switch
+                    value={notificationSettings.assignments}
+                    onValueChange={(value) => updateNotificationSetting('assignments', value)}
+                    trackColor={{ 
+                      false: isDarkMode ? '#374151' : '#E5E7EB', 
+                      true: isDarkMode ? '#6366F1' : '#8B5CF6' 
+                    }}
+                    thumbColor={'#ffffff'}
+                    style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+                  />
+                }
+                showArrow={false}
+              />
+            </View>
+
+            {/* Звуки и вибрация */}
+            <View style={{ marginBottom: Spacing.l }}>
+              <ThemedText style={{
+                fontSize: 16,
+                fontWeight: '600',
+                color: isDarkMode ? '#F1F5F9' : '#374151',
+                marginBottom: Spacing.m,
+              }}>
+                🔊 Звуки и вибрация
+              </ThemedText>
+
+              <SettingsItem
+                title="Звук уведомлений"
+                subtitle="Звуковые сигналы"
+                icon="volume-high-outline"
+                rightComponent={
+                  <Switch
+                    value={notificationSettings.sound}
+                    onValueChange={(value) => updateNotificationSetting('sound', value)}
+                    trackColor={{ 
+                      false: isDarkMode ? '#374151' : '#E5E7EB', 
+                      true: isDarkMode ? '#6366F1' : '#8B5CF6' 
+                    }}
+                    thumbColor={'#ffffff'}
+                    style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+                  />
+                }
+                showArrow={false}
+              />
+
+              <SettingsItem
+                title="Вибрация"
+                subtitle="Тактильная обратная связь"
+                icon="phone-portrait-outline"
+                rightComponent={
+                  <Switch
+                    value={notificationSettings.vibration}
+                    onValueChange={(value) => updateNotificationSetting('vibration', value)}
+                    trackColor={{ 
+                      false: isDarkMode ? '#374151' : '#E5E7EB', 
+                      true: isDarkMode ? '#6366F1' : '#8B5CF6' 
+                    }}
+                    thumbColor={'#ffffff'}
+                    style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+                  />
+                }
+                showArrow={false}
+              />
+            </View>
+
+            {/* Кнопка сохранения настроек */}
+            <Pressable
+              onPress={() => {
+                setNotificationsModalVisible(false);
+                Alert.alert('✅ Настройки сохранены', 'Ваши настройки уведомлений обновлены');
+              }}
+              style={({ pressed }) => ({
+                backgroundColor: pressed ? '#5B5CF6' : '#6366F1',
+                borderRadius: 12,
+                padding: Spacing.l,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: Spacing.xl,
+                opacity: pressed ? 0.9 : 1,
+              })}
+            >
+              <Ionicons name="checkmark-circle-outline" size={20} color="white" style={{ marginRight: Spacing.s }} />
+              <ThemedText style={{
+                fontSize: 16,
+                color: 'white',
+                fontWeight: '600',
+              }}>
+                Сохранить настройки
+              </ThemedText>
+            </Pressable>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
     </>
   );
 }
