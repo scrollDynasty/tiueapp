@@ -1,337 +1,623 @@
-import React from 'react';
-import { ScrollView, View, Pressable } from 'react-native';
-import Animated, { FadeInDown, SlideInLeft } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/ThemedText';
-import { Colors, Spacing, Typography, Shadows } from '@/constants/DesignTokens';
+import { getThemeColors } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { useResponsive } from '@/hooks/useResponsive';
+import { fetchEvents, toggleEventRegistration } from '@/store/slices/eventsSlice';
+import { Event } from '@/types';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState } from 'react';
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeInDown, FadeInUp, SlideInRight } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-interface ChatItemProps {
-  name: string;
-  lastMessage: string;
-  time: string;
-  unread?: number;
-  online?: boolean;
-  avatar?: string;
-  index: number;
-}
+const CATEGORIES = [
+  { key: 'all', label: 'Все', icon: 'grid-outline' },
+  { key: 'university', label: 'Университет', icon: 'school-outline' },
+  { key: 'club', label: 'Клубы', icon: 'people-outline' },
+  { key: 'conference', label: 'Конференции', icon: 'megaphone-outline' },
+  { key: 'social', label: 'Социальные', icon: 'heart-outline' },
+  { key: 'sport', label: 'Спорт', icon: 'fitness-outline' },
+];
 
-function ChatItem({ name, lastMessage, time, unread = 0, online = false, index }: ChatItemProps) {
+export default function EventsScreen() {
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
+  const colors = getThemeColors(isDarkMode);
+  const { isSmallScreen, spacing } = useResponsive();
+  const dispatch = useAppDispatch();
+  
+  const { items: events } = useAppSelector((state) => state.events);
+  const [filter, setFilter] = useState('all');
+
+  // Загружаем события при открытии страницы
+  React.useEffect(() => {
+    dispatch(fetchEvents());
+  }, [dispatch]);
+  
+  const filteredEvents = events.filter((event: Event) => {
+    if (filter === 'all') return true;
+    return event.category === filter;
+  });
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'university': return colors.primary;
+      case 'club': return '#8B5CF6';
+      case 'conference': return '#EF4444';
+      case 'social': return '#EC4899';
+      case 'sport': return '#10B981';
+      default: return colors.textSecondary;
+    }
+  };
+
+  const getCategoryLabel = (category: string) => {
+    switch (category) {
+      case 'university': return 'Университет';
+      case 'club': return 'Клубы';
+      case 'conference': return 'Конференция';
+      case 'social': return 'Социальное';
+      case 'sport': return 'Спорт';
+      default: return 'Событие';
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru', {
+      day: 'numeric',
+      month: 'short',
+    });
+  };
+
+  const formatTime = (timeString: string) => {
+    return timeString.slice(0, 5);
+  };
+
   return (
-    <Animated.View entering={FadeInDown.delay(index * 100)}>
-      <Pressable
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          padding: Spacing.m,
-          backgroundColor: Colors.surface,
-          borderRadius: 16,
-          marginBottom: Spacing.s,
-          ...Shadows.card,
-        }}
-      >
-        {/* Аватар */}
-        <View
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: 24,
-            backgroundColor: Colors.brandPrimary10,
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginRight: Spacing.m,
-            position: 'relative',
-          }}
+    <View style={{ flex: 1 }}>
+      {/* Градиентный фон */}
+      <LinearGradient
+        colors={isDarkMode 
+          ? ['#0F172A', '#1E293B', '#334155']
+          : ['#FAFAFA', '#F8FAFC', '#EEF2F7']
+        }
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+      />
+      
+      <SafeAreaView style={{ flex: 1 }}>
+        {/* Современный Header */}
+        <Animated.View 
+          entering={FadeInUp.duration(600).springify()}
+          style={[styles.header, { paddingHorizontal: spacing.lg }]}
         >
-          <Ionicons name="person" size={24} color={Colors.brandPrimary} />
-          {online && (
-            <View
-              style={{
-                width: 12,
-                height: 12,
-                borderRadius: 6,
-                backgroundColor: '#10B981',
-                position: 'absolute',
-                bottom: 0,
-                right: 0,
-                borderWidth: 2,
-                borderColor: Colors.surface,
-              }}
-            />
-          )}
-        </View>
-
-        {/* Контент */}
-        <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <ThemedText
-              style={{
-                fontSize: 16,
-                fontWeight: '600',
-                color: Colors.textPrimary,
-              }}
-            >
-              {name}
-            </ThemedText>
-            <ThemedText
-              style={{
-                fontSize: 12,
-                color: Colors.textSecondary,
-              }}
-            >
-              {time}
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{
+              width: 4,
+              height: 32,
+              backgroundColor: colors.primary,
+              borderRadius: 2,
+              marginRight: spacing.sm
+            }} />
+            <ThemedText style={[styles.title, { 
+              fontSize: isSmallScreen ? 24 : 28,
+              letterSpacing: -0.5,
+              color: colors.text,
+            }]}>
+              События
             </ThemedText>
           </View>
-          
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
-            <ThemedText
+          <TouchableOpacity 
+            style={[
+              styles.searchButton, 
+              { 
+                backgroundColor: 'transparent',
+                width: isSmallScreen ? 40 : 44,
+                height: isSmallScreen ? 40 : 44,
+                borderRadius: isSmallScreen ? 20 : 22,
+                overflow: 'hidden',
+                shadowColor: isDarkMode ? '#000' : '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: isDarkMode ? 0.3 : 0.08,
+                shadowRadius: 12,
+                elevation: isDarkMode ? 8 : 4,
+              }
+            ]}
+          >
+            <LinearGradient
+              colors={isDarkMode 
+                ? ['rgba(30,41,59,0.8)', 'rgba(51,65,85,0.6)']
+                : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)']
+              }
               style={{
-                fontSize: 14,
-                color: Colors.textSecondary,
-                flex: 1,
+                width: '100%',
+                height: '100%',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: isSmallScreen ? 20 : 22,
+                borderWidth: 1,
+                borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
               }}
-              numberOfLines={1}
             >
-              {lastMessage}
-            </ThemedText>
-            
-            {unread > 0 && (
-              <View
+              <Ionicons name="search" size={isSmallScreen ? 18 : 20} color={colors.text} />
+            </LinearGradient>
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Адаптивный Category Filter */}
+        <Animated.View entering={SlideInRight.delay(200).duration(800)}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            style={[styles.categoryContainer, { paddingHorizontal: spacing.lg }]}
+            contentContainerStyle={styles.categoryContent}
+          >
+            {CATEGORIES.map((category, index) => (
+              <Animated.View
+                key={category.key}
+                entering={FadeInUp.delay(300 + index * 50).duration(500)}
+              >
+                <TouchableOpacity
+                  style={[
+                    styles.categoryButton,
+                    {
+                      backgroundColor: 'transparent',
+                      paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md,
+                      paddingVertical: isSmallScreen ? spacing.xs : spacing.sm,
+                      borderRadius: isSmallScreen ? 16 : 20,
+                      marginRight: spacing.sm,
+                      overflow: 'hidden',
+                      shadowColor: filter === category.key ? colors.primary : (isDarkMode ? '#000' : '#000'),
+                      shadowOffset: { width: 0, height: filter === category.key ? 6 : 3 },
+                      shadowOpacity: filter === category.key ? 0.3 : (isDarkMode ? 0.4 : 0.08),
+                      shadowRadius: filter === category.key ? 12 : 6,
+                      elevation: filter === category.key ? 6 : 3,
+                    }
+                  ]}
+                  onPress={() => setFilter(category.key)}
+                >
+                  <LinearGradient
+                    colors={filter === category.key 
+                      ? [colors.primary, colors.primary + 'DD']
+                      : isDarkMode 
+                        ? ['rgba(30,41,59,0.8)', 'rgba(51,65,85,0.6)']
+                        : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)']
+                    }
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md,
+                      paddingVertical: isSmallScreen ? spacing.xs : spacing.sm,
+                      borderRadius: isSmallScreen ? 16 : 20,
+                      borderWidth: 1,
+                      borderColor: filter === category.key 
+                        ? colors.primary + '40'
+                        : isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                    }}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <Ionicons 
+                      name={category.icon as keyof typeof Ionicons.glyphMap} 
+                      size={isSmallScreen ? 14 : 16} 
+                      color={filter === category.key ? '#fff' : colors.text} 
+                    />
+                    <ThemedText
+                      style={[
+                        styles.categoryText,
+                        {
+                          color: filter === category.key ? '#fff' : colors.text,
+                          fontWeight: filter === category.key ? '600' : '400',
+                          fontSize: isSmallScreen ? 12 : 14,
+                          marginLeft: 6,
+                        }
+                      ]}
+                    >
+                      {category.label}
+                    </ThemedText>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </Animated.View>
+            ))}
+          </ScrollView>
+        </Animated.View>
+
+        {/* Адаптивный Events List */}
+        <ScrollView 
+          style={[styles.eventsList, { paddingHorizontal: spacing.lg }]} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 100 }}
+        >
+          <Animated.View entering={FadeInDown.delay(400).duration(800)}>
+            {filteredEvents.length > 0 ? (
+              filteredEvents.map((event: Event, index) => (
+                <Animated.View 
+                  key={event.id} 
+                  entering={FadeInUp.delay(500 + index * 100).duration(600).springify()}
+                  style={[styles.eventCard, {
+                    backgroundColor: 'transparent',
+                    borderRadius: isSmallScreen ? 20 : 24,
+                    marginBottom: spacing.md,
+                    padding: 0,
+                    overflow: 'hidden',
+                    shadowColor: isDarkMode ? '#000' : '#000',
+                    shadowOffset: { width: 0, height: 8 },
+                    shadowOpacity: isDarkMode ? 0.4 : 0.12,
+                    shadowRadius: 20,
+                    elevation: isDarkMode ? 12 : 8,
+                  }]}
+                >
+                  {/* Градиентный фон карточки */}
+                  <LinearGradient
+                    colors={isDarkMode 
+                      ? ['rgba(30,41,59,0.9)', 'rgba(51,65,85,0.8)', 'rgba(71,85,105,0.7)']
+                      : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)', 'rgba(241,245,249,0.7)']
+                    }
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      borderRadius: isSmallScreen ? 20 : 24,
+                      borderWidth: 1,
+                      borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
+                    }}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  />
+                  
+                  {/* Адаптивное Event Image */}
+                  {event.image && (
+                    <View style={{ position: 'relative' }}>
+                      <Image 
+                        source={{ uri: event.image }}
+                        style={{
+                          width: '100%',
+                          height: isSmallScreen ? 160 : 200,
+                          borderTopLeftRadius: isSmallScreen ? 20 : 24,
+                          borderTopRightRadius: isSmallScreen ? 20 : 24,
+                        }}
+                        resizeMode="cover"
+                      />
+                      {/* Градиентный оверлей на изображение */}
+                      <LinearGradient
+                        colors={['transparent', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)']}
+                        style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          height: 60,
+                        }}
+                      />
+                    </View>
+                  )}
+                  
+                  <View style={{
+                    padding: isSmallScreen ? spacing.md : spacing.lg,
+                  }}>
+                    {/* Event Header */}
+                    <View style={styles.eventHeader}>
+                      <View style={styles.eventInfo}>
+                        <ThemedText style={[styles.eventTitle, { 
+                          color: colors.text,
+                          fontSize: isSmallScreen ? 16 : 18,
+                          fontWeight: '700',
+                          marginBottom: spacing.sm,
+                        }]}>
+                          {event.title}
+                        </ThemedText>
+                        <View style={styles.eventMeta}>
+                          <LinearGradient
+                            colors={[`${getCategoryColor(event.category)}30`, `${getCategoryColor(event.category)}20`]}
+                            style={[
+                              styles.categoryBadge,
+                              { 
+                                paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md,
+                                paddingVertical: isSmallScreen ? spacing.xs : spacing.sm,
+                                borderRadius: isSmallScreen ? 12 : 16,
+                                borderWidth: 1,
+                                borderColor: `${getCategoryColor(event.category)}40`,
+                              }
+                            ]}
+                          >
+                            <ThemedText style={[
+                              styles.categoryBadgeText,
+                              { 
+                                color: getCategoryColor(event.category),
+                                fontSize: isSmallScreen ? 11 : 12,
+                                fontWeight: '600',
+                              }
+                            ]}>
+                              {getCategoryLabel(event.category)}
+                            </ThemedText>
+                          </LinearGradient>
+                        </View>
+                      </View>
+                      
+                      <View style={styles.eventDate}>
+                        <ThemedText style={[styles.dateText, { 
+                          color: colors.primary,
+                          fontSize: isSmallScreen ? 12 : 14,
+                          fontWeight: '600',
+                        }]}>
+                          {formatDate(event.date)}
+                        </ThemedText>
+                        <ThemedText style={[styles.timeText, { 
+                          color: colors.textSecondary,
+                          fontSize: isSmallScreen ? 11 : 12,
+                        }]}>
+                          {formatTime(event.time)}
+                        </ThemedText>
+                      </View>
+                    </View>
+
+                    {/* Event Description */}
+                    <ThemedText style={[styles.eventDescription, { 
+                      color: colors.textSecondary,
+                      fontSize: isSmallScreen ? 14 : 15,
+                      lineHeight: isSmallScreen ? 18 : 20,
+                      marginBottom: spacing.md,
+                    }]}>
+                      {event.description}
+                    </ThemedText>
+
+                    {/* Event Details */}
+                    <View style={[styles.eventDetails, { marginBottom: spacing.md }]}>
+                      <View style={styles.detailRow}>
+                        <Ionicons name="location-outline" size={isSmallScreen ? 14 : 16} color={colors.textSecondary} />
+                        <ThemedText style={[styles.detailText, { 
+                          color: colors.textSecondary,
+                          fontSize: isSmallScreen ? 13 : 14,
+                          marginLeft: 6,
+                        }]}>
+                          {event.location}
+                        </ThemedText>
+                      </View>
+                      
+                      {event.maxParticipants && (
+                        <View style={styles.detailRow}>
+                          <Ionicons name="people-outline" size={isSmallScreen ? 14 : 16} color={colors.textSecondary} />
+                          <ThemedText style={[styles.detailText, { 
+                            color: colors.textSecondary,
+                            fontSize: isSmallScreen ? 13 : 14,
+                            marginLeft: 6,
+                          }]}>
+                            {event.currentParticipants} / {event.maxParticipants} участников
+                          </ThemedText>
+                        </View>
+                      )}
+                    </View>
+
+                    {/* Registration Button */}
+                    <TouchableOpacity
+                      style={[
+                        styles.registerButton,
+                        {
+                          backgroundColor: 'transparent',
+                          borderRadius: isSmallScreen ? 16 : 20,
+                          paddingVertical: isSmallScreen ? spacing.sm : spacing.md,
+                          overflow: 'hidden',
+                          shadowColor: event.isRegistered ? 'transparent' : colors.primary,
+                          shadowOffset: { width: 0, height: event.isRegistered ? 0 : 4 },
+                          shadowOpacity: event.isRegistered ? 0 : 0.3,
+                          shadowRadius: event.isRegistered ? 0 : 8,
+                          elevation: event.isRegistered ? 0 : 4,
+                        }
+                      ]}
+                      onPress={() => dispatch(toggleEventRegistration(event.id))}
+                    >
+                      <LinearGradient
+                        colors={event.isRegistered 
+                          ? isDarkMode 
+                            ? ['rgba(30,41,59,0.8)', 'rgba(51,65,85,0.6)']
+                            : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)']
+                          : [colors.primary, colors.primary + 'DD']
+                        }
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          paddingVertical: isSmallScreen ? spacing.sm : spacing.md,
+                          borderRadius: isSmallScreen ? 16 : 20,
+                          borderWidth: event.isRegistered ? 1 : 0,
+                          borderColor: event.isRegistered ? colors.primary + '40' : 'transparent',
+                        }}
+                      >
+                        <Ionicons 
+                          name={event.isRegistered ? "checkmark-circle-outline" : "add-circle-outline"} 
+                          size={isSmallScreen ? 18 : 20} 
+                          color={event.isRegistered ? colors.primary : '#fff'} 
+                        />
+                        <ThemedText
+                          style={[
+                            styles.registerButtonText,
+                            {
+                              color: event.isRegistered ? colors.primary : '#fff',
+                              fontSize: isSmallScreen ? 14 : 15,
+                              fontWeight: '600',
+                              marginLeft: 8,
+                            }
+                          ]}
+                        >
+                          {event.isRegistered ? 'Записан' : 'Записаться'}
+                        </ThemedText>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </View>
+                </Animated.View>
+              ))
+            ) : (
+              <Animated.View 
+                entering={FadeInDown.duration(800).delay(600)}
                 style={{
-                  backgroundColor: Colors.brandPrimary,
-                  borderRadius: 10,
-                  minWidth: 20,
-                  height: 20,
-                  justifyContent: 'center',
+                  backgroundColor: 'transparent',
+                  borderRadius: isSmallScreen ? 20 : 24,
+                  padding: spacing.xl,
                   alignItems: 'center',
-                  paddingHorizontal: 6,
-                  marginLeft: Spacing.s,
+                  marginTop: spacing.lg,
+                  overflow: 'hidden',
+                  shadowColor: isDarkMode ? '#000' : '#000',
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: isDarkMode ? 0.4 : 0.12,
+                  shadowRadius: 20,
+                  elevation: isDarkMode ? 12 : 8,
                 }}
               >
-                <ThemedText
+                <LinearGradient
+                  colors={isDarkMode 
+                    ? ['rgba(30,41,59,0.8)', 'rgba(51,65,85,0.6)', 'rgba(71,85,105,0.4)']
+                    : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)', 'rgba(241,245,249,0.7)']
+                  }
                   style={{
-                    fontSize: 11,
-                    fontWeight: '600',
-                    color: Colors.surface,
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    borderRadius: isSmallScreen ? 20 : 24,
+                    borderWidth: 1,
+                    borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
+                  }}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                />
+                
+                <LinearGradient
+                  colors={isDarkMode 
+                    ? ['rgba(99,102,241,0.2)', 'rgba(139,92,246,0.2)']
+                    : ['rgba(99,102,241,0.1)', 'rgba(139,92,246,0.1)']
+                  }
+                  style={{
+                    width: isSmallScreen ? 80 : 100,
+                    height: isSmallScreen ? 80 : 100,
+                    borderRadius: isSmallScreen ? 20 : 26,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: spacing.lg,
+                    borderWidth: 1,
+                    borderColor: isDarkMode ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.2)',
                   }}
                 >
-                  {unread > 99 ? '99+' : unread.toString()}
+                  <Ionicons name="calendar-outline" size={isSmallScreen ? 32 : 40} color={isDarkMode ? '#A5B4FC' : '#6366F1'} />
+                </LinearGradient>
+                
+                <ThemedText style={{
+                  fontSize: isSmallScreen ? 16 : 18,
+                  fontWeight: '600',
+                  color: colors.text,
+                  textAlign: 'center',
+                  marginBottom: spacing.sm,
+                }}>
+                  Событий не найдено
                 </ThemedText>
-              </View>
+                <ThemedText style={{
+                  fontSize: isSmallScreen ? 14 : 15,
+                  color: colors.textSecondary,
+                  textAlign: 'center',
+                  lineHeight: isSmallScreen ? 18 : 20,
+                }}>
+                  Попробуйте изменить фильтр или вернуться позже
+                </ThemedText>
+              </Animated.View>
             )}
-          </View>
-        </View>
-      </Pressable>
-    </Animated.View>
+          </Animated.View>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-export default function MessagesScreen() {
-  const chats = [
-    {
-      id: 1,
-      name: "Анна Петрова",
-      lastMessage: "Привет! Когда у нас семинар?",
-      time: "14:30",
-      unread: 2,
-      online: true,
-    },
-    {
-      id: 2,
-      name: "Группа ИТ-21",
-      lastMessage: "Михаил: Кто был на лекции?",
-      time: "13:15",
-      unread: 5,
-      online: false,
-    },
-    {
-      id: 3,
-      name: "Преподаватель Иванов",
-      lastMessage: "Задание загружено в систему",
-      time: "12:00",
-      unread: 1,
-      online: true,
-    },
-    {
-      id: 4,
-      name: "Староста курса",
-      lastMessage: "Собрание завтра в 15:00",
-      time: "11:30",
-      unread: 0,
-      online: false,
-    },
-    {
-      id: 5,
-      name: "Библиотека",
-      lastMessage: "Книга готова к выдаче",
-      time: "10:45",
-      unread: 0,
-      online: false,
-    },
-    {
-      id: 6,
-      name: "Деканат",
-      lastMessage: "Документы готовы",
-      time: "Вчера",
-      unread: 0,
-      online: false,
-    },
-  ];
-
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.surface }}>
-      {/* Заголовок */}
-      <Animated.View 
-        entering={SlideInLeft.duration(400)}
-        style={{ 
-          paddingHorizontal: Spacing.l, 
-          paddingVertical: Spacing.l,
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
-        <View>
-          <ThemedText
-            style={{
-              ...Typography.displayH1,
-              color: Colors.textPrimary,
-              marginBottom: Spacing.xxs,
-            }}
-          >
-            Сообщения
-          </ThemedText>
-          <ThemedText
-            style={{
-              ...Typography.body,
-              color: Colors.textSecondary,
-            }}
-          >
-            {chats.reduce((sum, chat) => sum + chat.unread, 0)} новых сообщений
-          </ThemedText>
-        </View>
-
-        <Pressable
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: Colors.brandPrimary10,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Ionicons name="add" size={24} color={Colors.brandPrimary} />
-        </Pressable>
-      </Animated.View>
-
-      <ScrollView
-        contentContainerStyle={{
-          paddingHorizontal: Spacing.l,
-          paddingBottom: 100,
-        }}
-      >
-        {/* Быстрые действия */}
-        <Animated.View 
-          entering={FadeInDown.delay(200)}
-          style={{ marginBottom: Spacing.l }}
-        >
-          <View style={{ flexDirection: 'row', gap: Spacing.s }}>
-            <Pressable
-              style={{
-                flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: Colors.surfaceSubtle,
-                borderRadius: 12,
-                padding: Spacing.s,
-              }}
-            >
-              <Ionicons name="search-outline" size={16} color={Colors.textSecondary} />
-              <ThemedText
-                style={{
-                  fontSize: 14,
-                  color: Colors.textSecondary,
-                  marginLeft: Spacing.xs,
-                }}
-              >
-                Поиск
-              </ThemedText>
-            </Pressable>
-
-            <Pressable
-              style={{
-                backgroundColor: Colors.chipBg,
-                borderRadius: 12,
-                paddingHorizontal: Spacing.s,
-                paddingVertical: Spacing.xs,
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}
-            >
-              <Ionicons name="filter-outline" size={16} color={Colors.brandPrimary} />
-              <ThemedText
-                style={{
-                  fontSize: 14,
-                  color: Colors.brandPrimary,
-                  marginLeft: Spacing.xxs,
-                }}
-              >
-                Все
-              </ThemedText>
-            </Pressable>
-          </View>
-        </Animated.View>
-
-        {/* Список чатов */}
-        <View>
-          {chats.map((chat, index) => (
-            <ChatItem
-              key={chat.id}
-              name={chat.name}
-              lastMessage={chat.lastMessage}
-              time={chat.time}
-              unread={chat.unread}
-              online={chat.online}
-              index={index}
-            />
-          ))}
-        </View>
-
-        {/* Заглушка если нет сообщений */}
-        <Animated.View 
-          entering={FadeInDown.delay(800)}
-          style={{
-            alignItems: 'center',
-            padding: Spacing.xl,
-            marginTop: Spacing.l,
-          }}
-        >
-          <View
-            style={{
-              width: 80,
-              height: 80,
-              borderRadius: 40,
-              backgroundColor: Colors.surfaceSubtle,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginBottom: Spacing.m,
-            }}
-          >
-            <Ionicons name="chatbubbles-outline" size={40} color={Colors.textSecondary} />
-          </View>
-          
-          <ThemedText
-            style={{
-              ...Typography.body,
-              color: Colors.textSecondary,
-              textAlign: 'center',
-            }}
-          >
-            Начните общение с одногруппниками и преподавателями
-          </ThemedText>
-        </Animated.View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  title: {
+    fontWeight: 'bold',
+  },
+  searchButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  categoryContainer: {
+    marginBottom: 16,
+  },
+  categoryContent: {
+    paddingRight: 20,
+  },
+  categoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  categoryText: {
+    // Dynamic styles applied inline
+  },
+  eventsList: {
+    flex: 1,
+  },
+  eventCard: {
+    // Dynamic styles applied inline
+  },
+  eventHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  eventInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  eventTitle: {
+    // Dynamic styles applied inline
+  },
+  eventMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  categoryBadge: {
+    // Dynamic styles applied inline
+  },
+  categoryBadgeText: {
+    // Dynamic styles applied inline
+  },
+  eventDate: {
+    alignItems: 'flex-end',
+  },
+  dateText: {
+    // Dynamic styles applied inline
+  },
+  timeText: {
+    marginTop: 2,
+  },
+  eventDescription: {
+    // Dynamic styles applied inline
+  },
+  eventDetails: {
+    gap: 8,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  detailText: {
+    // Dynamic styles applied inline
+  },
+  registerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    marginTop: 8,
+  },
+  registerButtonText: {
+    marginLeft: 8,
+  },
+});
