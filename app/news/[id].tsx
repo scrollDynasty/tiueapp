@@ -7,12 +7,18 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/ThemedText';
-import { Colors, Spacing } from '@/constants/DesignTokens';
+import { getThemeColors } from '@/constants/Colors';
+import { Spacing } from '@/constants/DesignTokens';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAppSelector } from '@/hooks/redux';
 import { useResponsive } from '@/hooks/useResponsive';
 import { formatDateYMD } from '@/utils/date';
 
 export default function NewsDetailScreen() {
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
+  const colors = getThemeColors(isDarkMode);
+  
   const { id } = useLocalSearchParams();
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const { isSmallScreen, spacing, fontSize } = useResponsive();
@@ -36,44 +42,62 @@ export default function NewsDetailScreen() {
 
   if (!news) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.surface }}>
-        <View style={{ 
-          flex: 1, 
-          justifyContent: 'center', 
-          alignItems: 'center',
-          padding: isSmallScreen ? spacing.lg : Spacing.xl
-        }}>
-          <Ionicons name="newspaper-outline" size={isSmallScreen ? 48 : 64} color={Colors.textSecondary} />
-          <ThemedText style={{ 
-            fontSize: isSmallScreen ? 18 : 20,
-            fontWeight: '600',
-            color: Colors.textSecondary,
-            marginTop: isSmallScreen ? spacing.md : Spacing.m,
-            textAlign: 'center'
+      <LinearGradient
+        colors={isDarkMode 
+          ? ['#0F172A', '#1E293B', '#334155']
+          : ['#FFFFFF', '#F8FAFC', '#F1F5F9']
+        }
+        style={{ flex: 1 }}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <SafeAreaView style={{ flex: 1 }}>
+          <View style={{ 
+            flex: 1, 
+            justifyContent: 'center', 
+            alignItems: 'center',
+            padding: isSmallScreen ? spacing.lg : Spacing.xl
           }}>
-            Новость не найдена
-          </ThemedText>
-          <Pressable
-            onPress={() => router.back()}
-            style={{
-              backgroundColor: Colors.brandPrimary,
-              borderRadius: 12,
-              paddingHorizontal: isSmallScreen ? spacing.lg : Spacing.l,
-              paddingVertical: isSmallScreen ? spacing.md : Spacing.m,
-              marginTop: isSmallScreen ? spacing.lg : Spacing.l,
-            }}
-          >
-            <ThemedText style={{ color: Colors.surface, fontWeight: '600' }}>
-              Назад
+            <Ionicons name="newspaper-outline" size={isSmallScreen ? 48 : 64} color={colors.textSecondary} />
+            <ThemedText style={{ 
+              fontSize: isSmallScreen ? 18 : 20,
+              fontWeight: '600',
+              color: colors.textSecondary,
+              marginTop: isSmallScreen ? spacing.md : Spacing.m,
+              textAlign: 'center'
+            }}>
+              Новость не найдена
             </ThemedText>
-          </Pressable>
-        </View>
-      </SafeAreaView>
+            <Pressable
+              onPress={() => router.back()}
+              style={{
+                backgroundColor: colors.primary,
+                borderRadius: 12,
+                paddingHorizontal: isSmallScreen ? spacing.lg : Spacing.l,
+                paddingVertical: isSmallScreen ? spacing.md : Spacing.m,
+                marginTop: isSmallScreen ? spacing.lg : Spacing.l,
+              }}
+            >
+              <ThemedText style={{ color: colors.surface, fontWeight: '600' }}>
+                Назад
+              </ThemedText>
+            </Pressable>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.surface }}>
+    <LinearGradient
+      colors={isDarkMode 
+        ? ['#0F172A', '#1E293B', '#334155']
+        : ['#FFFFFF', '#F8FAFC', '#F1F5F9']
+      }
+      style={{ flex: 1 }}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
       {/* Адаптивное изображение с наложенным header */}
       {news.image ? (
         <View style={{ position: 'relative' }}>
@@ -83,7 +107,7 @@ export default function NewsDetailScreen() {
               style={{
                 width: '100%',
                 height: imageHeight,
-                backgroundColor: Colors.surfaceSubtle,
+                backgroundColor: colors.surfaceSecondary,
               }}
               resizeMode="cover"
             />
@@ -169,7 +193,7 @@ export default function NewsDetailScreen() {
         </View>
       ) : (
         // Адаптивный header без изображения
-        <SafeAreaView style={{ backgroundColor: Colors.surface }}>
+        <SafeAreaView style={{ backgroundColor: 'transparent' }}>
           <Animated.View 
             entering={FadeInDown.duration(300)}
             style={{
@@ -177,9 +201,9 @@ export default function NewsDetailScreen() {
               alignItems: 'center',
               paddingHorizontal: spacing.md,
               paddingVertical: spacing.sm,
-              backgroundColor: Colors.surface,
+              backgroundColor: 'transparent',
               borderBottomWidth: 1,
-              borderBottomColor: Colors.strokeSoft,
+              borderBottomColor: colors.border,
             }}
           >
             <Pressable
@@ -188,19 +212,19 @@ export default function NewsDetailScreen() {
                 width: isSmallScreen ? 36 : 40,
                 height: isSmallScreen ? 36 : 40,
                 borderRadius: isSmallScreen ? 18 : 20,
-                backgroundColor: Colors.surfaceSubtle,
+                backgroundColor: colors.surfaceSecondary,
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginRight: spacing.md,
               }}
             >
-              <Ionicons name="arrow-back" size={isSmallScreen ? 18 : 20} color={Colors.textPrimary} />
+              <Ionicons name="arrow-back" size={isSmallScreen ? 18 : 20} color={colors.text} />
             </Pressable>
             
             <View style={{ flex: 1 }}>
               <ThemedText style={{ 
                 fontSize: isSmallScreen ? 12 : 14,
-                color: Colors.textSecondary 
+                color: colors.textSecondary 
               }}>
                 Новость
               </ThemedText>
@@ -226,7 +250,7 @@ export default function NewsDetailScreen() {
         <Animated.View
           entering={FadeInUp.duration(600).delay(300)}
           style={{
-            backgroundColor: Colors.surface,
+            backgroundColor: 'transparent',
             borderTopLeftRadius: news.image ? (isSmallScreen ? 20 : 24) : 0,
             borderTopRightRadius: news.image ? (isSmallScreen ? 20 : 24) : 0,
             marginTop: news.image ? (isSmallScreen ? -16 : -20) : 0,
@@ -244,7 +268,7 @@ export default function NewsDetailScreen() {
             flexWrap: 'wrap'
           }}>
             <View style={{
-              backgroundColor: Colors.brandPrimary + '15',
+              backgroundColor: colors.primary + '15',
               borderRadius: isSmallScreen ? 16 : 20,
               paddingHorizontal: spacing.md,
               paddingVertical: spacing.sm,
@@ -253,10 +277,10 @@ export default function NewsDetailScreen() {
               flexDirection: 'row',
               alignItems: 'center',
             }}>
-              <Ionicons name={news.icon as any} size={isSmallScreen ? 14 : 16} color={Colors.brandPrimary} />
+              <Ionicons name={news.icon as any} size={isSmallScreen ? 14 : 16} color={colors.primary} />
               <ThemedText style={{ 
                 fontSize: isSmallScreen ? 11 : 12,
-                color: Colors.brandPrimary,
+                color: colors.primary,
                 fontWeight: '600',
                 marginLeft: 6,
               }}>
@@ -265,7 +289,7 @@ export default function NewsDetailScreen() {
             </View>
             
             <View style={{
-              backgroundColor: Colors.surfaceSubtle,
+              backgroundColor: colors.surfaceSecondary,
               borderRadius: isSmallScreen ? 16 : 20,
               paddingHorizontal: spacing.md,
               paddingVertical: spacing.sm,
@@ -273,10 +297,10 @@ export default function NewsDetailScreen() {
               flexDirection: 'row',
               alignItems: 'center',
             }}>
-              <Ionicons name="time-outline" size={isSmallScreen ? 14 : 16} color={Colors.textSecondary} />
+              <Ionicons name="time-outline" size={isSmallScreen ? 14 : 16} color={colors.textSecondary} />
               <ThemedText style={{ 
                 fontSize: isSmallScreen ? 11 : 12,
-                color: Colors.textSecondary,
+                color: colors.textSecondary,
                 fontWeight: '500',
                 marginLeft: 6,
               }}>
@@ -289,7 +313,7 @@ export default function NewsDetailScreen() {
           <ThemedText style={{
             fontSize: isSmallScreen ? 22 : 28,
             fontWeight: '700',
-            color: Colors.textPrimary,
+            color: colors.text,
             lineHeight: isSmallScreen ? 28 : 36,
             marginBottom: spacing.lg,
             letterSpacing: -0.5,
@@ -302,7 +326,7 @@ export default function NewsDetailScreen() {
             <ThemedText style={{
               fontSize: isSmallScreen ? 16 : 18,
               fontWeight: '500',
-              color: Colors.textSecondary,
+              color: colors.textSecondary,
               lineHeight: isSmallScreen ? 22 : 26,
               marginBottom: spacing.xl,
             }}>
@@ -314,7 +338,7 @@ export default function NewsDetailScreen() {
           <ThemedText style={{
             fontSize: isSmallScreen ? 15 : 16,
             fontWeight: '400',
-            color: Colors.textPrimary,
+            color: colors.text,
             lineHeight: isSmallScreen ? 22 : 24,
             marginBottom: spacing.xl,
           }}>
@@ -323,14 +347,14 @@ export default function NewsDetailScreen() {
 
           {/* Адаптивная информация об авторе */}
           <View style={{
-            backgroundColor: Colors.surfaceSubtle,
+            backgroundColor: colors.surfaceSecondary,
             borderRadius: isSmallScreen ? 12 : 16,
             padding: spacing.lg,
             borderLeftWidth: 4,
-            borderLeftColor: Colors.brandPrimary,
-            shadowColor: '#000',
+            borderLeftColor: colors.primary,
+            shadowColor: isDarkMode ? '#000' : '#000',
             shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.05,
+            shadowOpacity: isDarkMode ? 0.3 : 0.05,
             shadowRadius: 8,
             elevation: 2,
             marginBottom: spacing.xl,
@@ -340,17 +364,17 @@ export default function NewsDetailScreen() {
                 width: isSmallScreen ? 36 : 40,
                 height: isSmallScreen ? 36 : 40,
                 borderRadius: isSmallScreen ? 18 : 20,
-                backgroundColor: Colors.brandPrimary + '15',
+                backgroundColor: colors.primary + '15',
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginRight: spacing.md,
               }}>
-                <Ionicons name="person" size={isSmallScreen ? 18 : 20} color={Colors.brandPrimary} />
+                <Ionicons name="person" size={isSmallScreen ? 18 : 20} color={colors.primary} />
               </View>
               <View style={{ flex: 1 }}>
                 <ThemedText style={{ 
                   fontSize: isSmallScreen ? 12 : 14,
-                  color: Colors.textSecondary,
+                  color: colors.textSecondary,
                   fontWeight: '500'
                 }}>
                   Опубликовано
@@ -358,7 +382,7 @@ export default function NewsDetailScreen() {
                 <ThemedText style={{ 
                   fontSize: isSmallScreen ? 14 : 16,
                   fontWeight: '600',
-                  color: Colors.textPrimary
+                  color: colors.text
                 }}>
                   Администрация университета
                 </ThemedText>
@@ -421,6 +445,6 @@ export default function NewsDetailScreen() {
           </View>
         </Modal>
       )}
-    </View>
+    </LinearGradient>
   );
 }

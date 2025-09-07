@@ -1,6 +1,5 @@
 import { ThemedText } from '@/components/ThemedText';
 import { getThemeColors } from '@/constants/Colors';
-import { Colors } from '@/constants/DesignTokens';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Ionicons } from '@expo/vector-icons';
@@ -66,7 +65,10 @@ export default function ExploreScreen() {
     <View style={{ flex: 1 }}>
       {/* Градиентный фон */}
       <LinearGradient
-        colors={['#FAFAFA', '#F8FAFC', '#EEF2F7']}
+        colors={isDarkMode 
+          ? ['#0F172A', '#1E293B', '#334155']
+          : ['#FAFAFA', '#F8FAFC', '#EEF2F7']
+        }
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
@@ -89,7 +91,7 @@ export default function ExploreScreen() {
               <View style={{
                 width: 4,
                 height: 32,
-                backgroundColor: Colors.brandPrimary,
+                backgroundColor: colors.primary,
                 borderRadius: 2,
                 marginRight: spacing.sm
               }} />
@@ -97,7 +99,7 @@ export default function ExploreScreen() {
                 style={{
                   fontSize: 28,
                   fontWeight: '700',
-                  color: Colors.textPrimary,
+                  color: colors.text,
                   letterSpacing: -0.5,
                 }}
               >
@@ -108,7 +110,7 @@ export default function ExploreScreen() {
               style={{
                 fontSize: 16,
                 fontWeight: '400',
-                color: Colors.textSecondary,
+                color: colors.textSecondary,
                 lineHeight: 24,
                 marginLeft: spacing.lg,
               }}
@@ -121,18 +123,20 @@ export default function ExploreScreen() {
           <Animated.View 
             entering={SlideInDown.delay(200).duration(800).springify()}
             style={{
-              backgroundColor: Colors.surface,
+              backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : colors.surface,
               borderRadius: 20,
               paddingHorizontal: spacing.lg,
               paddingVertical: spacing.md,
               marginBottom: spacing.xl,
-              shadowColor: '#000',
+              shadowColor: isDarkMode ? '#000' : '#000',
               shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.08,
+              shadowOpacity: isDarkMode ? 0.3 : 0.08,
               shadowRadius: 20,
               elevation: 8,
               borderWidth: 1,
-              borderColor: focusedInput === 'search' ? Colors.brandPrimary + '40' : 'rgba(0,0,0,0.05)',
+              borderColor: focusedInput === 'search' 
+                ? colors.primary + '40' 
+                : isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -140,7 +144,9 @@ export default function ExploreScreen() {
                 width: 40,
                 height: 40,
                 borderRadius: 12,
-                backgroundColor: focusedInput === 'search' ? Colors.brandPrimary + '15' : Colors.surfaceSubtle,
+                backgroundColor: focusedInput === 'search' 
+                  ? colors.primary + '15' 
+                  : isDarkMode ? 'rgba(255,255,255,0.08)' : colors.surfaceSecondary,
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginRight: spacing.sm
@@ -148,7 +154,7 @@ export default function ExploreScreen() {
                 <Ionicons 
                   name="search-outline" 
                   size={20} 
-                  color={focusedInput === 'search' ? Colors.brandPrimary : Colors.textSecondary}
+                  color={focusedInput === 'search' ? colors.primary : colors.textSecondary}
                 />
               </View>
               <TextInput
@@ -158,7 +164,7 @@ export default function ExploreScreen() {
                 style={{
                   flex: 1,
                   fontSize: 16,
-                  color: Colors.textPrimary,
+                  color: colors.text,
                   fontWeight: '500',
                   backgroundColor: 'transparent',
                   borderWidth: 0,
@@ -173,7 +179,7 @@ export default function ExploreScreen() {
                     boxShadow: 'none',
                   }),
                 }}
-                placeholderTextColor={Colors.textSecondary}
+                placeholderTextColor={colors.textSecondary}
                 onFocus={() => setFocusedInput('search')}
                 onBlur={() => setFocusedInput(null)}
                 underlineColorAndroid="transparent"
@@ -187,13 +193,13 @@ export default function ExploreScreen() {
                     width: 32,
                     height: 32,
                     borderRadius: 8,
-                    backgroundColor: Colors.surfaceSubtle,
+                    backgroundColor: isDarkMode ? 'rgba(255,255,255,0.08)' : colors.surfaceSecondary,
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginLeft: spacing.sm
                   }}
                 >
-                  <Ionicons name="close" size={16} color={Colors.textSecondary} />
+                  <Ionicons name="close" size={16} color={colors.textSecondary} />
                 </TouchableOpacity>
               )}
             </View>
@@ -206,7 +212,7 @@ export default function ExploreScreen() {
                 style={{
                   fontSize: 20,
                   fontWeight: '700',
-                  color: Colors.textPrimary,
+                  color: colors.text,
                   flex: 1,
                 }}
               >
@@ -216,9 +222,9 @@ export default function ExploreScreen() {
                 paddingHorizontal: spacing.sm,
                 paddingVertical: spacing.xs,
                 borderRadius: 8,
-                backgroundColor: Colors.brandPrimary + '10',
+                backgroundColor: colors.primary + '10',
               }}>
-                <ThemedText style={{ fontSize: 14, color: Colors.brandPrimary, fontWeight: '600' }}>
+                <ThemedText style={{ fontSize: 14, color: colors.primary, fontWeight: '600' }}>
                   Все
                 </ThemedText>
               </TouchableOpacity>
@@ -238,40 +244,71 @@ export default function ExploreScreen() {
                   <TouchableOpacity
                     style={{
                       width: (Dimensions.get('window').width - 48 - spacing.md) / 2,
-                      backgroundColor: Colors.surface,
-                      borderRadius: 16,
+                      backgroundColor: 'transparent',
+                      borderRadius: 20,
                       padding: spacing.lg,
                       marginBottom: spacing.md,
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.06,
-                      shadowRadius: 10,
-                      elevation: 3,
-                      borderWidth: 1,
-                      borderColor: 'rgba(0,0,0,0.04)',
+                      overflow: 'hidden',
+                      ...Platform.select({
+                        ios: {
+                          shadowColor: isDarkMode ? '#000' : '#000',
+                          shadowOffset: { width: 0, height: 8 },
+                          shadowOpacity: isDarkMode ? 0.4 : 0.12,
+                          shadowRadius: 16,
+                        },
+                        android: {
+                          elevation: isDarkMode ? 12 : 8,
+                        },
+                      }),
                     }}
                     onPress={() => console.log(`${category.title} pressed`)}
                   >
-                    <View style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 14,
-                      backgroundColor: category.bgColor,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: spacing.sm,
-                    }}>
+                    {/* Градиентный фон карточки */}
+                    <LinearGradient
+                      colors={isDarkMode 
+                        ? ['rgba(30,41,59,0.8)', 'rgba(51,65,85,0.6)']
+                        : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)']
+                      }
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        borderRadius: 20,
+                        borderWidth: 1,
+                        borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                      }}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    />
+                    
+                    {/* Иконка с градиентным фоном */}
+                    <LinearGradient
+                      colors={[category.color + '20', category.color + '10']}
+                      style={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: 18,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: spacing.md,
+                        borderWidth: 1,
+                        borderColor: category.color + '30',
+                      }}
+                    >
                       <Ionicons 
                         name={category.icon} 
-                        size={24} 
+                        size={28} 
                         color={category.color}
                       />
-                    </View>
+                    </LinearGradient>
+                    
                     <ThemedText
                       style={{
                         fontSize: 14,
                         fontWeight: '700',
-                        color: Colors.textPrimary,
+                        color: colors.text,
                         marginBottom: 4,
                         letterSpacing: -0.2,
                       }}
@@ -282,7 +319,7 @@ export default function ExploreScreen() {
                       style={{
                         fontSize: 12,
                         fontWeight: '400',
-                        color: Colors.textSecondary,
+                        color: colors.textSecondary,
                         lineHeight: 16,
                       }}
                     >
@@ -303,7 +340,7 @@ export default function ExploreScreen() {
               style={{
                 fontSize: 20,
                 fontWeight: '700',
-                color: Colors.textPrimary,
+                color: colors.text,
                 marginBottom: spacing.lg,
               }}
             >
@@ -325,18 +362,43 @@ export default function ExploreScreen() {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      backgroundColor: Colors.surface,
+                      backgroundColor: 'transparent',
                       borderRadius: 16,
                       padding: spacing.lg,
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: 0.05,
-                      shadowRadius: 8,
-                      elevation: 2,
-                      borderWidth: 1,
-                      borderColor: 'rgba(0,0,0,0.04)',
+                      overflow: 'hidden',
+                      ...Platform.select({
+                        ios: {
+                          shadowColor: isDarkMode ? '#000' : '#000',
+                          shadowOffset: { width: 0, height: 4 },
+                          shadowOpacity: isDarkMode ? 0.3 : 0.08,
+                          shadowRadius: 12,
+                        },
+                        android: {
+                          elevation: isDarkMode ? 8 : 4,
+                        },
+                      }),
                     }}
                   >
+                    {/* Градиентный фон для быстрых действий */}
+                    <LinearGradient
+                      colors={isDarkMode 
+                        ? ['rgba(30,41,59,0.6)', 'rgba(51,65,85,0.4)']
+                        : ['rgba(255,255,255,0.8)', 'rgba(248,250,252,0.6)']
+                      }
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        borderRadius: 16,
+                        borderWidth: 1,
+                        borderColor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                      }}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    />
+                    
                     <View style={{
                       width: 40,
                       height: 40,
@@ -356,7 +418,7 @@ export default function ExploreScreen() {
                       style={{
                         fontSize: 16,
                         fontWeight: '600',
-                        color: Colors.textPrimary,
+                        color: colors.text,
                         flex: 1,
                       }}
                     >
@@ -365,7 +427,7 @@ export default function ExploreScreen() {
                     <Ionicons 
                       name="chevron-forward" 
                       size={20} 
-                      color={Colors.textSecondary}
+                      color={colors.textSecondary}
                     />
                   </TouchableOpacity>
                 </Animated.View>

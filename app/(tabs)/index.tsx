@@ -12,6 +12,7 @@ import { fetchEvents } from '@/store/slices/eventsSlice';
 import { fetchNews } from '@/store/slices/newsSlice';
 import { formatDateYMD } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
 import { Dimensions, Pressable, ScrollView, View } from 'react-native';
@@ -258,14 +259,26 @@ export default function HomeScreen() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* Верхняя панель */}
-      <AnimatedHeader 
-        userName={user?.first_name || user?.username || 'Пользователь'}
-        notificationCount={0}
-        onAvatarPress={() => router.push('/(tabs)/profile')}
-        onNotificationPress={() => setShowNotifications(prev => !prev)}
+    <View style={{ flex: 1 }}>
+      {/* Градиентный фон */}
+      <LinearGradient
+        colors={isDarkMode 
+          ? ['#0F172A', '#1E293B', '#334155']
+          : ['#FAFAFA', '#F8FAFC', '#EEF2F7']
+        }
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       />
+      
+      <SafeAreaView style={{ flex: 1 }}>
+        {/* Верхняя панель */}
+        <AnimatedHeader 
+          userName={user?.first_name || user?.username || 'Пользователь'}
+          notificationCount={0}
+          onAvatarPress={() => router.push('/(tabs)/profile')}
+          onNotificationPress={() => setShowNotifications(prev => !prev)}
+        />
 
       {/* Dropdown уведомлений */}
       {showNotifications && (
@@ -734,5 +747,6 @@ export default function HomeScreen() {
         </Animated.View>
       </AnimatedScrollView>
     </SafeAreaView>
+    </View>
   );
 }
