@@ -717,7 +717,7 @@ export default function HomeScreen() {
                 <Ionicons name="chatbubble" size={20} color={colors.primary} />
               </View>
               <ThemedText style={{ fontSize: 12, color: isDarkMode ? colors.textSecondary : '#64748B', fontWeight: '600' }}>
-                Чат
+                События
               </ThemedText>
             </Pressable>
             

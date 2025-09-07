@@ -118,7 +118,7 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
       {/* Современный заголовок админ панели с градиентом */}
       <Animated.View entering={SlideInRight.duration(400)} style={{ marginTop: -Spacing.l, marginHorizontal: -Spacing.l, marginBottom: Spacing.l }}>
         <LinearGradient
-          colors={[Colors.brandPrimary, '#5B8DF7']}
+          colors={[colors.primary, '#5B8DF7']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{
@@ -168,14 +168,14 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
           </View>
 
           <View style={{
-            backgroundColor: Colors.chipBg,
+            backgroundColor: isDarkMode ? `${colors.primary}25` : colors.surface,
             paddingHorizontal: Spacing.m,
             paddingVertical: Spacing.xs,
             borderRadius: 16,
           }}>
             <ThemedText style={{
               ...Typography.caption,
-              color: Colors.brandPrimary,
+              color: colors.primary,
               fontWeight: '700',
               fontSize: 11,
             }}>
@@ -249,7 +249,7 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
       <Animated.View entering={FadeInDown.duration(500).delay(200)}>
         <ThemedText style={{ 
           ...Typography.titleH2, 
-          color: Colors.textPrimary, 
+          color: colors.text, 
           marginBottom: Spacing.m,
           fontSize: 18,
         }}>
@@ -264,45 +264,45 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
           <Pressable
             onPress={() => router.push('../../admin/news' as any)}
             style={{
-              backgroundColor: Colors.surface,
+              backgroundColor: colors.surface,
               borderRadius: Radius.card,
               padding: Spacing.l,
               flexDirection: 'row',
               alignItems: 'center',
               ...Shadows.card,
               borderWidth: 1,
-              borderColor: Colors.strokeSoft,
+              borderColor: colors.border,
             }}
           >
             <View style={{
               width: 48,
               height: 48,
               borderRadius: 24,
-              backgroundColor: Colors.brandPrimary10,
+              backgroundColor: isDarkMode ? `${colors.primary}25` : `${colors.primary}15`,
               justifyContent: 'center',
               alignItems: 'center',
               marginRight: Spacing.m,
             }}>
-              <Ionicons name="newspaper-outline" size={24} color={Colors.brandPrimary} />
+              <Ionicons name="newspaper-outline" size={24} color={colors.primary} />
             </View>
             <View style={{ flex: 1 }}>
               <ThemedText style={{ 
                 ...Typography.titleH2, 
-                color: Colors.textPrimary, 
+                color: colors.text, 
                 marginBottom: 4,
               }}>
                 Управление новостями
               </ThemedText>
               <ThemedText style={{ 
                 ...Typography.body, 
-                color: Colors.textSecondary,
+                color: colors.textSecondary,
                 fontSize: 14,
               }}>
                 {newsItems.length} активных новостей
               </ThemedText>
             </View>
             <View style={{
-              backgroundColor: Colors.chipBg,
+              backgroundColor: colors.surfaceSecondary,
               paddingHorizontal: Spacing.s,
               paddingVertical: Spacing.xs,
               borderRadius: Radius.icon,
@@ -310,27 +310,27 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
             }}>
               <ThemedText style={{
                 ...Typography.caption,
-                color: Colors.chipIcon,
+                color: colors.textSecondary,
                 fontWeight: '600',
               }}>
                 {newsItems.length}
               </ThemedText>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
           </Pressable>
 
           {/* Карточка управления событиями */}
           <Pressable
             onPress={() => router.push('../../admin/events' as any)}
             style={{
-              backgroundColor: Colors.surface,
+              backgroundColor: colors.surface,
               borderRadius: Radius.card,
               padding: Spacing.l,
               flexDirection: 'row',
               alignItems: 'center',
               ...Shadows.card,
               borderWidth: 1,
-              borderColor: Colors.strokeSoft,
+              borderColor: colors.border,
             }}
           >
             <View style={{
@@ -382,7 +382,7 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
           <Pressable
             onPress={() => Alert.alert('Расписание', 'Управление расписанием будет доступно в следующих версиях')}
             style={{
-              backgroundColor: Colors.surface,
+              backgroundColor: colors.surface,
               borderRadius: Radius.card,
               padding: Spacing.l,
               flexDirection: 'row',
@@ -406,7 +406,7 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
             <View style={{ flex: 1 }}>
               <ThemedText style={{ 
                 ...Typography.titleH2, 
-                color: Colors.textPrimary, 
+                color: colors.text, 
                 marginBottom: 4,
               }}>
                 Управление расписанием
@@ -434,7 +434,7 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
                 ∞
               </ThemedText>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
           </Pressable>
         </View>
       </Animated.View>
@@ -443,7 +443,7 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
       <Animated.View entering={FadeInDown.duration(500).delay(300)}>
         <ThemedText style={{ 
           ...Typography.titleH2, 
-          color: Colors.textPrimary, 
+          color: colors.text, 
           marginBottom: Spacing.m,
           fontSize: 18,
         }}>
@@ -453,14 +453,14 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
         <View style={{ gap: Spacing.s, marginBottom: Spacing.l }}>
           <Pressable
             style={{
-              backgroundColor: Colors.surface,
+              backgroundColor: colors.surface,
               borderRadius: Radius.card,
               padding: Spacing.m,
               flexDirection: 'row',
               alignItems: 'center',
               ...Shadows.card,
               borderWidth: 1,
-              borderColor: Colors.strokeSoft,
+              borderColor: colors.border,
             }}
             onPress={() => Alert.alert('Настройки', 'Системные настройки будут доступны в следующих версиях')}
           >
@@ -468,34 +468,34 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
               width: 36,
               height: 36,
               borderRadius: 18,
-              backgroundColor: Colors.brandPrimary10,
+              backgroundColor: isDarkMode ? `${colors.primary}25` : `${colors.primary}15`,
               justifyContent: 'center',
               alignItems: 'center',
               marginRight: Spacing.m,
             }}>
-              <Ionicons name="settings-outline" size={18} color={Colors.brandPrimary} />
+              <Ionicons name="settings-outline" size={18} color={colors.primary} />
             </View>
             <View style={{ flex: 1 }}>
-              <ThemedText style={{ ...Typography.body, color: Colors.textPrimary }}>
+              <ThemedText style={{ ...Typography.body, color: colors.text }}>
                 Системные настройки
               </ThemedText>
-              <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary }}>
+              <ThemedText style={{ ...Typography.caption, color: colors.textSecondary }}>
                 Конфигурация приложения
               </ThemedText>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+            <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
           </Pressable>
 
           <Pressable
             style={{
-              backgroundColor: Colors.surface,
+              backgroundColor: colors.surface,
               borderRadius: Radius.card,
               padding: Spacing.m,
               flexDirection: 'row',
               alignItems: 'center',
               ...Shadows.card,
               borderWidth: 1,
-              borderColor: Colors.strokeSoft,
+              borderColor: colors.border,
             }}
             onPress={() => Alert.alert('Логи', 'Просмотр логов будет доступен в следующих версиях')}
           >
@@ -503,22 +503,22 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
               width: 36,
               height: 36,
               borderRadius: 18,
-              backgroundColor: Colors.chipBg,
+              backgroundColor: isDarkMode ? '#333' : '#f5f5f5',
               justifyContent: 'center',
               alignItems: 'center',
               marginRight: Spacing.m,
             }}>
-              <Ionicons name="document-text-outline" size={18} color={Colors.chipIcon} />
+              <Ionicons name="document-text-outline" size={18} color={isDarkMode ? '#666' : '#999'} />
             </View>
             <View style={{ flex: 1 }}>
-              <ThemedText style={{ ...Typography.body, color: Colors.textPrimary }}>
+              <ThemedText style={{ ...Typography.body, color: colors.text }}>
                 Логи системы
               </ThemedText>
-              <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary }}>
+              <ThemedText style={{ ...Typography.caption, color: colors.textSecondary }}>
                 Просмотр и анализ
               </ThemedText>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={Colors.textSecondary} />
+            <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
           </Pressable>
         </View>
       </Animated.View>
@@ -1289,10 +1289,10 @@ export default function ProfileScreen() {
   // Если пользователь не авторизован
   if (!user) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.surface }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: Spacing.l }}>
-          <Ionicons name="person-outline" size={64} color={Colors.textSecondary} />
-          <ThemedText style={{ ...Typography.titleH2, color: Colors.textSecondary, marginTop: Spacing.l }}>
+          <Ionicons name="person-outline" size={64} color={colors.textSecondary} />
+          <ThemedText style={{ ...Typography.titleH2, color: colors.textSecondary, marginTop: Spacing.l }}>
             Не авторизован
           </ThemedText>
           <Pressable

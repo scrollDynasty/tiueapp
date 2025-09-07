@@ -377,59 +377,92 @@ export default function EventsScreen() {
                       )}
                     </View>
 
-                    {/* Registration Button */}
+                    {/* Registration Button - Улучшенный дизайн */}
                     <TouchableOpacity
                       style={[
                         styles.registerButton,
                         {
                           backgroundColor: 'transparent',
-                          borderRadius: isSmallScreen ? 16 : 20,
-                          paddingVertical: isSmallScreen ? spacing.sm : spacing.md,
+                          borderRadius: isSmallScreen ? 20 : 24,
+                          marginTop: isSmallScreen ? 16 : 20,
                           overflow: 'hidden',
                           shadowColor: event.isRegistered ? 'transparent' : colors.primary,
-                          shadowOffset: { width: 0, height: event.isRegistered ? 0 : 4 },
-                          shadowOpacity: event.isRegistered ? 0 : 0.3,
-                          shadowRadius: event.isRegistered ? 0 : 8,
-                          elevation: event.isRegistered ? 0 : 4,
+                          shadowOffset: { width: 0, height: event.isRegistered ? 0 : 6 },
+                          shadowOpacity: event.isRegistered ? 0 : 0.25,
+                          shadowRadius: event.isRegistered ? 0 : 12,
+                          elevation: event.isRegistered ? 0 : 6,
                         }
                       ]}
                       onPress={() => dispatch(toggleEventRegistration(event.id))}
+                      activeOpacity={0.8}
                     >
                       <LinearGradient
                         colors={event.isRegistered 
                           ? isDarkMode 
-                            ? ['rgba(30,41,59,0.8)', 'rgba(51,65,85,0.6)']
-                            : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)']
-                          : [colors.primary, colors.primary + 'DD']
+                            ? ['rgba(30,41,59,0.9)', 'rgba(51,65,85,0.7)']
+                            : ['rgba(255,255,255,0.95)', 'rgba(248,250,252,0.9)']
+                          : [colors.primary, colors.primary + 'E6', colors.primary + 'CC']
                         }
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
                         style={{
                           flexDirection: 'row',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          paddingVertical: isSmallScreen ? spacing.sm : spacing.md,
-                          borderRadius: isSmallScreen ? 16 : 20,
-                          borderWidth: event.isRegistered ? 1 : 0,
-                          borderColor: event.isRegistered ? colors.primary + '40' : 'transparent',
+                          paddingVertical: isSmallScreen ? 16 : 20,
+                          paddingHorizontal: isSmallScreen ? 24 : 32,
+                          borderRadius: isSmallScreen ? 20 : 24,
+                          borderWidth: event.isRegistered ? 2 : 0,
+                          borderColor: event.isRegistered ? colors.primary + '60' : 'transparent',
+                          minHeight: isSmallScreen ? 52 : 60,
                         }}
                       >
-                        <Ionicons 
-                          name={event.isRegistered ? "checkmark-circle-outline" : "add-circle-outline"} 
-                          size={isSmallScreen ? 18 : 20} 
-                          color={event.isRegistered ? colors.primary : '#fff'} 
-                        />
-                        <ThemedText
-                          style={[
-                            styles.registerButtonText,
-                            {
-                              color: event.isRegistered ? colors.primary : '#fff',
-                              fontSize: isSmallScreen ? 14 : 15,
-                              fontWeight: '600',
-                              marginLeft: 8,
-                            }
-                          ]}
-                        >
-                          {event.isRegistered ? 'Записан' : 'Записаться'}
-                        </ThemedText>
+                        <View style={{
+                          width: isSmallScreen ? 24 : 28,
+                          height: isSmallScreen ? 24 : 28,
+                          borderRadius: isSmallScreen ? 12 : 14,
+                          backgroundColor: event.isRegistered 
+                            ? colors.primary + '20' 
+                            : 'rgba(255,255,255,0.25)',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          marginRight: 12,
+                        }}>
+                          <Ionicons 
+                            name={event.isRegistered ? "checkmark-circle" : "add-circle"} 
+                            size={isSmallScreen ? 16 : 18} 
+                            color={event.isRegistered ? colors.primary : '#fff'} 
+                          />
+                        </View>
+                        
+                        <View style={{ flex: 1, alignItems: 'center' }}>
+                          <ThemedText
+                            style={[
+                              styles.registerButtonText,
+                              {
+                                color: event.isRegistered ? colors.primary : '#fff',
+                                fontSize: isSmallScreen ? 16 : 18,
+                                fontWeight: '700',
+                                letterSpacing: 0.5,
+                                textAlign: 'center',
+                              }
+                            ]}
+                          >
+                            {event.isRegistered ? 'Вы записаны' : 'Записаться'}
+                          </ThemedText>
+                          
+                        </View>
+                        
+                        {!event.isRegistered && (
+                          <View style={{
+                            position: 'absolute',
+                            right: isSmallScreen ? 16 : 20,
+                            width: isSmallScreen ? 6 : 8,
+                            height: isSmallScreen ? 6 : 8,
+                            borderRadius: isSmallScreen ? 3 : 4,
+                            backgroundColor: 'rgba(255,255,255,0.8)',
+                          }} />
+                        )}
                       </LinearGradient>
                     </TouchableOpacity>
                   </View>
@@ -595,13 +628,14 @@ const styles = StyleSheet.create({
     // Dynamic styles applied inline
   },
   registerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    marginTop: 8,
+    width: '100%',
+    alignSelf: 'stretch',
+    borderRadius: 20,
+    overflow: 'hidden',
   },
   registerButtonText: {
-    marginLeft: 8,
+    fontWeight: '700',
+    textAlign: 'center',
+    flex: 1,
   },
 });

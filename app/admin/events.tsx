@@ -1,6 +1,8 @@
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { ThemedText } from '@/components/ThemedText';
+import { getThemeColors } from '@/constants/Colors';
 import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { authApi } from '@/services/api';
 import { addEvent, createEvent, fetchEvents } from '@/store/slices/eventsSlice';
@@ -9,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -23,6 +25,13 @@ const EVENT_CATEGORIES = [
 ];
 
 export default function EventsManagementScreen() {
+  const { theme } = useTheme();
+  const themeColors = getThemeColors(theme === 'dark');
+  const isDarkMode = theme === 'dark';
+  
+  // Отладка темы
+  console.log('Admin Events Theme:', theme, 'isDarkMode:', isDarkMode);
+  
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { items: events, isLoading } = useAppSelector((state) => state.events);
@@ -124,23 +133,23 @@ export default function EventsManagementScreen() {
   // Проверяем права доступа
   if (!user || user.role !== 'admin') {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.surface }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: Spacing.l }}>
-          <Ionicons name="shield-outline" size={64} color={Colors.textSecondary} />
-          <ThemedText style={{ ...Typography.titleH2, color: Colors.textSecondary, marginTop: Spacing.l }}>
+          <Ionicons name="shield-outline" size={64} color={themeColors.textSecondary} />
+          <ThemedText style={{ ...Typography.titleH2, color: themeColors.textSecondary, marginTop: Spacing.l }}>
             Доступ запрещен
           </ThemedText>
           <Pressable
             onPress={() => router.back()}
             style={{
-              backgroundColor: Colors.brandPrimary,
+              backgroundColor: themeColors.primary,
               paddingHorizontal: Spacing.l,
               paddingVertical: Spacing.m,
               borderRadius: 12,
               marginTop: Spacing.l,
             }}
           >
-            <ThemedText style={{ ...Typography.body, color: Colors.surface }}>
+            <ThemedText style={{ ...Typography.body, color: 'white' }}>
               Назад
             </ThemedText>
           </Pressable>
@@ -263,7 +272,7 @@ export default function EventsManagementScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.surfaceSubtle }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
       <ScrollView 
         showsVerticalScrollIndicator={false} 
         contentContainerStyle={{ padding: Spacing.l }}
@@ -277,16 +286,16 @@ export default function EventsManagementScreen() {
                 width: 40,
                 height: 40,
                 borderRadius: 20,
-                backgroundColor: Colors.surface,
+                backgroundColor: themeColors.surface,
                 justifyContent: 'center',
                 alignItems: 'center',
                 marginRight: Spacing.m,
                 ...Shadows.card,
               }}
             >
-              <Ionicons name="arrow-back" size={20} color={Colors.textPrimary} />
+              <Ionicons name="arrow-back" size={20} color={themeColors.text} />
             </Pressable>
-            <ThemedText style={{ ...Typography.displayH1, color: Colors.textPrimary }}>
+            <ThemedText style={{ ...Typography.displayH1, color: themeColors.text }}>
               Управление событиями
             </ThemedText>
           </View>
@@ -296,42 +305,52 @@ export default function EventsManagementScreen() {
         <Animated.View 
           entering={FadeInDown.duration(500).delay(200)}
           style={{
-            backgroundColor: Colors.surface,
+            backgroundColor: themeColors.surface,
             borderRadius: 16,
             padding: Spacing.l,
             marginBottom: Spacing.l,
             ...Shadows.card,
           }}
         >
-          <ThemedText style={{ ...Typography.titleH2, color: Colors.textPrimary, marginBottom: Spacing.m }}>
+          <ThemedText style={{ ...Typography.titleH2, color: themeColors.text, marginBottom: Spacing.m }}>
             Добавить событие
           </ThemedText>
 
           {/* Название */}
           <View style={{ marginBottom: Spacing.m }}>
-            <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
+            <Text style={{ 
+              fontSize: 16, 
+              color: theme === 'dark' ? '#FFFFFF' : '#000000', 
+              marginBottom: Spacing.s, 
+              fontWeight: '600' 
+            }}>
               Название события
-            </ThemedText>
+            </Text>
             <TextInput
               value={title}
               onChangeText={setTitle}
               placeholder="Введите название события"
               style={{
-                backgroundColor: Colors.surfaceSubtle,
+                backgroundColor: themeColors.surfaceSecondary,
                 borderRadius: 12,
                 padding: Spacing.m,
                 fontSize: 16,
-                color: Colors.textPrimary,
+                color: themeColors.text,
               }}
-              placeholderTextColor={Colors.textSecondary}
+              placeholderTextColor={themeColors.textSecondary}
             />
           </View>
 
           {/* Описание */}
           <View style={{ marginBottom: Spacing.m }}>
-            <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
+            <Text style={{ 
+              fontSize: 16, 
+              color: theme === 'dark' ? '#FFFFFF' : '#000000', 
+              marginBottom: Spacing.s, 
+              fontWeight: '600' 
+            }}>
               Описание
-            </ThemedText>
+            </Text>
             <TextInput
               value={description}
               onChangeText={setDescription}
@@ -339,43 +358,53 @@ export default function EventsManagementScreen() {
               multiline
               numberOfLines={3}
               style={{
-                backgroundColor: Colors.surfaceSubtle,
+                backgroundColor: themeColors.surfaceSecondary,
                 borderRadius: 12,
                 padding: Spacing.m,
                 fontSize: 16,
-                color: Colors.textPrimary,
+                color: themeColors.text,
                 minHeight: 80,
                 textAlignVertical: 'top',
               }}
-              placeholderTextColor={Colors.textSecondary}
+              placeholderTextColor={themeColors.textSecondary}
             />
           </View>
 
           {/* Место */}
           <View style={{ marginBottom: Spacing.m }}>
-            <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
+            <Text style={{ 
+              fontSize: 16, 
+              color: theme === 'dark' ? '#FFFFFF' : '#000000', 
+              marginBottom: Spacing.s, 
+              fontWeight: '600' 
+            }}>
               Место проведения
-            </ThemedText>
+            </Text>
             <TextInput
               value={location}
               onChangeText={setLocation}
               placeholder="Например: Актовый зал, Ауд. 101"
               style={{
-                backgroundColor: Colors.surfaceSubtle,
+                backgroundColor: themeColors.surfaceSecondary,
                 borderRadius: 12,
                 padding: Spacing.m,
                 fontSize: 16,
-                color: Colors.textPrimary,
+                color: themeColors.text,
               }}
-              placeholderTextColor={Colors.textSecondary}
+              placeholderTextColor={themeColors.textSecondary}
             />
           </View>
 
           {/* Категория события */}
           <View style={{ marginBottom: Spacing.m }}>
-            <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
+            <Text style={{ 
+              fontSize: 16, 
+              color: theme === 'dark' ? '#FFFFFF' : '#000000', 
+              marginBottom: Spacing.s, 
+              fontWeight: '600' 
+            }}>
               Категория события
-            </ThemedText>
+            </Text>
             <ScrollView 
               horizontal 
               showsHorizontalScrollIndicator={false}
@@ -387,7 +416,7 @@ export default function EventsManagementScreen() {
                   key={cat.key}
                   onPress={() => setCategory(cat.key)}
                   style={{
-                    backgroundColor: category === cat.key ? cat.color : Colors.surfaceSubtle,
+                    backgroundColor: category === cat.key ? cat.color : themeColors.surfaceSecondary,
                     paddingHorizontal: 16,
                     paddingVertical: 12,
                     borderRadius: 12,
@@ -395,17 +424,17 @@ export default function EventsManagementScreen() {
                     alignItems: 'center',
                     minWidth: 120,
                     borderWidth: 1,
-                    borderColor: category === cat.key ? cat.color : 'transparent',
+                    borderColor: category === cat.key ? cat.color : themeColors.border,
                   }}
                 >
                   <Ionicons 
                     name={cat.icon as any} 
                     size={18} 
-                    color={category === cat.key ? 'white' : Colors.textSecondary} 
+                    color={category === cat.key ? 'white' : themeColors.textSecondary} 
                     style={{ marginRight: 8 }}
                   />
                   <ThemedText style={{
-                    color: category === cat.key ? 'white' : Colors.textPrimary,
+                    color: category === cat.key ? 'white' : themeColors.text,
                     fontSize: 14,
                     fontWeight: category === cat.key ? '600' : '400',
                   }}>
@@ -419,9 +448,14 @@ export default function EventsManagementScreen() {
           {/* Дата и время */}
           <View style={{ flexDirection: 'row', gap: Spacing.m, marginBottom: Spacing.l }}>
             <View style={{ flex: 1 }}>
-              <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
+              <Text style={{ 
+                fontSize: 16, 
+                color: theme === 'dark' ? '#FFFFFF' : '#000000', 
+                marginBottom: Spacing.s, 
+                fontWeight: '600' 
+              }}>
                 Дата
-              </ThemedText>
+              </Text>
               <TextInput
                 value={date}
                 onChangeText={handleDateChange}
@@ -429,29 +463,34 @@ export default function EventsManagementScreen() {
                 keyboardType="numeric"
                 maxLength={10}
                 style={{
-                  backgroundColor: Colors.surfaceSubtle,
+                  backgroundColor: themeColors.surfaceSecondary,
                   borderRadius: 12,
                   padding: Spacing.m,
                   fontSize: 16,
-                  color: Colors.textPrimary,
+                  color: themeColors.text,
                   borderWidth: date && !validateDate(date) ? 2 : 0,
                   borderColor: date && !validateDate(date) ? '#EF4444' : 'transparent',
                 }}
-                placeholderTextColor={Colors.textSecondary}
+                placeholderTextColor={themeColors.textSecondary}
               />
               {/* Подсказка для формата даты */}
               <ThemedText style={{
                 fontSize: 12,
-                color: date && !validateDate(date) ? '#EF4444' : Colors.textSecondary,
+                color: date && !validateDate(date) ? '#EF4444' : themeColors.textSecondary,
                 marginTop: 4,
               }}>
                 Формат: дд.мм.гггг (например: 25.12.2024)
               </ThemedText>
             </View>
             <View style={{ flex: 1 }}>
-              <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
+              <Text style={{ 
+                fontSize: 16, 
+                color: theme === 'dark' ? '#FFFFFF' : '#000000', 
+                marginBottom: Spacing.s, 
+                fontWeight: '600' 
+              }}>
                 Время
-              </ThemedText>
+              </Text>
               <TextInput
                 value={time}
                 onChangeText={handleTimeChange}
@@ -459,20 +498,20 @@ export default function EventsManagementScreen() {
                 keyboardType="numeric"
                 maxLength={5}
                 style={{
-                  backgroundColor: Colors.surfaceSubtle,
+                  backgroundColor: themeColors.surfaceSecondary,
                   borderRadius: 12,
                   padding: Spacing.m,
                   fontSize: 16,
-                  color: Colors.textPrimary,
+                  color: themeColors.text,
                   borderWidth: time && !validateTime(time) ? 2 : 0,
                   borderColor: time && !validateTime(time) ? '#EF4444' : 'transparent',
                 }}
-                placeholderTextColor={Colors.textSecondary}
+                placeholderTextColor={themeColors.textSecondary}
               />
               {/* Подсказка для формата времени */}
               <ThemedText style={{
                 fontSize: 12,
-                color: time && !validateTime(time) ? '#EF4444' : Colors.textSecondary,
+                color: time && !validateTime(time) ? '#EF4444' : themeColors.textSecondary,
                 marginTop: 4,
               }}>
                 Формат: чч:мм (например: 14:30)
@@ -496,13 +535,13 @@ export default function EventsManagementScreen() {
             {isLoading && (
               <ActivityIndicator 
                 size="small" 
-                color={Colors.textSecondary} 
+                color={themeColors.textSecondary} 
                 style={{ marginRight: Spacing.s }} 
               />
             )}
             <ThemedText style={{ 
               ...Typography.body, 
-              color: isLoading ? Colors.textSecondary : Colors.surface, 
+              color: isLoading ? themeColors.textSecondary : 'white', 
               fontWeight: '600' 
             }}>
               {isLoading ? 'Добавляем...' : 'Добавить событие'}
@@ -512,20 +551,20 @@ export default function EventsManagementScreen() {
 
         {/* Список событий */}
         <Animated.View entering={FadeInDown.duration(500).delay(400)}>
-          <ThemedText style={{ ...Typography.titleH2, color: Colors.textPrimary, marginBottom: Spacing.m }}>
+          <ThemedText style={{ ...Typography.titleH2, color: themeColors.text, marginBottom: Spacing.m }}>
             Существующие события ({Array.isArray(events) ? events.length : 0})
           </ThemedText>
           
           {!Array.isArray(events) || events.length === 0 ? (
             <View style={{
-              backgroundColor: Colors.surface,
+              backgroundColor: themeColors.surface,
               borderRadius: 12,
               padding: Spacing.l,
               alignItems: 'center',
               ...Shadows.card,
             }}>
-              <Ionicons name="calendar-outline" size={48} color={Colors.textSecondary} />
-              <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginTop: Spacing.s }}>
+              <Ionicons name="calendar-outline" size={48} color={themeColors.textSecondary} />
+              <ThemedText style={{ ...Typography.body, color: themeColors.textSecondary, marginTop: Spacing.s }}>
                 События пока не созданы
               </ThemedText>
             </View>
@@ -538,13 +577,13 @@ export default function EventsManagementScreen() {
                     key={item.id}
                     entering={FadeInDown.duration(300)}
                     style={{
-                      backgroundColor: Colors.surface,
+                      backgroundColor: themeColors.surface,
                       borderRadius: 16,
                       padding: 0,
                       overflow: 'hidden',
                       ...Shadows.card,
                       borderWidth: 1,
-                      borderColor: Colors.strokeSoft,
+                      borderColor: themeColors.border,
                     }}
                   >
                     {/* Верхняя часть с градиентом */}
@@ -559,14 +598,14 @@ export default function EventsManagementScreen() {
                     >
                       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.s }}>
                         <View style={{ flex: 1, marginRight: Spacing.m }}>
-                          <ThemedText style={{ 
+                          <Text style={{ 
                             fontSize: 18, 
                             fontWeight: '700', 
-                            color: Colors.textPrimary, 
+                            color: theme === 'dark' ? '#FFFFFF' : '#000000', 
                             marginBottom: 6 
                           }}>
                             {item.title}
-                          </ThemedText>
+                          </Text>
                           
                           {/* Категория события */}
                           {categoryInfo && (
@@ -587,13 +626,13 @@ export default function EventsManagementScreen() {
                                 color={categoryInfo.color} 
                                 style={{ marginRight: 6 }}
                               />
-                              <ThemedText style={{
+                              <Text style={{
                                 fontSize: 13,
                                 color: categoryInfo.color,
                                 fontWeight: '600',
                               }}>
                                 {categoryInfo.label}
-                              </ThemedText>
+                              </Text>
                             </View>
                           )}
                         </View>
@@ -621,19 +660,19 @@ export default function EventsManagementScreen() {
                     {/* Основной контент */}
                     <View style={{ padding: Spacing.l, paddingTop: 0 }}>
                       {/* Описание */}
-                      <ThemedText style={{ 
+                      <Text style={{ 
                         fontSize: 15, 
-                        color: Colors.textSecondary, 
+                        color: theme === 'dark' ? '#CCCCCC' : '#666666', 
                         lineHeight: 22,
                         marginBottom: Spacing.m 
                       }}>
                         {item.description}
-                      </ThemedText>
+                      </Text>
                       
                       {/* Информационные блоки */}
                       <View style={{ 
                         flexDirection: 'row', 
-                        backgroundColor: Colors.surfaceSubtle, 
+                        backgroundColor: themeColors.surfaceSecondary, 
                         borderRadius: 12, 
                         padding: Spacing.m,
                         gap: Spacing.l
@@ -653,20 +692,20 @@ export default function EventsManagementScreen() {
                               <Ionicons name="calendar-outline" size={16} color="#6366F1" />
                             </View>
                             <View>
-                              <ThemedText style={{ 
+                              <Text style={{ 
                                 fontSize: 13, 
-                                color: Colors.textSecondary,
+                                color: theme === 'dark' ? '#CCCCCC' : '#666666',
                                 fontWeight: '500'
                               }}>
                                 Дата и время
-                              </ThemedText>
-                              <ThemedText style={{ 
+                              </Text>
+                              <Text style={{ 
                                 fontSize: 14, 
-                                color: Colors.textPrimary,
+                                color: theme === 'dark' ? '#FFFFFF' : '#000000',
                                 fontWeight: '600'
                               }}>
                                 {formatDateYMD(item.date)}
-                              </ThemedText>
+                              </Text>
                             </View>
                           </View>
                           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -682,20 +721,20 @@ export default function EventsManagementScreen() {
                               <Ionicons name="time-outline" size={16} color="#8B5CF6" />
                             </View>
                             <View>
-                              <ThemedText style={{ 
+                              <Text style={{ 
                                 fontSize: 13, 
-                                color: Colors.textSecondary,
+                                color: theme === 'dark' ? '#CCCCCC' : '#666666',
                                 fontWeight: '500'
                               }}>
                                 Время
-                              </ThemedText>
-                              <ThemedText style={{ 
+                              </Text>
+                              <Text style={{ 
                                 fontSize: 14, 
-                                color: Colors.textPrimary,
+                                color: theme === 'dark' ? '#FFFFFF' : '#000000',
                                 fontWeight: '600'
                               }}>
                                 {item.time}
-                              </ThemedText>
+                              </Text>
                             </View>
                           </View>
                         </View>
@@ -715,23 +754,23 @@ export default function EventsManagementScreen() {
                               <Ionicons name="location-outline" size={16} color="#EC4899" />
                             </View>
                             <View style={{ flex: 1 }}>
-                              <ThemedText style={{ 
+                              <Text style={{ 
                                 fontSize: 13, 
-                                color: Colors.textSecondary,
+                                color: theme === 'dark' ? '#CCCCCC' : '#666666',
                                 fontWeight: '500'
                               }}>
                                 Место проведения
-                              </ThemedText>
-                              <ThemedText 
+                              </Text>
+                              <Text 
                                 numberOfLines={2}
                                 style={{ 
                                   fontSize: 14, 
-                                  color: Colors.textPrimary,
+                                  color: theme === 'dark' ? '#FFFFFF' : '#000000',
                                   fontWeight: '600',
                                 }}
                               >
                                 {item.location}
-                              </ThemedText>
+                              </Text>
                             </View>
                           </View>
                         </View>
@@ -768,15 +807,15 @@ export default function EventsManagementScreen() {
                         <View style={{
                           flexDirection: 'row',
                           alignItems: 'center',
-                          backgroundColor: Colors.chipBg,
+                          backgroundColor: themeColors.surfaceSecondary,
                           paddingHorizontal: 12,
                           paddingVertical: 6,
                           borderRadius: 20,
                         }}>
-                          <Ionicons name="person-outline" size={14} color={Colors.chipIcon} style={{ marginRight: 4 }} />
+                          <Ionicons name="person-outline" size={14} color={themeColors.textSecondary} style={{ marginRight: 4 }} />
                           <ThemedText style={{ 
                             fontSize: 13, 
-                            color: Colors.chipIcon,
+                            color: themeColors.textSecondary,
                             fontWeight: '600'
                           }}>
                             Администратор
