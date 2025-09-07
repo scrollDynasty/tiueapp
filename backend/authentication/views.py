@@ -37,18 +37,14 @@ def login(request):
     try:
         from users.models import CustomUser
         user = CustomUser.objects.get(email=email)
-        print(f"Found user by email: {user.username}")
     except CustomUser.DoesNotExist:
         try:
             user = CustomUser.objects.get(username=email)
-            print(f"Found user by username: {user.username}")
         except CustomUser.DoesNotExist:
             print(f"User not found for: {email}")
     
     if user:
-        print(f"User found: {user.username}, is_active: {user.is_active}")
         if user.check_password(password):
-            print("Password is correct")
             if not user.is_active:
                 return Response({
                     'success': False,
@@ -57,7 +53,6 @@ def login(request):
             
             # Создаем или получаем токен
             token, created = Token.objects.get_or_create(user=user)
-            print(f"Token created/retrieved: {token.key[:10]}...")
             
             return Response({
                 'success': True,

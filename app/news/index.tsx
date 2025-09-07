@@ -64,7 +64,6 @@ export default function AllNewsScreen() {
         icon={news.icon}
         index={index}
         onPress={() => router.push(`/news/${news.id}`)}
-        onEventPress={(event) => console.log(`Event ${event.id} pressed from news ${news.id}`)}
         style={{ 
           marginBottom: Spacing.m,
           marginHorizontal: Spacing.xs,

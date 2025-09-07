@@ -31,7 +31,6 @@ export const useImmersiveMode = () => {
       StatusBar.setStatusBarStyle('light');
       
       isImmersiveActive.current = true;
-      console.log('✅ Immersive mode activated');
     } catch (error) {
       console.warn('❌ Ошибка активации immersive режима:', error);
       
@@ -46,14 +45,12 @@ export const useImmersiveMode = () => {
 
   // Функция для автоскрытия через 3 секунды
   const scheduleAutoHide = useCallback(() => {
-    console.log('🔄 Запуск таймера автоскрытия (3 сек)');
     
     if (autoHideTimer.current) {
       clearTimeout(autoHideTimer.current);
     }
     
     autoHideTimer.current = setTimeout(() => {
-      console.log('⏰ Таймер сработал - скрываем навигацию');
       enableImmersiveMode();
     }, 3000); // 3 секунды
   }, [enableImmersiveMode]);
@@ -67,7 +64,6 @@ export const useImmersiveMode = () => {
       await NavigationBar.setVisibilityAsync('visible');
       
       isImmersiveActive.current = false;
-      console.log('✅ Immersive mode deactivated');
       
       // Запускаем таймер автоскрытия
       scheduleAutoHide();
@@ -78,7 +74,6 @@ export const useImmersiveMode = () => {
 
   // Обработчик изменения состояния приложения
   const handleAppStateChange = useCallback((nextAppState: AppStateStatus) => {
-    console.log('📱 App state changed:', appState.current, '->', nextAppState);
     
     if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
       // Приложение стало активным - включаем immersive режим через небольшую задержку
@@ -101,7 +96,6 @@ export const useImmersiveMode = () => {
         
         // Логируем только при изменении состояния
         if (visibility !== lastVisibility) {
-          console.log('🔍 Navigation visibility changed:', lastVisibility, '->', visibility);
           lastVisibility = visibility;
           
           if (visibility === 'visible' && isImmersiveActive.current) {

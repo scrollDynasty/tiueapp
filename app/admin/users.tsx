@@ -243,33 +243,23 @@ export default function UsersManagementScreen() {
   const loadUsers = async () => {
     setIsLoadingUsers(true);
     try {
-      console.log('Attempting to load users...');
       
       // Проверим, есть ли токен
       const token = await AsyncStorage.getItem('authToken');
-      console.log('Auth token exists:', !!token);
       
       const response = await authApi.getUsers();
-      console.log('API Response:', response); // Для отладки
-      console.log('Response success:', response.success);
-      console.log('Response data:', response.data);
       
       if (response.success && response.data) {
         // Убеждаемся, что данные - это массив
         const usersData = Array.isArray(response.data) ? response.data : [];
-        console.log('Setting users data:', usersData);
         setUsers(usersData);
       } else {
-        console.error('API Error:', response);
         setUsers([]); // Устанавливаем пустой массив при ошибке
         // Не показываем alert, только логируем
-        console.error('Failed to load users:', response.message || 'Unknown error');
       }
     } catch (error) {
-      console.error('Error loading users:', error);
       setUsers([]); // Устанавливаем пустой массив при ошибке
       // Не показываем alert, только логируем
-      console.error('Exception while loading users');
     } finally {
       setIsLoadingUsers(false);
     }
@@ -418,7 +408,6 @@ export default function UsersManagementScreen() {
             {/* Кнопка сброса пароля */}
             <Pressable
               onPress={() => {
-                console.log('Reset password button pressed for user:', user.id);
                 onResetPassword(user.id);
               }}
               style={{
@@ -500,11 +489,9 @@ export default function UsersManagementScreen() {
   const handleResetPassword = React.useCallback((userId: string) => {
     const user = users.find(u => u.id === userId);
     if (!user) {
-      console.log('User not found for ID:', userId);
       return;
     }
 
-    console.log('Opening password reset modal for user:', user.username);
     setResetPasswordUser(user);
     setShowPasswordReset(true);
   }, [users]);
@@ -514,8 +501,6 @@ export default function UsersManagementScreen() {
     if (!resetPasswordUser) return;
     
     try {
-      console.log('Calling authApi.updateUser with password reset...');
-      console.log('User ID:', resetPasswordUser.id);
       
       // Отправляем полные данные пользователя с новым паролем
       const updateData = {
@@ -528,13 +513,10 @@ export default function UsersManagementScreen() {
         password: newPassword.trim()
       };
       
-      console.log('Data being sent:', updateData);
       
       const response = await authApi.updateUser(resetPasswordUser.id, updateData as any);
-      console.log('Password reset response:', response);
       
       if (response.success) {
-        console.log('Password reset successful!');
         alert(`✅ УСПЕШНО!\n\nПароль пользователя ${resetPasswordUser.username} изменен на: ${newPassword.trim()}\n\nТеперь можно войти с:\nEmail: ${resetPasswordUser.email}\nПароль: ${newPassword.trim()}`);
         
         // Обновляем список пользователей
@@ -562,7 +544,6 @@ export default function UsersManagementScreen() {
   }, []);
 
   const handleCreateUser = async () => {
-    console.log('handleCreateUser called');
     
     if (!firstName.trim() || !lastName.trim() || !username.trim() || !email.trim()) {
       Alert.alert('Ошибка', 'Заполните все обязательные поля');
@@ -590,13 +571,10 @@ export default function UsersManagementScreen() {
         department: role === 'professor' ? department : undefined,
       };
 
-      console.log('User data to send:', userData);
 
       if (editingUser) {
         // Обновление существующего пользователя
-        console.log('Updating user:', editingUser.id);
         const response = await authApi.updateUser(editingUser.id, userData);
-        console.log('Update response:', response);
         
         if (response.success && response.data) {
           setUsers(prev => prev.map(u => 
@@ -617,12 +595,9 @@ export default function UsersManagementScreen() {
           password: password.trim(),
         };
         
-        console.log('Creating new user with data:', userDataWithPassword);
         const response = await authApi.createUser(userDataWithPassword);
-        console.log('Create response:', response);
         
         if (response.success && response.data) {
-          console.log('User created successfully, adding to list');
           setUsers(prev => [...prev, response.data as UserProfile]);
           Alert.alert('Успешно', 'Пользователь создан');
           // Перезагружаем список пользователей для синхронизации
@@ -695,9 +670,7 @@ export default function UsersManagementScreen() {
     if (!userToDelete) return;
     
     try {
-      console.log('Attempting to delete user:', userToDelete.id);
       const response = await authApi.deleteUser(userToDelete.id);
-      console.log('Delete response:', response);
       
       // Закрываем модальное окно в любом случае
       setShowDeleteConfirm(false);
@@ -705,7 +678,6 @@ export default function UsersManagementScreen() {
       
       // Проверяем успешность удаления
       if (response.success !== false) { // Считаем успешным, если нет явного false
-        console.log('User deleted successfully, reloading users list');
         // Перезагружаем список пользователей с сервера
         await loadUsers();
         // Показываем уведомление об успешном удалении

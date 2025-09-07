@@ -22,6 +22,7 @@ import {
   View
 } from 'react-native';
 import Animated, {
+  FadeInDown,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -45,6 +46,7 @@ export default function LoginScreen() {
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [showErrorMessage, setShowErrorMessage] = useState(false);
   
   const dispatch = useAppDispatch();
   const { loading, error, isAuthenticated } = useAppSelector((state) => state.auth);
@@ -81,9 +83,17 @@ export default function LoginScreen() {
 
   useEffect(() => {
     if (error) {
+      setShowErrorMessage(true);
+      // Также показываем алерт для критических ошибок
       Alert.alert('Ошибка входа', error, [
-        { text: 'OK', onPress: () => dispatch(clearError()) }
+        { text: 'OK', onPress: () => {
+            dispatch(clearError());
+            setShowErrorMessage(false);
+          } 
+        }
       ]);
+    } else {
+      setShowErrorMessage(false);
     }
   }, [error]);
 
@@ -117,6 +127,10 @@ export default function LoginScreen() {
       return;
     }
 
+    // Очищаем предыдущую ошибку
+    dispatch(clearError());
+    setShowErrorMessage(false);
+
     // Анимация кнопки
     buttonScale.value = withSpring(0.95, { 
       damping: 10,
@@ -133,10 +147,20 @@ export default function LoginScreen() {
 
   const handleEmailChange = (email: string) => {
     setCredentials({ ...credentials, email: email.toLowerCase().trim() });
+    // Очищаем ошибку при изменении полей
+    if (error) {
+      dispatch(clearError());
+      setShowErrorMessage(false);
+    }
   };
 
   const handlePasswordChange = (password: string) => {
     setCredentials({ ...credentials, password });
+    // Очищаем ошибку при изменении полей
+    if (error) {
+      dispatch(clearError());
+      setShowErrorMessage(false);
+    }
   };
 
   const handleThemeToggle = () => {
@@ -332,6 +356,51 @@ export default function LoginScreen() {
                   </TouchableOpacity>
                 </View>
               </View>
+
+              {/* Error Message */}
+              {showErrorMessage && error && (
+                <Animated.View 
+                  entering={FadeInDown.duration(300)}
+                  style={{
+                    backgroundColor: theme === 'dark' ? '#FF4444' : '#FFE6E6',
+                    borderWidth: 1,
+                    borderColor: '#FF4444',
+                    borderRadius: 12,
+                    padding: Spacing.m,
+                    marginTop: Spacing.m,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Ionicons 
+                    name="alert-circle-outline" 
+                    size={20} 
+                    color="#FF4444" 
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text style={{
+                    color: theme === 'dark' ? '#FFFFFF' : '#CC0000',
+                    fontSize: 14,
+                    flex: 1,
+                    fontWeight: '500'
+                  }}>
+                    {error}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      dispatch(clearError());
+                      setShowErrorMessage(false);
+                    }}
+                    style={{ marginLeft: 8 }}
+                  >
+                    <Ionicons 
+                      name="close-outline" 
+                      size={18} 
+                      color="#FF4444" 
+                    />
+                  </TouchableOpacity>
+                </Animated.View>
+              )}
 
               {/* Login Button */}
               <Animated.View style={[styles.loginButton, buttonAnimatedStyle]}>

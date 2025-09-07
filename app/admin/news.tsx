@@ -123,13 +123,10 @@ export default function NewsManagementScreen() {
       image: selectedImage || undefined,
     };
 
-    console.log('Sending news data:', newNewsData);
-    console.log('Selected image object:', selectedImage);
 
     try {
       // Сначала пытаемся сохранить через API
       const result = await dispatch(createNews(newNewsData)).unwrap();
-      console.log('Create news result:', result);
       
       // Перезагружаем список новостей
       dispatch(fetchNews());

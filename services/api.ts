@@ -25,13 +25,6 @@ class ApiService {
       const headers = await this.getHeaders();
       const url = `${API_BASE_URL}${endpoint}`;
       
-      console.log('API Request:', {
-        url,
-        method: options.method || 'GET',
-        headers,
-        body: options.body
-      });
-      
       const response = await fetch(url, {
         ...options,
         headers: {
@@ -41,12 +34,6 @@ class ApiService {
       });
 
       const data = await response.json();
-      
-      console.log('API Response:', {
-        status: response.status,
-        statusText: response.statusText,
-        data
-      });
 
       if (!response.ok) {
         return {
@@ -60,7 +47,6 @@ class ApiService {
         data: data.data || data, // Обрабатываем как wrapped, так и unwrapped ответы
       };
     } catch (error) {
-      console.error('API Error:', error);
       return {
         success: false,
         error: 'Network error occurred',
@@ -80,17 +66,25 @@ class ApiService {
 
     try {
       const data = await response.json();
-      
-      console.log('Login API Response:', {
-        status: response.status,
-        statusText: response.statusText,
-        data
-      });
 
       if (!response.ok) {
+        let errorMessage = 'Ошибка входа';
+        
+        if (response.status === 401) {
+          errorMessage = 'Неверный email или пароль';
+        } else if (response.status === 400) {
+          errorMessage = data.error || data.message || 'Некорректные данные для входа';
+        } else if (response.status === 500) {
+          errorMessage = 'Ошибка сервера. Попробуйте позже';
+        } else if (response.status >= 500) {
+          errorMessage = 'Сервер временно недоступен';
+        } else {
+          errorMessage = data.error || data.message || `Ошибка ${response.status}`;
+        }
+        
         return {
           success: false,
-          error: data.error || data.message || `HTTP ${response.status}`,
+          error: errorMessage,
         };
       }
 
@@ -100,20 +94,14 @@ class ApiService {
       };
 
       if (result.success && result.data) {
-        console.log('Saving token:', result.data.token);
         await AsyncStorage.setItem('authToken', result.data.token);
-        
-        // Проверим, что токен действительно сохранился
-        const savedToken = await AsyncStorage.getItem('authToken');
-        console.log('Token saved successfully:', savedToken === result.data.token);
       }
 
       return result;
     } catch (error) {
-      console.error('Login API Error:', error);
       return {
         success: false,
-        error: 'Network error occurred',
+        error: 'Проблема с подключением к серверу',
       };
     }
   }
@@ -188,18 +176,11 @@ class ApiService {
   }
 
   async createNews(newsData: any): Promise<ApiResponse<any>> {
-    console.log('=== CREATE NEWS START ===');
-    console.log('Raw newsData received:', JSON.stringify(newsData, null, 2));
-    
     // Если есть изображение, конвертируем его в base64 и отправляем как JSON
     if (newsData.image) {
       try {
-        console.log('=== IMAGE UPLOAD MODE ===');
-        console.log('Original image data:', newsData.image);
-        
         // Получаем URI изображения
         const imageUri = newsData.image.uri || newsData.image;
-        console.log('Image URI:', imageUri);
         
         // Конвертируем изображение в base64
         const response = await fetch(imageUri);
@@ -210,8 +191,6 @@ class ApiService {
           reader.readAsDataURL(blob);
         });
         
-        console.log('Base64 image length:', base64.length);
-        
         // Отправляем как JSON с base64 изображением
         const requestData = {
           ...newsData,
@@ -219,21 +198,17 @@ class ApiService {
         };
         delete requestData.image; // Удаляем оригинальный объект image
         
-        console.log('Sending JSON request with base64 image');
-        
         return this.request<any>('/news/', {
           method: 'POST',
           body: JSON.stringify(requestData),
         });
       } catch (error) {
-        console.error('Base64 conversion error:', error);
         return {
           success: false,
           error: 'Failed to process image',
         };
       }
     } else {
-      console.log('=== JSON MODE (NO IMAGE) ===');
       // Без изображения отправляем как JSON
       return this.request<any>('/news/', {
         method: 'POST',

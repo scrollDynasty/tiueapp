@@ -30,7 +30,6 @@ export const logoutUser = createAsyncThunk<void, void>(
       await authApi.logout();
     } catch (error) {
       // Даже если API logout не работает, мы все равно выходим локально
-      console.log('API logout failed, but continuing with local logout:', error);
     }
   }
 );

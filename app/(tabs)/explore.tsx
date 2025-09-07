@@ -261,7 +261,6 @@ export default function ExploreScreen() {
                         },
                       }),
                     }}
-                    onPress={() => console.log(`${category.title} pressed`)}
                   >
                     {/* Градиентный фон карточки */}
                     <LinearGradient
