@@ -114,40 +114,22 @@ export default function EventsScreen() {
             style={[
               styles.searchButton, 
               { 
-                backgroundColor: 'transparent',
+                backgroundColor: isDarkMode ? '#374151' : '#F3F4F6',
                 width: isSmallScreen ? 40 : 44,
                 height: isSmallScreen ? 40 : 44,
-                borderRadius: isSmallScreen ? 20 : 22,
-                overflow: 'hidden',
-                shadowColor: isDarkMode ? '#000' : '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: isDarkMode ? 0.3 : 0.08,
-                shadowRadius: 12,
-                elevation: isDarkMode ? 8 : 4,
+                borderRadius: isSmallScreen ? 12 : 14,
+                borderWidth: 1,
+                borderColor: isDarkMode ? '#4B5563' : '#D1D5DB',
+                alignItems: 'center',
+                justifyContent: 'center',
               }
             ]}
           >
-            <LinearGradient
-              colors={isDarkMode 
-                ? ['rgba(30,41,59,0.8)', 'rgba(51,65,85,0.6)']
-                : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)']
-              }
-              style={{
-                width: '100%',
-                height: '100%',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: isSmallScreen ? 20 : 22,
-                borderWidth: 1,
-                borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-              }}
-            >
-              <Ionicons name="search" size={isSmallScreen ? 18 : 20} color={colors.text} />
-            </LinearGradient>
+            <Ionicons name="search" size={isSmallScreen ? 18 : 20} color={isDarkMode ? '#9CA3AF' : '#6B7280'} />
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Адаптивный Category Filter */}
+        {/* Красивый Category Filter */}
         <Animated.View entering={SlideInRight.delay(200).duration(800)}>
           <ScrollView 
             horizontal 
@@ -167,21 +149,18 @@ export default function EventsScreen() {
                       backgroundColor: 'transparent',
                       paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md,
                       paddingVertical: isSmallScreen ? spacing.xs : spacing.sm,
-                      borderRadius: isSmallScreen ? 16 : 20,
-                      marginRight: spacing.sm,
+                      borderRadius: isSmallScreen ? 14 : 16,
+                      marginRight: spacing.xs,
                       overflow: 'hidden',
-                      shadowColor: filter === category.key ? colors.primary : (isDarkMode ? '#000' : '#000'),
-                      shadowOffset: { width: 0, height: filter === category.key ? 6 : 3 },
-                      shadowOpacity: filter === category.key ? 0.3 : (isDarkMode ? 0.4 : 0.08),
-                      shadowRadius: filter === category.key ? 12 : 6,
-                      elevation: filter === category.key ? 6 : 3,
                     }
                   ]}
                   onPress={() => setFilter(category.key)}
                 >
                   <LinearGradient
                     colors={filter === category.key 
-                      ? [colors.primary, colors.primary + 'DD']
+                      ? isDarkMode 
+                        ? ['rgba(99,102,241,0.8)', 'rgba(139,92,246,0.7)']
+                        : ['rgba(99,102,241,0.9)', 'rgba(139,92,246,0.8)']
                       : isDarkMode 
                         ? ['rgba(30,41,59,0.8)', 'rgba(51,65,85,0.6)']
                         : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)']
@@ -191,10 +170,10 @@ export default function EventsScreen() {
                       alignItems: 'center',
                       paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md,
                       paddingVertical: isSmallScreen ? spacing.xs : spacing.sm,
-                      borderRadius: isSmallScreen ? 16 : 20,
+                      borderRadius: isSmallScreen ? 14 : 16,
                       borderWidth: 1,
                       borderColor: filter === category.key 
-                        ? colors.primary + '40'
+                        ? isDarkMode ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.2)'
                         : isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
                     }}
                     start={{ x: 0, y: 0 }}
@@ -202,16 +181,21 @@ export default function EventsScreen() {
                   >
                     <Ionicons 
                       name={category.icon as keyof typeof Ionicons.glyphMap} 
-                      size={isSmallScreen ? 14 : 16} 
-                      color={filter === category.key ? '#fff' : colors.text} 
+                      size={isSmallScreen ? 16 : 18} 
+                      color={filter === category.key 
+                        ? '#ffffff' 
+                        : isDarkMode ? '#E2E8F0' : '#475569'
+                      } 
                     />
                     <ThemedText
                       style={[
                         styles.categoryText,
                         {
-                          color: filter === category.key ? '#fff' : colors.text,
-                          fontWeight: filter === category.key ? '600' : '400',
-                          fontSize: isSmallScreen ? 12 : 14,
+                          color: filter === category.key 
+                            ? '#ffffff' 
+                            : isDarkMode ? '#E2E8F0' : '#475569',
+                          fontWeight: filter === category.key ? '600' : '500',
+                          fontSize: isSmallScreen ? 14 : 15,
                           marginLeft: 6,
                         }
                       ]}
