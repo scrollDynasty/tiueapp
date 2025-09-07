@@ -61,7 +61,6 @@ export default function HomeScreen() {
         ]);
       }
     } catch (error) {
-      console.log('Refresh error:', error);
     }
     setRefreshing(false);
   }, [dispatch, user]);
@@ -506,7 +505,6 @@ export default function HomeScreen() {
                   icon={news.icon}
                   index={index}
                   onPress={() => router.push(`/news/${news.id}`)}
-                  onEventPress={(event) => console.log(`Event ${event.id} pressed from news ${news.id}`)}
                 />
               ))}
             </View>
@@ -556,7 +554,6 @@ export default function HomeScreen() {
                   icon={news.icon}
                   index={index}
                   onPress={() => router.push(`/news/${news.id}`)}
-                  onEventPress={(event) => console.log(`Event ${event.id} pressed from news ${news.id}`)}
                 />
               ))
             ) : (
@@ -677,7 +674,6 @@ export default function HomeScreen() {
               style={{ alignItems: 'center' }}
               onPress={() => {
                 // Можно открыть модальное окно с помощью или перейти на страницу поддержки
-                console.log('Help pressed');
                 // Пример: показать alert с информацией о поддержке
                 alert('Помощь\n\nДля получения помощи обратитесь к администратору или в службу поддержки университета.\n\nТелефон: +7 (xxx) xxx-xx-xx\nEmail: support@university.edu');
               }}

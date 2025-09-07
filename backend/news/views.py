@@ -33,10 +33,6 @@ class NewsViewSet(viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         """Создание новости с дополнительным логированием"""
-        print(f"Creating news with data: {request.data}")
-        print(f"Files: {request.FILES}")
-        print(f"Content-Type: {request.content_type}")
-        print(f"User: {request.user}, Role: {getattr(request.user, 'role', 'No role')}")
         
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)

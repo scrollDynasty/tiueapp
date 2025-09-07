@@ -46,7 +46,6 @@ class NewsSerializer(serializers.ModelSerializer):
                 image_file = ContentFile(image_binary, name=f'news_image.{file_ext}')
                 validated_data['image'] = image_file
                 
-                print(f"Successfully converted base64 to image file: {file_ext}")
             except Exception as e:
                 print(f"Error processing base64 image: {e}")
                 # Продолжаем без изображения, если произошла ошибка
@@ -54,8 +53,6 @@ class NewsSerializer(serializers.ModelSerializer):
         
         # Автоматически устанавливаем автора как текущего пользователя
         validated_data['author'] = self.context['request'].user
-        print(f"Creating news with data: {validated_data}")
-        print(f"Image in validated_data: {validated_data.get('image', 'No image')}")
         return super().create(validated_data)
 
 

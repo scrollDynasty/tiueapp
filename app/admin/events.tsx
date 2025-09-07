@@ -29,9 +29,6 @@ export default function EventsManagementScreen() {
   const themeColors = getThemeColors(theme === 'dark');
   const isDarkMode = theme === 'dark';
   
-  // Отладка темы
-  console.log('Admin Events Theme:', theme, 'isDarkMode:', isDarkMode);
-  
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { items: events, isLoading } = useAppSelector((state) => state.events);
@@ -214,8 +211,6 @@ export default function EventsManagementScreen() {
       
       Alert.alert('Успешно', 'Событие добавлено и сохранено в базе данных');
     } catch (error) {
-      console.error('API Error:', error);
-      
       // Если API не работает, сохраняем локально
       const fallbackEvent = {
         id: Date.now().toString(),
@@ -263,7 +258,6 @@ export default function EventsManagementScreen() {
       Alert.alert('Успешно', 'Событие удалено');
       
     } catch (error) {
-      console.error('Error deleting event:', error);
       // Закрываем модальное окно даже при ошибке
       setShowDeleteConfirm(false);
       setEventToDelete(null);

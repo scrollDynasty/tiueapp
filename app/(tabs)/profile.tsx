@@ -26,7 +26,6 @@ function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightC
   const { isDarkMode } = useTheme();
   
   const handlePress = () => {
-    console.log('SettingsItem pressed:', title);
     if (onPress) {
       onPress();
     }
@@ -527,7 +526,6 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
       <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ marginTop: Spacing.l }}>
         <Pressable
           onPress={() => {
-            console.log('Logout button pressed!');
             onLogout();
           }}
           style={({ pressed }) => ({
@@ -891,7 +889,6 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
             <Switch
               value={isDarkMode}
               onValueChange={(value) => {
-                console.log('Switch toggled to:', value);
                 setTheme(value ? 'dark' : 'light');
               }}
               trackColor={{ 
