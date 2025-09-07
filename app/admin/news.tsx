@@ -1,6 +1,8 @@
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { ThemedText } from '@/components/ThemedText';
+import { getThemeColors } from '@/constants/Colors';
 import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { authApi } from '@/services/api';
 import { fetchEvents } from '@/store/slices/eventsSlice';
@@ -16,6 +18,9 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function NewsManagementScreen() {
+  const { theme } = useTheme();
+  const themeColors = getThemeColors(theme === 'dark');
+  
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { items: news, isLoading } = useAppSelector((state) => state.news);
@@ -204,7 +209,7 @@ export default function NewsManagementScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.surfaceSubtle }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
       <ScrollView 
         showsVerticalScrollIndicator={false} 
         contentContainerStyle={{ padding: Spacing.l }}

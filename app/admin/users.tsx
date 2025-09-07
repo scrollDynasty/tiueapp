@@ -1,6 +1,8 @@
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { ThemedText } from '@/components/ThemedText';
+import { getThemeColors } from '@/constants/Colors';
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { authApi } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
@@ -196,6 +198,9 @@ const PasswordResetModal = React.memo(({
 });
 
 export default function UsersManagementScreen() {
+  const { theme } = useTheme();
+  const themeColors = getThemeColors(theme === 'dark');
+  
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   
@@ -719,7 +724,7 @@ export default function UsersManagementScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.surfaceSubtle }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
       <ScrollView 
         showsVerticalScrollIndicator={false} 
         contentContainerStyle={{ padding: Spacing.l }}

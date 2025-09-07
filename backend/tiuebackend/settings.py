@@ -170,7 +170,7 @@ CORS_ALLOW_ALL_ORIGINS = DEBUG  # Только для разработки
 AUTH_USER_MODEL = 'users.CustomUser'
 
 # Default Admin Settings
-DEFAULT_ADMIN_EMAIL = config('DEFAULT_ADMIN_EMAIL', default='admin@tiue.ru')
+DEFAULT_ADMIN_EMAIL = config('DEFAULT_ADMIN_EMAIL', default='admin@tiue.uz')
 DEFAULT_ADMIN_PASSWORD = config('DEFAULT_ADMIN_PASSWORD', default='admin123')
 DEFAULT_ADMIN_NAME = config('DEFAULT_ADMIN_NAME', default='Администратор')
 

@@ -34,7 +34,7 @@ const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function LoginScreen() {
-  const { theme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const themeColors = getThemeColors(theme === 'dark');
   
   const [credentials, setCredentials] = useState<LoginCredentials>({
@@ -50,29 +50,27 @@ export default function LoginScreen() {
   const { loading, error, isAuthenticated } = useAppSelector((state) => state.auth);
 
   // Анимационные значения
-  const logoScale = useSharedValue(0.8);
-  const logoOpacity = useSharedValue(0);
   const formTranslateY = useSharedValue(50);
   const formOpacity = useSharedValue(0);
   const buttonScale = useSharedValue(1);
+  const themeButtonScale = useSharedValue(1);
+  const themeButtonRotation = useSharedValue(0);
+  const themeButtonGlow = useSharedValue(1);
 
   useEffect(() => {
-    // Анимация появления логотипа
-    logoScale.value = withSpring(1, { 
-      damping: 15, 
-      stiffness: 120,
-      mass: 1
-    });
-    logoOpacity.value = withTiming(1, { duration: 800 });
-
     // Анимация появления формы
+    formTranslateY.value = withSpring(0, { 
+      damping: 12, 
+      stiffness: 100 
+    });
+    formOpacity.value = withTiming(1, { duration: 800 });
+
+    // Мерцающий эффект для кнопки темы (привлекает внимание)
     setTimeout(() => {
-      formTranslateY.value = withSpring(0, { 
-        damping: 12, 
-        stiffness: 100 
+      themeButtonGlow.value = withTiming(1.2, { duration: 1000 }, () => {
+        themeButtonGlow.value = withTiming(1, { duration: 1000 });
       });
-      formOpacity.value = withTiming(1, { duration: 1000 });
-    }, 200);
+    }, 1000);
   }, []);
 
   useEffect(() => {
@@ -88,6 +86,30 @@ export default function LoginScreen() {
       ]);
     }
   }, [error]);
+
+  // Фиксируем стили автозаполнения при смене темы
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      // Добавляем CSS стили для автозаполнения
+      const style = document.createElement('style');
+      style.innerHTML = `
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+          -webkit-text-fill-color: ${themeColors.text} !important;
+          -webkit-box-shadow: 0 0 0px 1000px ${themeColors.surface} inset !important;
+          background-color: ${themeColors.surface} !important;
+          color: ${themeColors.text} !important;
+        }
+      `;
+      document.head.appendChild(style);
+      
+      return () => {
+        document.head.removeChild(style);
+      };
+    }
+  }, [theme, themeColors]);
 
   const handleLogin = async () => {
     if (!credentials.email || !credentials.password) {
@@ -117,10 +139,26 @@ export default function LoginScreen() {
     setCredentials({ ...credentials, password });
   };
 
-  const logoAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: logoScale.value }],
-    opacity: logoOpacity.value,
-  }));
+  const handleThemeToggle = () => {
+    // Анимация нажатия и поворота
+    themeButtonScale.value = withSpring(0.8, { damping: 15 }, () => {
+      themeButtonScale.value = withSpring(1, { damping: 15 });
+    });
+    
+    // Увеличенный поворот для более эффектного перехода
+    themeButtonRotation.value = withSpring(themeButtonRotation.value + 720, {
+      damping: 12,
+      stiffness: 100
+    });
+
+    // Добавляем эффект свечения при переключении
+    themeButtonGlow.value = withSpring(1.4, { damping: 10 }, () => {
+      themeButtonGlow.value = withSpring(1, { damping: 15 });
+    });
+
+    // Переключаем тему
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
 
   const formAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: formTranslateY.value }],
@@ -131,60 +169,95 @@ export default function LoginScreen() {
     transform: [{ scale: buttonScale.value }],
   }));
 
+  const themeButtonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: themeButtonScale.value * themeButtonGlow.value },
+      { rotate: `${themeButtonRotation.value}deg` }
+    ],
+  }));
+
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.surface} />
+      <StatusBar 
+        barStyle={theme === 'dark' ? "light-content" : "dark-content"} 
+        backgroundColor={theme === 'dark' ? '#1E293B' : Colors.surface} 
+      />
       
-      {/* Современный градиентный фон в стиле LoginScreen */}
+      {/* Современный градиентный фон адаптивный к теме */}
       <LinearGradient
-        colors={['#f7f9fc', '#eef2f7', Colors.surfaceSubtle]}
+        colors={theme === 'dark' 
+          ? ['#1E293B', '#334155', '#475569']
+          : ['#f7f9fc', '#eef2f7', Colors.surfaceSubtle]
+        }
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFillObject}
       />
 
       <SafeAreaView style={styles.safeArea}>
-        <KeyboardAvoidingView 
+        {/* Кнопка смены темы в правом верхнем углу - прозрачная с контуром */}
+        <AnimatedTouchableOpacity
+          style={[styles.themeButton, themeButtonAnimatedStyle]}
+          onPress={handleThemeToggle}
+          activeOpacity={0.7}
+        >
+          <Ionicons 
+            name={theme === 'dark' ? "sunny-outline" : "moon-outline"} 
+            size={28} 
+            color={theme === 'dark' ? '#FFD700' : '#6366F1'} 
+            style={{
+              textShadowColor: theme === 'dark' ? '#FFD700' : '#6366F1',
+              textShadowOffset: { width: 0, height: 0 },
+              textShadowRadius: 12,
+            }}
+          />
+        </AnimatedTouchableOpacity>        <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
           <View style={styles.content}>
-            {/* Логотип-иконка в стиле LoginScreen */}
-            <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
-              <View style={styles.logoWrapper}>
-                <LinearGradient
-                  colors={[Colors.brandPrimary, '#1D4ED8']}
-                  style={styles.logoGradient}
-                >
-                  <Ionicons name="school-outline" size={40} color={Colors.surface} />
-                </LinearGradient>
-              </View>
-            </Animated.View>
-
-            {/* Главная форма в стиле LoginScreen */}
-            <Animated.View style={[styles.formContainer, formAnimatedStyle]}>
+            {/* Главная форма адаптированная под тему */}
+            <Animated.View style={[
+              styles.formContainer, 
+              formAnimatedStyle,
+              {
+                backgroundColor: theme === 'dark' 
+                  ? 'rgba(255,255,255,0.08)' 
+                  : 'rgba(255,255,255,0.95)',
+                borderColor: theme === 'dark' 
+                  ? 'rgba(255,255,255,0.15)' 
+                  : 'rgba(0,0,0,0.08)',
+              }
+            ]}>
               {/* Email Input */}
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Email</Text>
+                <Text style={[styles.inputLabel, { color: themeColors.text }]}>Email</Text>
                 <View style={[
                   styles.inputWrapper, 
-                  focusedInput === 'email' && styles.inputWrapperFocused
+                  { 
+                    backgroundColor: themeColors.surface,
+                    borderColor: themeColors.border 
+                  },
+                  focusedInput === 'email' && {
+                    borderColor: Colors.brandPrimary,
+                    backgroundColor: themeColors.surface,
+                    shadowColor: Colors.tabActiveShadow,
+                  }
                 ]}>
                   <Ionicons 
                     name="mail-outline" 
                     size={20} 
-                    color={focusedInput === 'email' ? Colors.brandPrimary : Colors.textSecondary}
+                    color={focusedInput === 'email' ? Colors.brandPrimary : themeColors.textSecondary}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={[styles.input, {
-                      // Принудительно переопределяем все стили фокуса
                       backgroundColor: 'transparent',
                       borderColor: 'transparent',
-                      color: Colors.textPrimary,
+                      color: themeColors.text,
                     }]}
-                    placeholder="your.email@university.ru"
-                    placeholderTextColor={Colors.textSecondary}
+                    placeholder="your.email@university.uz"
+                    placeholderTextColor={themeColors.textSecondary}
                     value={credentials.email}
                     onChangeText={handleEmailChange}
                     keyboardType="email-address"
@@ -196,32 +269,43 @@ export default function LoginScreen() {
                     underlineColorAndroid="transparent"
                     selectTextOnFocus={false}
                     blurOnSubmit={false}
+                    // Фиксируем автозаполнение
+                    autoComplete="email"
+                    textContentType="emailAddress"
                   />
                 </View>
               </View>
 
               {/* Password Input */}
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Пароль</Text>
+                <Text style={[styles.inputLabel, { color: themeColors.text }]}>Пароль</Text>
                 <View style={[
                   styles.inputWrapper, 
-                  focusedInput === 'password' && styles.inputWrapperFocused
+                  { 
+                    backgroundColor: themeColors.surface,
+                    borderColor: themeColors.border 
+                  },
+                  focusedInput === 'password' && {
+                    borderColor: Colors.brandPrimary,
+                    backgroundColor: themeColors.surface,
+                    shadowColor: Colors.tabActiveShadow,
+                  }
                 ]}>
                   <Ionicons 
                     name="lock-closed-outline" 
                     size={20} 
-                    color={focusedInput === 'password' ? Colors.brandPrimary : Colors.textSecondary}
+                    color={focusedInput === 'password' ? Colors.brandPrimary : themeColors.textSecondary}
                     style={styles.inputIcon}
                   />
                   <TextInput
                     style={[styles.input, {
                       backgroundColor: 'transparent',
                       borderColor: 'transparent',
-                      color: Colors.textPrimary,
+                      color: themeColors.text,
                       paddingRight: 60, // Увеличиваем отступ справа для кнопки глазика
                     }]}
                     placeholder="Введите ваш пароль"
-                    placeholderTextColor={Colors.textSecondary}
+                    placeholderTextColor={themeColors.textSecondary}
                     value={credentials.password}
                     onChangeText={handlePasswordChange}
                     secureTextEntry={!showPassword}
@@ -231,6 +315,9 @@ export default function LoginScreen() {
                     underlineColorAndroid="transparent"
                     selectTextOnFocus={false}
                     blurOnSubmit={false}
+                    // Фиксируем автозаполнение пароля
+                    autoComplete="current-password"
+                    textContentType="password"
                   />
                   <TouchableOpacity
                     onPress={() => setShowPassword(!showPassword)}
@@ -240,7 +327,7 @@ export default function LoginScreen() {
                     <Ionicons 
                       name={showPassword ? "eye-off-outline" : "eye-outline"} 
                       size={20} 
-                      color={Colors.textSecondary}
+                      color={themeColors.textSecondary}
                     />
                   </TouchableOpacity>
                 </View>
@@ -274,6 +361,7 @@ export default function LoginScreen() {
                   </LinearGradient>
                 </TouchableOpacity>
               </Animated.View>
+
             </Animated.View>
           </View>
         </KeyboardAvoidingView>
@@ -300,41 +388,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   
-  // Логотип в стиле LoginScreen reference
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: Spacing.xl,
-  },
-  logoWrapper: {
-    marginBottom: Spacing.m,
-  },
-  logoGradient: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: Colors.brandPrimary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 10,
-  },
-
-  // Основная форма в стиле LoginScreen reference
+  // Основная форма адаптированная под тему
   formContainer: {
     width: '100%',
     maxWidth: 380,
-    backgroundColor: Colors.surface,
+    backgroundColor: 'rgba(255,255,255,0.95)',
     borderRadius: 24,
-    padding: Spacing.xl * 1.2,
-    shadowColor: 'rgba(0, 0, 0, 0.15)',
-    shadowOffset: { width: 0, height: 24 },
-    shadowOpacity: 1,
-    shadowRadius: 32,
-    elevation: 15,
+    padding: Spacing.xl,
+    marginTop: Spacing.xl,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
+    borderColor: 'rgba(0,0,0,0.08)',
   },
   welcomeHeader: {
     alignItems: 'center',
@@ -354,36 +422,29 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Инпуты - те самые хорошие, что понравились
+  // Инпуты адаптированные под тему
   inputContainer: {
     marginBottom: Spacing.l,
   },
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.textPrimary,
     marginBottom: Spacing.xs,
     marginLeft: 4,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.strokeSoft,
-    borderRadius: 12,
-    backgroundColor: Colors.surfaceSubtle,
+    borderWidth: 1.5,
+    borderRadius: 16,
     paddingHorizontal: Spacing.m,
     height: 56,
     position: 'relative',
-  },
-  inputWrapperFocused: {
-    borderColor: Colors.brandPrimary,
-    backgroundColor: Colors.surface,
-    shadowColor: Colors.tabActiveShadow,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   inputIcon: {
     marginRight: Spacing.s,
@@ -391,12 +452,10 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: Colors.textPrimary,
     fontWeight: '500',
     height: '100%',
     paddingVertical: 0,
     backgroundColor: 'transparent',
-    // Полностью убираем все системные стили
     borderWidth: 0,
     margin: 0,
     padding: 0,
@@ -455,28 +514,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // Информационная карточка в стиле LoginScreen reference
-  infoCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: 'rgba(37, 99, 235, 0.08)',
-    borderRadius: 16,
-    paddingHorizontal: Spacing.m,
-    paddingVertical: Spacing.m,
-    marginTop: Spacing.xl,
-    borderWidth: 1,
-    borderColor: 'rgba(37, 99, 235, 0.12)',
-    maxWidth: 320,
-  },
-  infoIcon: {
-    marginRight: Spacing.s,
-    marginTop: 2,
-  },
-  infoText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    fontWeight: '400',
-    lineHeight: 20,
-    flex: 1,
+  // Кнопка смены темы
+  themeButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 20,
+    right: 20,
+    zIndex: 100,
+    padding: 10, // Добавляем padding для области нажатия
   },
 });
