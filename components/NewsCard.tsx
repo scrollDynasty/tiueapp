@@ -2,17 +2,20 @@ import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { formatDateYMD } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Image, Pressable, View, ViewStyle } from 'react-native';
+import { Dimensions, Image, Platform, Pressable, View, ViewStyle } from 'react-native';
 import Animated, {
     FadeIn,
     interpolate,
     useAnimatedStyle,
     useSharedValue,
-    withTiming,
+    withTiming
 } from 'react-native-reanimated';
 import { Animation, Spacing } from '../constants/DesignTokens';
 import { ThemedText } from './ThemedText';
+
+const { width } = Dimensions.get('window');
 
 interface Event {
   id: number;
@@ -76,181 +79,260 @@ export function NewsCard({
 
   return (
     <AnimatedPressable
-      entering={FadeIn.delay(index * 100)}
+      entering={FadeIn.delay(index * 100).springify()}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={[
         {
-          borderRadius: 16,
-          borderWidth: 1,
-          borderColor: colors.border,
-          backgroundColor: isDarkMode ? colors.surfaceSecondary : colors.surface,
-          shadowColor: isDarkMode ? '#000' : '#000',
-          shadowOffset: {
-            width: 0,
-            height: 6,
-          },
-          shadowOpacity: isDarkMode ? 0.25 : 0.05,
-          shadowRadius: 10,
-          elevation: 8,
+          borderRadius: 20,
+          overflow: 'hidden',
+          backgroundColor: 'transparent',
+          ...Platform.select({
+            ios: {
+              shadowColor: isDarkMode ? '#000' : '#000',
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: isDarkMode ? 0.4 : 0.15,
+              shadowRadius: 16,
+            },
+            android: {
+              elevation: 12,
+            },
+          }),
         },
         animatedStyle,
         style,
       ]}
     >
-      {/* Изображение, если есть */}
-      {image && (
-        <Image
-          source={{ uri: image }}
-          style={{
-            width: '100%',
-            height: 200,
-            borderTopLeftRadius: 16,
-            borderTopRightRadius: 16,
-          }}
-          resizeMode="cover"
-        />
-      )}
-      
-      <View
+      {/* Градиентный фон карточки */}
+      <LinearGradient
+        colors={isDarkMode 
+          ? ['rgba(30,41,59,0.95)', 'rgba(51,65,85,0.90)', 'rgba(71,85,105,0.85)']
+          : ['rgba(255,255,255,0.95)', 'rgba(248,250,252,0.90)', 'rgba(241,245,249,0.85)']
+        }
         style={{
-          flexDirection: 'row',
-          padding: Spacing.m,
-          alignItems: 'center',
+          borderRadius: 20,
+          borderWidth: 1,
+          borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
         }}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
       >
-        {/* Индикатор слева */}
-        <View
-          style={{
-            width: 6,
-            height: 48,
-            backgroundColor: colors.primary,
-            borderRadius: 3,
-            marginRight: Spacing.m,
-          }}
-        />
+        {/* Изображение с градиентным оверлеем */}
+        {image && (
+          <View style={{ position: 'relative' }}>
+            <Image
+              source={{ uri: image }}
+              style={{
+                width: '100%',
+                height: 220,
+                borderTopLeftRadius: 20,
+                borderTopRightRadius: 20,
+              }}
+              resizeMode="cover"
+            />
+            {/* Градиентный оверлей на изображение */}
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.6)']}
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 80,
+                borderTopLeftRadius: 20,
+                borderTopRightRadius: 20,
+              }}
+            />
+            {/* Дата на изображении */}
+            <View style={{
+              position: 'absolute',
+              top: Spacing.m,
+              right: Spacing.m,
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              paddingHorizontal: Spacing.s,
+              paddingVertical: 6,
+              borderRadius: 12,
+              flexDirection: 'row',
+              alignItems: 'center'
+            }}>
+              <Ionicons name="calendar-outline" size={14} color="#fff" style={{ marginRight: 4 }} />
+              <ThemedText style={{ 
+                fontSize: 12, 
+                color: '#fff', 
+                fontWeight: '600' 
+              }}>
+                {formatDateYMD(date)}
+              </ThemedText>
+            </View>
+          </View>
+        )}
+        
+        <View style={{ padding: Spacing.l }}>
+          {/* Заголовок с иконкой */}
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: Spacing.s }}>
+            <LinearGradient
+              colors={isDarkMode 
+                ? ['rgba(99,102,241,0.2)', 'rgba(139,92,246,0.2)']
+                : ['rgba(99,102,241,0.1)', 'rgba(139,92,246,0.1)']
+              }
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: Spacing.m,
+                borderWidth: 1,
+                borderColor: isDarkMode ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.2)',
+              }}
+            >
+              <Ionicons 
+                name={icon} 
+                size={22} 
+                color={isDarkMode ? '#A5B4FC' : '#6366F1'} 
+              />
+            </LinearGradient>
+            
+            <View style={{ flex: 1 }}>
+              <ThemedText
+                style={{
+                  fontSize: 18,
+                  lineHeight: 26,
+                  fontWeight: '700',
+                  color: colors.text,
+                  marginBottom: 4,
+                }}
+                numberOfLines={2}
+              >
+                {title}
+              </ThemedText>
+              
+              {!image && (
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  marginTop: 4
+                }}>
+                  <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} style={{ marginRight: 6 }} />
+                  <ThemedText style={{ 
+                    fontSize: 13, 
+                    color: colors.textSecondary, 
+                    fontWeight: '500' 
+                  }}>
+                    {formatDateYMD(date)}
+                  </ThemedText>
+                </View>
+              )}
+            </View>
+          </View>
 
-        {/* Контент */}
-        <View style={{ flex: 1 }}>
+          {/* Подзаголовок */}
           <ThemedText
             style={{
-              fontSize: 16,
-              lineHeight: 24,
-              fontWeight: '600',
-              color: colors.text,
-              marginBottom: Spacing.xxs,
-            }}
-            numberOfLines={2}
-          >
-            {title}
-          </ThemedText>
-          
-          <ThemedText
-            style={{
-              fontSize: 13,
-              lineHeight: 18,
-              fontWeight: '500',
+              fontSize: 15,
+              lineHeight: 22,
               color: colors.textSecondary,
-              marginBottom: Spacing.xs,
+              marginBottom: events.length > 0 ? Spacing.m : 0,
             }}
-            numberOfLines={2}
+            numberOfLines={3}
           >
             {subtitle}
           </ThemedText>
 
-          <ThemedText
-            style={{
-              fontSize: 12,
-              lineHeight: 16,
-              fontWeight: '500',
-              color: colors.textSecondary,
-            }}
-          >
-            {formatDateYMD(date)}
-          </ThemedText>
-        </View>
-
-        {/* Иконка-чип */}
-        <View
-          style={{
-            width: 24,
-            height: 24,
-            borderRadius: 12,
-            backgroundColor: isDarkMode ? `${colors.primary}20` : colors.backgroundSecondary,
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginLeft: Spacing.s,
-          }}
-        >
-          <Ionicons 
-            name={icon} 
-            size={14} 
-            color={colors.primary} 
-          />
-        </View>
-      </View>
-
-      {/* События, связанные с новостью */}
-      {events.length > 0 && (
-        <View
-          style={{
-            borderTopWidth: 1,
-            borderTopColor: colors.border,
-            paddingHorizontal: Spacing.m,
-            paddingVertical: Spacing.s,
-          }}
-        >
-          <ThemedText
-            style={{
-              fontSize: 14,
-              fontWeight: '600',
-              color: colors.text,
-              marginBottom: Spacing.xs,
-            }}
-          >
-            📅 Связанные события
-          </ThemedText>
-          
-          {events.map((event) => (
-            <Pressable
-              key={event.id}
-              onPress={() => onEventPress?.(event)}
+          {/* События, связанные с новостью */}
+          {events.length > 0 && (
+            <View
               style={{
-                backgroundColor: isDarkMode ? colors.background : colors.backgroundSecondary,
-                borderRadius: 8,
-                padding: Spacing.s,
-                marginBottom: Spacing.xs,
-                borderLeftWidth: 3,
-                borderLeftColor: colors.primary,
-                borderWidth: isDarkMode ? 1 : 0,
-                borderColor: isDarkMode ? colors.border : 'transparent',
+                marginTop: Spacing.s,
+                paddingTop: Spacing.m,
+                borderTopWidth: 1,
+                borderTopColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
               }}
             >
-              <ThemedText
-                style={{
-                  fontSize: 13,
-                  fontWeight: '600',
-                  color: colors.text,
-                  marginBottom: 2,
-                }}
-                numberOfLines={1}
-              >
-                {event.title}
-              </ThemedText>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.s }}>
+                <LinearGradient
+                  colors={isDarkMode 
+                    ? ['rgba(34,197,94,0.2)', 'rgba(16,185,129,0.2)']
+                    : ['rgba(34,197,94,0.1)', 'rgba(16,185,129,0.1)']
+                  }
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: 12,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: Spacing.xs,
+                  }}
+                >
+                  <Ionicons name="calendar" size={12} color={isDarkMode ? '#10B981' : '#059669'} />
+                </LinearGradient>
+                <ThemedText
+                  style={{
+                    fontSize: 14,
+                    fontWeight: '600',
+                    color: colors.text,
+                  }}
+                >
+                  Связанные события ({events.length})
+                </ThemedText>
+              </View>
               
-              <ThemedText
-                style={{
-                  fontSize: 11,
-                  color: colors.textSecondary,
-                }}
-              >
-                📍 {event.location} • {formatDateYMD(event.date)} в {event.time}
-              </ThemedText>
-            </Pressable>
-          ))}
+              <View style={{ gap: Spacing.xs }}>
+                {events.slice(0, 2).map((event, eventIndex) => (
+                  <Pressable
+                    key={eventIndex}
+                    onPress={() => onEventPress?.(event)}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingVertical: Spacing.xs,
+                      paddingHorizontal: Spacing.s,
+                      backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+                      borderRadius: 12,
+                      borderWidth: 1,
+                      borderColor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                    }}
+                  >
+                    <View style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: 4,
+                      backgroundColor: isDarkMode ? '#10B981' : '#059669',
+                      marginRight: Spacing.s,
+                    }} />
+                    <ThemedText
+                      style={{
+                        flex: 1,
+                        fontSize: 13,
+                        color: colors.textSecondary,
+                        fontWeight: '500',
+                      }}
+                      numberOfLines={1}
+                    >
+                      {event.title}
+                    </ThemedText>
+                  </Pressable>
+                ))}
+                
+                {events.length > 2 && (
+                  <ThemedText
+                    style={{
+                      fontSize: 12,
+                      color: colors.primary,
+                      fontWeight: '600',
+                      textAlign: 'center',
+                      marginTop: Spacing.xs,
+                    }}
+                  >
+                    +{events.length - 2} еще
+                  </ThemedText>
+                )}
+              </View>
+            </View>
+          )}
         </View>
-      )}
+      </LinearGradient>
     </AnimatedPressable>
   );
 }

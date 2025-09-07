@@ -67,31 +67,54 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
 
   return (
     <Animated.View
-      entering={FadeInUp.duration(600).delay(index * 100).springify()}
+      entering={FadeInUp.duration(700).delay(index * 150).springify()}
       style={{
-        backgroundColor: colors.surface,
-        borderRadius: 20,
+        backgroundColor: 'transparent',
+        borderRadius: 24,
         padding: Spacing.l,
         marginBottom: Spacing.m,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 16,
-        elevation: 6,
-        borderWidth: 1,
-        borderColor: colors.border,
+        overflow: 'hidden',
+        shadowColor: isDarkMode ? '#000' : '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: isDarkMode ? 0.4 : 0.12,
+        shadowRadius: 20,
+        elevation: isDarkMode ? 12 : 8,
       }}
     >
+      {/* Градиентный фон карточки */}
+      <LinearGradient
+        colors={isDarkMode 
+          ? ['rgba(30,41,59,0.9)', 'rgba(51,65,85,0.8)', 'rgba(71,85,105,0.7)']
+          : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)', 'rgba(241,245,249,0.7)']
+        }
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          borderRadius: 24,
+          borderWidth: 1,
+          borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+        }}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
+      
       {/* Время и тип */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.m }}>
-        <View style={{
-          backgroundColor: getTypeColor(item.type) + '15',
-          paddingHorizontal: Spacing.s,
-          paddingVertical: Spacing.xs,
-          borderRadius: 12,
-          flexDirection: 'row',
-          alignItems: 'center',
-        }}>
+        <LinearGradient
+          colors={[getTypeColor(item.type) + '20', getTypeColor(item.type) + '10']}
+          style={{
+            paddingHorizontal: Spacing.s,
+            paddingVertical: Spacing.xs,
+            borderRadius: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: getTypeColor(item.type) + '30',
+          }}
+        >
           <Ionicons 
             name={getTypeIcon(item.type) as any} 
             size={16} 
@@ -108,14 +131,21 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
           >
             {getTypeLabel(item.type)}
           </ThemedText>
-        </View>
+        </LinearGradient>
         
-        <View style={{
-          backgroundColor: colors.primary + '15',
-          paddingHorizontal: Spacing.s,
-          paddingVertical: Spacing.xs,
-          borderRadius: 10,
-        }}>
+        <LinearGradient
+          colors={isDarkMode 
+            ? [colors.primary + '30', colors.primary + '20']
+            : [colors.primary + '20', colors.primary + '10']
+          }
+          style={{
+            paddingHorizontal: Spacing.s,
+            paddingVertical: Spacing.xs,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: colors.primary + '40',
+          }}
+        >
           <ThemedText
             style={{
               fontSize: 14,
@@ -126,7 +156,7 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
           >
             {item.time}
           </ThemedText>
-        </View>
+        </LinearGradient>
       </View>
 
       {/* Предмет */}
@@ -134,7 +164,7 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
         style={{
           fontSize: 18,
           fontWeight: '700',
-          color: Colors.textPrimary,
+          color: colors.text,
           marginBottom: Spacing.s,
           lineHeight: 24,
           letterSpacing: -0.3,
@@ -146,22 +176,27 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
       {/* Преподаватель и аудитория */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <View style={{
-            width: 32,
-            height: 32,
-            borderRadius: 10,
-            backgroundColor: Colors.surfaceSubtle,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginRight: Spacing.s,
-          }}>
-            <Ionicons name="person-outline" size={16} color={Colors.textSecondary} />
-          </View>
+          <LinearGradient
+            colors={isDarkMode 
+              ? ['rgba(99,102,241,0.2)', 'rgba(139,92,246,0.2)']
+              : ['rgba(99,102,241,0.1)', 'rgba(139,92,246,0.1)']
+            }
+            style={{
+              width: 36,
+              height: 32,
+              borderRadius: 10,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: Spacing.s,
+            }}
+          >
+            <Ionicons name="person-outline" size={16} color={isDarkMode ? '#A5B4FC' : '#6366F1'} />
+          </LinearGradient>
           <ThemedText
             style={{
               fontSize: 14,
               fontWeight: '500',
-              color: Colors.textSecondary,
+              color: colors.textSecondary,
               flex: 1,
             }}
           >
@@ -170,22 +205,27 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
         </View>
         
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{
-            width: 32,
-            height: 32,
-            borderRadius: 10,
-            backgroundColor: Colors.surfaceSubtle,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginRight: Spacing.s,
-          }}>
-            <Ionicons name="location-outline" size={16} color={Colors.textSecondary} />
-          </View>
+          <LinearGradient
+            colors={isDarkMode 
+              ? ['rgba(34,197,94,0.2)', 'rgba(16,185,129,0.2)']
+              : ['rgba(34,197,94,0.1)', 'rgba(16,185,129,0.1)']
+            }
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 10,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: Spacing.s,
+            }}
+          >
+            <Ionicons name="location-outline" size={16} color={isDarkMode ? '#10B981' : '#059669'} />
+          </LinearGradient>
           <ThemedText
             style={{
               fontSize: 14,
               fontWeight: '600',
-              color: Colors.textPrimary,
+              color: colors.text,
             }}
           >
             {item.room}
@@ -273,7 +313,10 @@ export default function ScheduleScreen() {
     <View style={{ flex: 1 }}>
       {/* Градиентный фон */}
       <LinearGradient
-        colors={isDarkMode ? [colors.background, colors.backgroundSecondary] : ['#FAFAFA', '#F8FAFC', '#EEF2F7']}
+        colors={isDarkMode 
+          ? ['#0F172A', '#1E293B', '#334155']
+          : ['#FAFAFA', '#F8FAFC', '#EEF2F7']
+        }
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
@@ -300,7 +343,7 @@ export default function ScheduleScreen() {
               style={{
                 fontSize: 28,
                 fontWeight: '700',
-                color: Colors.textPrimary,
+                color: colors.text,
                 letterSpacing: -0.5,
               }}
             >
@@ -311,14 +354,14 @@ export default function ScheduleScreen() {
             <Ionicons 
               name={user?.role === 'admin' ? 'settings-outline' : user?.role === 'professor' ? 'person-outline' : 'school-outline'} 
               size={16} 
-              color={Colors.textSecondary} 
+              color={colors.textSecondary} 
               style={{ marginRight: 8 }}
             />
             <ThemedText
               style={{
                 fontSize: 16,
                 fontWeight: '400',
-                color: Colors.textSecondary,
+                color: colors.textSecondary,
                 lineHeight: 24,
               }}
             >
@@ -345,30 +388,47 @@ export default function ScheduleScreen() {
                 <TouchableOpacity
                   onPress={() => setSelectedDay(day)}
                   style={{
-                    backgroundColor: selectedDay === day ? Colors.brandPrimary : Colors.surface,
-                    paddingHorizontal: Spacing.l,
-                    paddingVertical: Spacing.s,
-                    borderRadius: 16,
+                    backgroundColor: 'transparent',
+                    borderRadius: 18,
                     marginRight: Spacing.s,
-                    shadowColor: selectedDay === day ? Colors.brandPrimary : '#000',
-                    shadowOffset: { width: 0, height: selectedDay === day ? 4 : 2 },
-                    shadowOpacity: selectedDay === day ? 0.15 : 0.05,
-                    shadowRadius: selectedDay === day ? 12 : 8,
-                    elevation: selectedDay === day ? 6 : 2,
-                    borderWidth: 1,
-                    borderColor: selectedDay === day ? Colors.brandPrimary : 'rgba(0,0,0,0.04)',
+                    overflow: 'hidden',
+                    shadowColor: selectedDay === day ? colors.primary : (isDarkMode ? '#000' : '#000'),
+                    shadowOffset: { width: 0, height: selectedDay === day ? 8 : 4 },
+                    shadowOpacity: selectedDay === day ? 0.3 : (isDarkMode ? 0.4 : 0.08),
+                    shadowRadius: selectedDay === day ? 16 : 8,
+                    elevation: selectedDay === day ? 8 : 4,
                   }}
                 >
-                  <ThemedText
+                  <LinearGradient
+                    colors={selectedDay === day 
+                      ? [colors.primary, colors.primary + 'DD']
+                      : isDarkMode 
+                        ? ['rgba(30,41,59,0.8)', 'rgba(51,65,85,0.6)']
+                        : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)']
+                    }
                     style={{
-                      fontSize: 14,
-                      fontWeight: '600',
-                      color: selectedDay === day ? Colors.surface : Colors.textPrimary,
-                      letterSpacing: -0.1,
+                      paddingHorizontal: Spacing.l,
+                      paddingVertical: Spacing.s,
+                      borderRadius: 18,
+                      borderWidth: 1,
+                      borderColor: selectedDay === day 
+                        ? colors.primary + '40'
+                        : isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
                     }}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
                   >
-                    {day}
-                  </ThemedText>
+                    <ThemedText
+                      style={{
+                        fontSize: 14,
+                        fontWeight: '600',
+                        color: selectedDay === day ? colors.surface : colors.text,
+                        letterSpacing: -0.1,
+                      }}
+                    >
+                      {day}
+                    </ThemedText>
+                  </LinearGradient>
                 </TouchableOpacity>
               </Animated.View>
             ))}
@@ -392,36 +452,63 @@ export default function ScheduleScreen() {
             <Animated.View 
               entering={FadeInDown.duration(800).delay(600)}
               style={{
-                backgroundColor: Colors.surface,
-                borderRadius: 20,
+                backgroundColor: 'transparent',
+                borderRadius: 24,
                 padding: Spacing.xl,
                 alignItems: 'center',
                 marginTop: Spacing.l,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.06,
-                shadowRadius: 16,
-                elevation: 4,
-                borderWidth: 1,
-                borderColor: 'rgba(0,0,0,0.04)',
+                overflow: 'hidden',
+                shadowColor: isDarkMode ? '#000' : '#000',
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: isDarkMode ? 0.4 : 0.12,
+                shadowRadius: 20,
+                elevation: isDarkMode ? 12 : 8,
               }}
             >
-              <View style={{
-                width: 80,
-                height: 80,
-                borderRadius: 20,
-                backgroundColor: Colors.surfaceSubtle,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: Spacing.l,
-              }}>
-                <Ionicons name="calendar-outline" size={32} color={Colors.textSecondary} />
-              </View>
+              {/* Градиентный фон для пустого состояния */}
+              <LinearGradient
+                colors={isDarkMode 
+                  ? ['rgba(30,41,59,0.8)', 'rgba(51,65,85,0.6)', 'rgba(71,85,105,0.4)']
+                  : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)', 'rgba(241,245,249,0.7)']
+                }
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  borderRadius: 24,
+                  borderWidth: 1,
+                  borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
+                }}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              />
+              
+              <LinearGradient
+                colors={isDarkMode 
+                  ? ['rgba(99,102,241,0.2)', 'rgba(139,92,246,0.2)']
+                  : ['rgba(99,102,241,0.1)', 'rgba(139,92,246,0.1)']
+                }
+                style={{
+                  width: 88,
+                  height: 88,
+                  borderRadius: 24,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: Spacing.l,
+                  borderWidth: 1,
+                  borderColor: isDarkMode ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.2)',
+                }}
+              >
+                <Ionicons name="calendar-outline" size={40} color={isDarkMode ? '#A5B4FC' : '#6366F1'} />
+              </LinearGradient>
+              
               <ThemedText
                 style={{
                   fontSize: 20,
                   fontWeight: '700',
-                  color: Colors.textPrimary,
+                  color: colors.text,
                   textAlign: 'center',
                   marginBottom: Spacing.s,
                   letterSpacing: -0.3,
@@ -433,7 +520,7 @@ export default function ScheduleScreen() {
                 style={{
                   fontSize: 16,
                   fontWeight: '400',
-                  color: Colors.textSecondary,
+                  color: colors.textSecondary,
                   textAlign: 'center',
                   lineHeight: 24,
                   maxWidth: 280,
