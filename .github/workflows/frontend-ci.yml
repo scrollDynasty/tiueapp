@@ -1,22 +1,27 @@
 name: React Native CI
+
 on:
   push:
     branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [22.19.0] 
+        node-version: [22.19.0]
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+
     - name: Set up Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
+
     - name: Cache npm
       uses: actions/cache@v3
       with:
@@ -24,12 +29,18 @@ jobs:
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-node-
+
+    - name: Remove old lock file
+      run: rm -f package-lock.json
+
     - name: Install dependencies
       run: |
-        # Эта команда установит ТОЧНЫЕ версии зависимостей из package-lock.json.
-        npm install 
+        npm install
+        npm update
+
     - name: Run lint
       run: npm run lint
-      continue-on-error: true 
+      continue-on-error: true  # чтобы CI не падал из-за lint
+
     - name: Build Expo Web
-      run: npx expo export
+      run: npx expo export:web
