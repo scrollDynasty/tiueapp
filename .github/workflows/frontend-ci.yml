@@ -42,5 +42,7 @@ jobs:
       run: npm run lint
       continue-on-error: true  # чтобы CI не падал из-за lint
 
-    - name: Build Expo Web
-      run: npx expo export:web
+    - name: Build Expo (for all platforms including web)
+      run: npx expo export --output-dir dist
+      # Добавил --output-dir dist, чтобы указать папку для выходных файлов. 
+      # По умолчанию это 'dist', но лучше явно указать.
