@@ -25,6 +25,8 @@ const EVENT_CATEGORIES = [
 ];
 
 export default function EventsManagementScreen() {
+  console.log('🔄 EventsManagementScreen render');
+  
   const { theme } = useTheme();
   const themeColors = getThemeColors(theme === 'dark');
   const isDarkMode = theme === 'dark';
@@ -38,11 +40,11 @@ export default function EventsManagementScreen() {
     console.log('📋 Events updated in component:', events.map(e => ({ id: e.id, title: e.title })));
   }, [events]);
 
-  // Добавляем принудительное обновление при изменении events
-  const [forceUpdate, setForceUpdate] = React.useState(0);
-  React.useEffect(() => {
-    setForceUpdate(prev => prev + 1);
-  }, [events.length]); // Триггерим при изменении количества событий
+  // Уберем принудительное обновление - оно может вызывать лишние рендеры
+  // const [forceUpdate, setForceUpdate] = React.useState(0);
+  // React.useEffect(() => {
+  //   setForceUpdate(prev => prev + 1);
+  // }, [events.length]); // Триггерим при изменении количества событий
   
   const [title, setTitle] = React.useState('');
   const [description, setDescription] = React.useState('');
@@ -55,6 +57,9 @@ export default function EventsManagementScreen() {
   // Состояния для удаления события
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [eventToDelete, setEventToDelete] = React.useState<{ id: string; title: string } | null>(null);
+  
+  // Добавляем состояние для блокировки кнопки создания
+  const [isCreating, setIsCreating] = React.useState(false);
 
   // Загружаем события при входе в компонент
   React.useEffect(() => {
@@ -196,6 +201,12 @@ export default function EventsManagementScreen() {
   }
 
   const handleAddEvent = async () => {
+    // Блокируем повторные вызовы
+    if (isCreating) {
+      console.log('⚠️ Create event already in progress, ignoring duplicate call');
+      return;
+    }
+
     if (!title.trim() || !description.trim() || !location.trim() || !date.trim() || !time.trim()) {
       Alert.alert('Ошибка', 'Заполните все поля');
       return;
@@ -230,6 +241,9 @@ export default function EventsManagementScreen() {
       return;
     }
 
+    console.log('🆕 Starting event creation process');
+    setIsCreating(true);
+
     const newEventData = {
       title: title.trim(),
       description: description.trim(),
@@ -245,6 +259,8 @@ export default function EventsManagementScreen() {
       // Создаем событие через API
       const result = await dispatch(createEvent(newEventData)).unwrap();
       
+      console.log('✅ Event created successfully:', result);
+      
       // Очищаем форму только после успешного создания
       setTitle('');
       setDescription('');
@@ -256,11 +272,13 @@ export default function EventsManagementScreen() {
       
       Alert.alert('Успешно', 'Событие добавлено и сохранено в базе данных');
     } catch (error: any) {
-      console.error('Create event error:', error);
+      console.error('❌ Create event error:', error);
       
       // Показываем конкретную ошибку пользователю
       const errorMessage = typeof error === 'string' ? error : 'Не удалось создать событие. Проверьте подключение к серверу.';
       Alert.alert('Ошибка', errorMessage);
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -663,9 +681,9 @@ export default function EventsManagementScreen() {
           {/* Кнопка добавления */}
           <Pressable
             onPress={handleAddEvent}
-            disabled={isLoading}
+            disabled={isLoading || isCreating}
             style={{
-              backgroundColor: isLoading ? Colors.strokeSoft : Colors.brandPrimary,
+              backgroundColor: (isLoading || isCreating) ? Colors.strokeSoft : Colors.brandPrimary,
               paddingVertical: Spacing.m,
               borderRadius: 12,
               alignItems: 'center',
@@ -673,7 +691,7 @@ export default function EventsManagementScreen() {
               justifyContent: 'center',
             }}
           >
-            {isLoading && (
+            {(isLoading || isCreating) && (
               <ActivityIndicator 
                 size="small" 
                 color={themeColors.textSecondary} 
@@ -682,10 +700,10 @@ export default function EventsManagementScreen() {
             )}
             <ThemedText style={{ 
               ...Typography.body, 
-              color: isLoading ? themeColors.textSecondary : 'white', 
+              color: (isLoading || isCreating) ? themeColors.textSecondary : 'white', 
               fontWeight: '600' 
             }}>
-              {isLoading ? 'Добавляем...' : 'Добавить событие'}
+              {isCreating ? 'Создание...' : isLoading ? 'Добавляем...' : 'Добавить событие'}
             </ThemedText>
           </Pressable>
         </Animated.View>
