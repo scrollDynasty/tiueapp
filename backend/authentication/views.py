@@ -76,14 +76,25 @@ def logout(request):
     Выход из системы
     """
     try:
-        request.user.auth_token.delete()
-    except Token.DoesNotExist:
-        pass
-    
-    return Response({
-        'success': True,
-        'message': 'Успешный выход из системы'
-    })
+        # Удаляем токен пользователя если он существует
+        if hasattr(request.user, 'auth_token'):
+            request.user.auth_token.delete()
+            print(f"Token deleted for user: {request.user.email}")
+        else:
+            print(f"No token found for user: {request.user.email}")
+        
+        return Response({
+            'success': True,
+            'message': 'Успешный выход из системы'
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        print(f"Error during logout: {str(e)}")
+        # Возвращаем успех даже при ошибке, так как локально пользователь все равно выйдет
+        return Response({
+            'success': True,
+            'message': 'Выход из системы'
+        }, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

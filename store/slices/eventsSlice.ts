@@ -35,7 +35,16 @@ export const fetchEvents = createAsyncThunk(
 
 export const createEvent = createAsyncThunk(
   'events/createEvent',
-  async (eventData: { title: string; description: string; location: string; date: string; time: string; category: string; max_participants?: number }, { rejectWithValue }) => {
+  async (eventData: { 
+    title: string; 
+    description: string; 
+    location: string; 
+    date: string; 
+    time: string; 
+    category: string; 
+    max_participants?: number;
+    image?: any; // Добавляем поддержку изображений
+  }, { rejectWithValue }) => {
     try {
       const response = await authApi.createEvent(eventData);
       if (response.success && response.data) {
@@ -51,7 +60,7 @@ export const createEvent = createAsyncThunk(
 
 export const deleteEvent = createAsyncThunk(
   'events/deleteEvent',
-  async (eventId: string, { rejectWithValue }) => {
+  async (eventId: string, { rejectWithValue, getState }) => {
     try {
       const response = await authApi.deleteEvent(eventId);
       if (response.success) {
@@ -60,6 +69,10 @@ export const deleteEvent = createAsyncThunk(
         return rejectWithValue(response.error || 'Failed to delete event');
       }
     } catch (error) {
+      // Если это локальное событие (начинается с local_), удаляем его локально
+      if (String(eventId).startsWith('local_')) {
+        return eventId;
+      }
       return rejectWithValue('Network error occurred');
     }
   }
@@ -92,7 +105,8 @@ const eventsSlice = createSlice({
       if (!Array.isArray(state.items)) {
         state.items = [];
       }
-      state.items.push(action.payload);
+      // Добавляем событие в начало массива для лучшего UX
+      state.items.unshift(action.payload);
     },
     clearError: (state) => {
       state.error = null;
@@ -126,7 +140,8 @@ const eventsSlice = createSlice({
         if (!Array.isArray(state.items)) {
           state.items = [];
         }
-        state.items.push(action.payload);
+        // Добавляем событие в начало массива для лучшего UX
+        state.items.unshift(action.payload);
       })
       .addCase(createEvent.rejected, (state, action) => {
         state.isLoading = false;
@@ -139,7 +154,10 @@ const eventsSlice = createSlice({
       })
       .addCase(deleteEvent.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.items = state.items.filter(item => item.id !== action.payload);
+        // Фильтруем события, убирая удаленное по точному совпадению ID
+        if (Array.isArray(state.items)) {
+          state.items = state.items.filter(item => String(item.id) !== String(action.payload));
+        }
       })
       .addCase(deleteEvent.rejected, (state, action) => {
         state.isLoading = false;

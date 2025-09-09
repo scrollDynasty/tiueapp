@@ -4,14 +4,14 @@ import { getThemeColors } from '@/constants/Colors';
 import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { authApi } from '@/services/api';
-import { addEvent, createEvent, fetchEvents } from '@/store/slices/eventsSlice';
+import { createEvent, deleteEvent, fetchEvents } from '@/store/slices/eventsSlice';
 import { formatDateYMD } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -39,10 +39,16 @@ export default function EventsManagementScreen() {
   const [date, setDate] = React.useState('');
   const [time, setTime] = React.useState('');
   const [category, setCategory] = React.useState('university');
+  const [image, setImage] = React.useState<any>(null);
 
   // Состояния для удаления события
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [eventToDelete, setEventToDelete] = React.useState<{ id: string; title: string } | null>(null);
+
+  // Загружаем события при входе в компонент
+  React.useEffect(() => {
+    dispatch(fetchEvents());
+  }, [dispatch]);
 
   // Функция для форматирования даты (дд.мм.гггг)
   const formatDate = (text: string) => {
@@ -127,6 +133,29 @@ export default function EventsManagementScreen() {
     setTime(formatted);
   };
 
+  // Функция для выбора изображения
+  const pickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.8, // Хорошее качество изображения
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setImage(result.assets[0]);
+      }
+    } catch (error) {
+      Alert.alert('Ошибка', 'Не удалось выбрать изображение');
+    }
+  };
+
+  // Функция для удаления изображения
+  const removeImage = () => {
+    setImage(null);
+  };
+
   // Проверяем права доступа
   if (!user || user.role !== 'admin') {
     return (
@@ -161,6 +190,12 @@ export default function EventsManagementScreen() {
       return;
     }
 
+    // Проверяем наличие изображения
+    if (!image) {
+      Alert.alert('Ошибка', 'Выберите изображение для события');
+      return;
+    }
+
     // Валидация даты
     if (!validateDate(date.trim())) {
       Alert.alert('Ошибка', 'Введите корректную дату в формате дд.мм.гггг\nПример: 25.12.2024');
@@ -192,44 +227,29 @@ export default function EventsManagementScreen() {
       time: time.trim(),
       category: category as 'university' | 'club' | 'conference' | 'social' | 'sport',
       max_participants: undefined,
+      image: image, // Изображение обязательно
     };
 
     try {
-      // Сначала пытаемся сохранить через API
-      await dispatch(createEvent(newEventData)).unwrap();
+      // Создаем событие через API
+      const result = await dispatch(createEvent(newEventData)).unwrap();
       
-      // Перезагружаем список событий
-      dispatch(fetchEvents());
-      
-      // Очищаем форму
+      // Очищаем форму только после успешного создания
       setTitle('');
       setDescription('');
       setLocation('');
       setDate('');
       setTime('');
       setCategory('university');
+      setImage(null);
       
       Alert.alert('Успешно', 'Событие добавлено и сохранено в базе данных');
-    } catch (error) {
-      // Если API не работает, сохраняем локально
-      const fallbackEvent = {
-        id: Date.now().toString(),
-        ...newEventData,
-        isRegistered: false,
-        currentParticipants: 0,
-      };
+    } catch (error: any) {
+      console.error('Create event error:', error);
       
-      dispatch(addEvent(fallbackEvent));
-      
-      // Очищаем форму
-      setTitle('');
-      setDescription('');
-      setLocation('');
-      setDate('');
-      setTime('');
-      setCategory('university');
-      
-      Alert.alert('Внимание', 'Событие добавлено локально. Проверьте подключение к серверу для синхронизации с базой данных.');
+      // Показываем конкретную ошибку пользователю
+      const errorMessage = typeof error === 'string' ? error : 'Не удалось создать событие. Проверьте подключение к серверу.';
+      Alert.alert('Ошибка', errorMessage);
     }
   };
 
@@ -244,15 +264,12 @@ export default function EventsManagementScreen() {
     if (!eventToDelete) return;
 
     try {
-      // API вызов для удаления события
-      const response = await authApi.deleteEvent(eventToDelete.id);
+      // Используем Redux action для удаления
+      await dispatch(deleteEvent(eventToDelete.id)).unwrap();
       
       // Закрываем модальное окно
       setShowDeleteConfirm(false);
       setEventToDelete(null);
-      
-      // Обновляем список событий
-      dispatch(fetchEvents());
       
       // Показываем уведомление об успешном удалении
       Alert.alert('Успешно', 'Событие удалено');
@@ -261,7 +278,9 @@ export default function EventsManagementScreen() {
       // Закрываем модальное окно даже при ошибке
       setShowDeleteConfirm(false);
       setEventToDelete(null);
-      Alert.alert('Ошибка', 'Не удалось удалить событие');
+      
+      console.error('Delete event error:', error);
+      Alert.alert('Ошибка', 'Не удалось удалить событие. Проверьте подключение к серверу.');
     }
   };
 
@@ -437,6 +456,103 @@ export default function EventsManagementScreen() {
                 </Pressable>
               ))}
             </ScrollView>
+          </View>
+
+          {/* Выбор изображения */}
+          <View style={{ marginBottom: Spacing.m }}>
+            <Text style={{ 
+              fontSize: 16, 
+              color: theme === 'dark' ? '#FFFFFF' : '#000000', 
+              marginBottom: Spacing.s, 
+              fontWeight: '600' 
+            }}>
+              Изображение события (необязательно)
+            </Text>
+            
+            {image ? (
+              <View style={{
+                backgroundColor: themeColors.surfaceSecondary,
+                borderRadius: 12,
+                padding: Spacing.s,
+                alignItems: 'center',
+              }}>
+                <Image
+                  source={{ uri: image.uri }}
+                  style={{
+                    width: '100%',
+                    height: 200,
+                    borderRadius: 8,
+                    marginBottom: Spacing.s,
+                  }}
+                  resizeMode="cover"
+                />
+                <View style={{ flexDirection: 'row', gap: Spacing.s }}>
+                  <Pressable
+                    onPress={pickImage}
+                    style={{
+                      backgroundColor: themeColors.primary,
+                      paddingHorizontal: Spacing.m,
+                      paddingVertical: Spacing.s,
+                      borderRadius: 8,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Ionicons name="image-outline" size={16} color="white" style={{ marginRight: 6 }} />
+                    <Text style={{ color: 'white', fontSize: 14, fontWeight: '600' }}>
+                      Изменить
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={removeImage}
+                    style={{
+                      backgroundColor: '#EF4444',
+                      paddingHorizontal: Spacing.m,
+                      paddingVertical: Spacing.s,
+                      borderRadius: 8,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Ionicons name="trash-outline" size={16} color="white" style={{ marginRight: 6 }} />
+                    <Text style={{ color: 'white', fontSize: 14, fontWeight: '600' }}>
+                      Удалить
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : (
+              <Pressable
+                onPress={pickImage}
+                style={{
+                  backgroundColor: themeColors.surfaceSecondary,
+                  borderRadius: 12,
+                  padding: Spacing.l,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderWidth: 2,
+                  borderColor: themeColors.border,
+                  borderStyle: 'dashed',
+                }}
+              >
+                <Ionicons name="image-outline" size={32} color={themeColors.textSecondary} />
+                <Text style={{
+                  fontSize: 16,
+                  color: themeColors.textSecondary,
+                  marginTop: Spacing.s,
+                  fontWeight: '500',
+                }}>
+                  Выбрать изображение
+                </Text>
+                <Text style={{
+                  fontSize: 13,
+                  color: themeColors.textSecondary,
+                  marginTop: 4,
+                }}>
+                  Нажмите для выбора изображения из галереи
+                </Text>
+              </Pressable>
+            )}
           </View>
 
           {/* Дата и время */}
@@ -650,6 +766,31 @@ export default function EventsManagementScreen() {
                         </Pressable>
                       </View>
                     </LinearGradient>
+
+                    {/* Изображение события если есть */}
+                    {item.image && (
+                      <View style={{ position: 'relative' }}>
+                        <Image
+                          source={{ uri: item.image }}
+                          style={{
+                            width: '100%',
+                            height: 160,
+                          }}
+                          resizeMode="cover"
+                        />
+                        {/* Градиентный оверлей */}
+                        <LinearGradient
+                          colors={['transparent', 'rgba(0,0,0,0.1)', 'rgba(0,0,0,0.3)']}
+                          style={{
+                            position: 'absolute',
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            height: 40,
+                          }}
+                        />
+                      </View>
+                    )}
 
                     {/* Основной контент */}
                     <View style={{ padding: Spacing.l, paddingTop: 0 }}>
