@@ -335,8 +335,17 @@ class ApiService {
               // Конвертируем в blob с правильным MIME типом
               canvas.toBlob((blob) => {
                 if (blob) {
-                  const timestamp = Date.now();
-                  const filename = `event_${timestamp}.jpg`;
+                  // Создаем короткое уникальное имя файла (в пределах 100 символов)
+                  const now = new Date();
+                  const dateStr = now.getFullYear().toString().slice(-2) + 
+                                 (now.getMonth() + 1).toString().padStart(2, '0') + 
+                                 now.getDate().toString().padStart(2, '0');
+                  const timeStr = now.getHours().toString().padStart(2, '0') + 
+                                 now.getMinutes().toString().padStart(2, '0') + 
+                                 now.getSeconds().toString().padStart(2, '0');
+                  const randomStr = Math.random().toString(36).substring(2, 8);
+                  const filename = `evt_${dateStr}_${timeStr}_${randomStr}.jpg`;
+                  console.log('Generated filename:', filename, 'Length:', filename.length);
                   const file = new File([blob], filename, { type: 'image/jpeg' });
                   resolve(file);
                 } else {
