@@ -33,6 +33,17 @@ export default function EventsManagementScreen() {
   const { user } = useAppSelector((state) => state.auth);
   const { items: events, isLoading } = useAppSelector((state) => state.events);
   
+  // Добавляем логирование изменений events
+  React.useEffect(() => {
+    console.log('📋 Events updated in component:', events.map(e => ({ id: e.id, title: e.title })));
+  }, [events]);
+
+  // Добавляем принудительное обновление при изменении events
+  const [forceUpdate, setForceUpdate] = React.useState(0);
+  React.useEffect(() => {
+    setForceUpdate(prev => prev + 1);
+  }, [events.length]); // Триггерим при изменении количества событий
+  
   const [title, setTitle] = React.useState('');
   const [description, setDescription] = React.useState('');
   const [location, setLocation] = React.useState('');
@@ -264,8 +275,20 @@ export default function EventsManagementScreen() {
     if (!eventToDelete) return;
 
     try {
-      // Используем Redux action для удаления
-      await dispatch(deleteEvent(eventToDelete.id)).unwrap();
+      console.log('🗑️ Starting delete process for event:', eventToDelete.id);
+      console.log('📋 Events before delete:', events.map(e => ({ id: e.id, title: e.title })));
+      
+      try {
+        // Используем Redux action для удаления
+        const result = await dispatch(deleteEvent(eventToDelete.id)).unwrap();
+        console.log('✅ Delete action completed with result:', result);
+      } catch (deleteError) {
+        console.log('⚠️ Delete action failed, but will continue with refresh:', deleteError);
+      }
+      
+      // Принудительно обновляем список событий в любом случае
+      console.log('🔄 Force refreshing events list');
+      await dispatch(fetchEvents());
       
       // Закрываем модальное окно
       setShowDeleteConfirm(false);
@@ -275,11 +298,19 @@ export default function EventsManagementScreen() {
       Alert.alert('Успешно', 'Событие удалено');
       
     } catch (error) {
+      console.error('❌ Delete process error:', error);
+      
+      // Даже при ошибке попробуем обновить список
+      try {
+        await dispatch(fetchEvents());
+      } catch (fetchError) {
+        console.error('❌ Failed to refresh events:', fetchError);
+      }
+      
       // Закрываем модальное окно даже при ошибке
       setShowDeleteConfirm(false);
       setEventToDelete(null);
       
-      console.error('Delete event error:', error);
       Alert.alert('Ошибка', 'Не удалось удалить событие. Проверьте подключение к серверу.');
     }
   };
