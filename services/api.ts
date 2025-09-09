@@ -401,9 +401,61 @@ class ApiService {
   }
 
   async deleteEvent(eventId: string): Promise<ApiResponse<void>> {
-    return this.request<void>(`/events/${eventId}/`, {
-      method: 'DELETE',
-    });
+    try {
+      console.log('🔧 API deleteEvent: Starting delete for ID:', eventId);
+      
+      const token = await AsyncStorage.getItem('authToken');
+      const headers: Record<string, string> = {};
+      
+      if (token && token !== 'undefined' && token !== 'null') {
+        headers.Authorization = `Token ${token}`;
+      }
+      
+      const url = `${API_BASE_URL}/events/${eventId}/`;
+      
+      console.log('🔧 API deleteEvent: Making request to:', url);
+      console.log('🔧 API deleteEvent: Headers:', headers);
+      
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: headers,
+      });
+
+      console.log('🔧 API deleteEvent: Response status:', response.status);
+      console.log('🔧 API deleteEvent: Response ok:', response.ok);
+
+      // DELETE возвращает 204 без контента, поэтому не парсим JSON
+      if (response.ok) {
+        console.log('🔧 API deleteEvent: Success, returning');
+        return {
+          success: true,
+          data: undefined as any,
+        };
+      } else {
+        console.log('🔧 API deleteEvent: Response not ok, trying to parse error');
+        // Только если есть ошибка, пытаемся парсить JSON
+        try {
+          const data = await response.json();
+          console.log('🔧 API deleteEvent: Error data:', data);
+          return {
+            success: false,
+            error: data.error || data.message || `HTTP ${response.status}`,
+          };
+        } catch (parseError) {
+          console.log('🔧 API deleteEvent: Failed to parse error JSON:', parseError);
+          return {
+            success: false,
+            error: `HTTP ${response.status}`,
+          };
+        }
+      }
+    } catch (error) {
+      console.log('🔧 API deleteEvent: Caught exception:', error);
+      return {
+        success: false,
+        error: 'Network error occurred',
+      };
+    }
   }
 }
 
