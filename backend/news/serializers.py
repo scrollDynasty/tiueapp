@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from datetime import datetime
+import time
 import base64
 import io
 from django.core.files.base import ContentFile
@@ -17,40 +18,16 @@ class NewsSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source='author.get_full_name', read_only=True)
     date = serializers.DateTimeField(source='created_at', format='%Y-%m-%d %H:%M:%S', read_only=True)
     events = EventForNewsSerializer(many=True, read_only=True)
-    image_base64 = serializers.CharField(write_only=True, required=False)
     
     class Meta:
         model = News
         fields = [
             'id', 'title', 'subtitle', 'content', 'author', 'author_name',
-            'category', 'icon', 'is_important', 'image', 'image_base64', 'events', 'date', 'created_at', 'updated_at'
+            'category', 'icon', 'is_important', 'image', 'events', 'date', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'author', 'created_at', 'updated_at', 'author_name', 'date', 'events']
     
     def create(self, validated_data):
-        # Обработка base64 изображения
-        image_base64 = validated_data.pop('image_base64', None)
-        if image_base64:
-            try:
-                # Извлекаем данные изображения из base64 строки
-                if 'data:' in image_base64:
-                    header, image_data = image_base64.split(',', 1)
-                    # Извлекаем тип файла из заголовка
-                    file_ext = header.split('/')[1].split(';')[0]
-                else:
-                    image_data = image_base64
-                    file_ext = 'jpg'  # по умолчанию
-                
-                # Декодируем base64
-                image_binary = base64.b64decode(image_data)
-                image_file = ContentFile(image_binary, name=f'news_image.{file_ext}')
-                validated_data['image'] = image_file
-                
-            except Exception as e:
-                print(f"Error processing base64 image: {e}")
-                # Продолжаем без изображения, если произошла ошибка
-                pass
-        
         # Автоматически устанавливаем автора как текущего пользователя
         validated_data['author'] = self.context['request'].user
         return super().create(validated_data)
