@@ -57,9 +57,24 @@ jobs:
     - name: Install JavaScript dependencies
       if: matrix.language == 'javascript-typescript'
       run: |
-        npm ci
-        # Устанавливаем Expo CLI глобально
-        npm install -g @expo/cli
+        echo "Installing JavaScript dependencies for CodeQL analysis"
+        # Try the fastest, clean install first. If it fails (for example due to
+        # a missing tarball on the registry) fall back to a normal install and
+        # continue even if both commands fail — CodeQL can still analyze source
+        # files without node_modules present.
+        if [ -f package-lock.json ]; then
+          echo "Found package-lock.json — attempting 'npm ci'"
+          npm ci || {
+            echo "npm ci failed, falling back to 'npm install'"
+            npm install || echo "npm install also failed — continuing without node_modules"
+          }
+        else
+          echo "No package-lock.json — running 'npm install'"
+          npm install || echo "npm install failed — continuing without node_modules"
+        fi
+        # Try installing Expo CLI globally for workflows that may need it, but
+        # don't fail the job if that step fails.
+        npm install -g @expo/cli || echo "Global expo install failed — continuing"
 
     - name: Install Python dependencies
       if: matrix.language == 'python'
