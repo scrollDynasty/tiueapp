@@ -107,13 +107,14 @@ class ApiService {
   }
 
   async logout(): Promise<void> {
-    await AsyncStorage.removeItem('authToken');
-    // Optional: call backend logout endpoint
+    // Optional: call backend logout endpoint BEFORE removing token
     try {
       await this.request('/auth/logout/', { method: 'POST' });
     } catch (error) {
       // Ignore errors during logout
     }
+    // Remove token from storage after backend call (or if it fails)
+    await AsyncStorage.removeItem('authToken');
   }
 
   async getCurrentUser(): Promise<ApiResponse<User>> {
@@ -176,44 +177,101 @@ class ApiService {
   }
 
   async createNews(newsData: any): Promise<ApiResponse<any>> {
-    // Если есть изображение, конвертируем его в base64 и отправляем как JSON
-    if (newsData.image) {
-      try {
-        // Получаем URI изображения
-        const imageUri = newsData.image.uri || newsData.image;
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const url = `${API_BASE_URL}/news/`;
+
+      // Если есть изображение, используем FormData
+      if (newsData.image) {
+        const formData = new FormData();
         
-        // Конвертируем изображение в base64
-        const response = await fetch(imageUri);
-        const blob = await response.blob();
-        const base64 = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(blob);
+        // Добавляем все поля новости
+        formData.append('title', newsData.title);
+        formData.append('subtitle', newsData.subtitle || '');
+        formData.append('content', newsData.content);
+        formData.append('category', newsData.category);
+        if (newsData.icon) {
+          formData.append('icon', newsData.icon);
+        }
+        if (newsData.is_important !== undefined) {
+          formData.append('is_important', newsData.is_important.toString());
+        }
+
+        // Создаем изображение для получения правильных данных
+        const imageUri = newsData.image.uri;
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        const imageFile = await new Promise<File>((resolve, reject) => {
+          img.onload = () => {
+            // Создаем canvas для правильной обработки изображения
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = img.width;
+            canvas.height = img.height;
+            
+            if (ctx) {
+              ctx.drawImage(img, 0, 0);
+              
+              // Конвертируем в blob с правильным MIME типом
+              canvas.toBlob((blob) => {
+                if (blob) {
+                  const timestamp = Date.now();
+                  const filename = `news_${timestamp}.jpg`;
+                  const file = new File([blob], filename, { type: 'image/jpeg' });
+                  resolve(file);
+                } else {
+                  reject(new Error('Failed to create blob'));
+                }
+              }, 'image/jpeg', 0.8);
+            } else {
+              reject(new Error('Failed to get canvas context'));
+            }
+          };
+          
+          img.onerror = () => reject(new Error('Failed to load image'));
+          img.src = imageUri;
         });
         
-        // Отправляем как JSON с base64 изображением
-        const requestData = {
-          ...newsData,
-          image_base64: base64,
+        // Добавляем файл в FormData
+        formData.append('image', imageFile);
+
+        const apiResponse = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Authorization': token ? `Token ${token}` : '',
+            // НЕ устанавливаем Content-Type для multipart/form-data
+          },
+          body: formData,
+        });
+
+        const data = await apiResponse.json();
+
+        if (!apiResponse.ok) {
+          return {
+            success: false,
+            error: data.error || data.message || `HTTP ${apiResponse.status}`,
+          };
+        }
+
+        return {
+          success: true,
+          data: data.data || data,
         };
-        delete requestData.image; // Удаляем оригинальный объект image
-        
+      } else {
+        // Без изображения используем обычный JSON
         return this.request<any>('/news/', {
           method: 'POST',
-          body: JSON.stringify(requestData),
+          body: JSON.stringify(newsData),
         });
-      } catch (error) {
-        return {
-          success: false,
-          error: 'Failed to process image',
-        };
       }
-    } else {
-      // Без изображения отправляем как JSON
-      return this.request<any>('/news/', {
-        method: 'POST',
-        body: JSON.stringify(newsData),
-      });
+    } catch (error) {
+      console.error('Create news error:', error);
+      return {
+        success: false,
+        error: 'Ошибка создания новости с изображением',
+      };
     }
   }
 
@@ -236,10 +294,103 @@ class ApiService {
   }
 
   async createEvent(eventData: any): Promise<ApiResponse<any>> {
-    return this.request<any>('/events/', {
-      method: 'POST',
-      body: JSON.stringify(eventData),
-    });
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const url = `${API_BASE_URL}/events/`;
+
+      // Если есть изображение, используем FormData
+      if (eventData.image) {
+        const formData = new FormData();
+        
+        // Добавляем все поля события
+        formData.append('title', eventData.title);
+        formData.append('description', eventData.description);
+        formData.append('location', eventData.location);
+        formData.append('date', eventData.date);
+        formData.append('time', eventData.time);
+        formData.append('category', eventData.category);
+        if (eventData.max_participants) {
+          formData.append('max_participants', eventData.max_participants.toString());
+        }
+
+        // Для React Native Web создаем File объект правильно
+        const imageUri = eventData.image.uri;
+        
+        // Создаем изображение для получения правильных данных
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        const imageFile = await new Promise<File>((resolve, reject) => {
+          img.onload = () => {
+            // Создаем canvas для правильной обработки изображения
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = img.width;
+            canvas.height = img.height;
+            
+            if (ctx) {
+              ctx.drawImage(img, 0, 0);
+              
+              // Конвертируем в blob с правильным MIME типом
+              canvas.toBlob((blob) => {
+                if (blob) {
+                  const timestamp = Date.now();
+                  const filename = `event_${timestamp}.jpg`;
+                  const file = new File([blob], filename, { type: 'image/jpeg' });
+                  resolve(file);
+                } else {
+                  reject(new Error('Failed to create blob'));
+                }
+              }, 'image/jpeg', 0.8);
+            } else {
+              reject(new Error('Failed to get canvas context'));
+            }
+          };
+          
+          img.onerror = () => reject(new Error('Failed to load image'));
+          img.src = imageUri;
+        });
+        
+        // Добавляем файл в FormData
+        formData.append('image', imageFile);
+
+        const apiResponse = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Authorization': token ? `Token ${token}` : '',
+            // НЕ устанавливаем Content-Type для multipart/form-data
+          },
+          body: formData,
+        });
+
+        const data = await apiResponse.json();
+
+        if (!apiResponse.ok) {
+          return {
+            success: false,
+            error: data.error || data.message || `HTTP ${apiResponse.status}`,
+          };
+        }
+
+        return {
+          success: true,
+          data: data.data || data,
+        };
+      } else {
+        // Без изображения используем обычный JSON
+        return this.request<any>('/events/', {
+          method: 'POST',
+          body: JSON.stringify(eventData),
+        });
+      }
+    } catch (error) {
+      console.error('Create event error:', error);
+      return {
+        success: false,
+        error: 'Ошибка создания события с изображением',
+      };
+    }
   }
 
   async updateEvent(eventId: string, eventData: any): Promise<ApiResponse<any>> {
