@@ -1,13 +1,13 @@
-name: "CodeQL Advanced"
+name: "CodeQL Security Analysis"
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main", "master", "develop" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "main", "master" ]
   schedule:
-    # Запускать каждый вторник в 7:18 UTC
-    - cron: '18 7 * * 2'
+    # Запускать каждый понедельник в 2:00 UTC
+    - cron: '0 2 * * 1'
 
 jobs:
   analyze:
@@ -15,11 +15,9 @@ jobs:
     runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
     timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
     permissions:
-      # required for all workflows
+      # Необходимые права для CodeQL
       security-events: write
-      # required to fetch internal or private CodeQL packs
       packages: read
-      # only required for workflows in private repositories
       actions: read
       contents: read
 
@@ -31,9 +29,9 @@ jobs:
           build-mode: none
         - language: python
           build-mode: none
-        # Раскомментируй если есть Kotlin/Java код в Android части
+        # Если у тебя есть Java/Kotlin код (для React Native модулей):
         # - language: java-kotlin
-        #   build-mode: autobuild
+        #   build-mode: none
 
     steps:
     - name: Checkout repository
@@ -64,107 +62,44 @@ jobs:
         # Дополнительные пакеты запросов для лучшего анализа
         queries: +security-extended,security-and-quality
 
-    # ИСПРАВЛЕННАЯ установка зависимостей для JavaScript/TypeScript
-    - name: Install JavaScript dependencies (with error handling)
+    # Установка зависимостей для JavaScript/TypeScript
+    - name: Install JavaScript dependencies
       if: matrix.language == 'javascript-typescript'
       run: |
-        echo "🔧 Setting up JavaScript environment..."
-        
-        # Проверяем версию Node.js
-        node --version
-        npm --version
-        
         # Очищаем npm кэш
         npm cache clean --force
         
-        # Обновляем npm до последней версии
-        npm install -g npm@latest
-        
-        # Проверяем package.json
-        if [ ! -f package.json ]; then
-          echo "❌ package.json not found!"
-          exit 1
-        fi
-        
-        echo "📦 Found package.json, attempting to install dependencies..."
-        
-        # Сначала пробуем npm ci (если package-lock.json валидный)
+        # Удаляем package-lock.json если есть проблемы
         if [ -f package-lock.json ]; then
-          echo "📋 Found package-lock.json, trying npm ci..."
-          if ! npm ci --no-audit --no-fund; then
-            echo "⚠️ npm ci failed, falling back to npm install..."
-            rm -f package-lock.json
-            npm install --no-audit --no-fund
-          fi
-        else
-          echo "📦 No package-lock.json, using npm install..."
-          npm install --no-audit --no-fund
+          echo "Removing problematic package-lock.json"
+          rm package-lock.json
         fi
         
-        # Устанавливаем Expo CLI (опционально)
-        echo "🚀 Installing Expo CLI..."
-        npm install -g @expo/cli || echo "⚠️ Expo CLI installation failed, continuing..."
+        # Устанавливаем зависимости заново
+        npm install
         
-        echo "✅ JavaScript dependencies installed successfully"
+        # Устанавливаем Expo CLI глобально
+        npm install -g @expo/cli
       continue-on-error: true
 
-    # Установка зависимостей Python с улучшенной обработкой ошибок
-    - name: Install Python dependencies (with error handling)
+    # Установка зависимостей Python
+    - name: Install Python dependencies
       if: matrix.language == 'python'
       run: |
-        echo "🐍 Setting up Python environment..."
-        
-        # Проверяем версию Python
-        python --version
-        pip --version
-        
-        # Обновляем pip
-        python -m pip install --upgrade pip setuptools wheel
-        
-        # Переходим в backend директорию
-        if [ -d "backend" ]; then
-          cd backend
-          echo "📁 Found backend directory"
-          
-          # Проверяем requirements.txt
-          if [ -f requirements.txt ]; then
-            echo "📋 Found requirements.txt, installing dependencies..."
-            
-            # Показываем содержимое для отладки
-            echo "📄 Requirements.txt contents:"
-            head -10 requirements.txt
-            
-            # Устанавливаем зависимости с таймаутом
-            pip install -r requirements.txt --timeout=100 --retries=3
-          else
-            echo "⚠️ requirements.txt not found in backend directory"
-            echo "📂 Backend directory contents:"
-            ls -la
-          fi
-        else
-          echo "⚠️ Backend directory not found"
-          echo "📂 Root directory contents:"
-          ls -la
-        fi
-        
-        echo "✅ Python setup completed"
-      continue-on-error: true
+        python -m pip install --upgrade pip
+        cd backend
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
     # Настройка переменных окружения для Django
     - name: Setup Django environment
       if: matrix.language == 'python'
       run: |
-        if [ -d "backend" ]; then
-          cd backend
-          echo "🔧 Setting up Django environment variables..."
-          echo "SECRET_KEY=test-secret-key-for-codeql-analysis-$(date +%s)" > .env
-          echo "DEBUG=False" >> .env
-          echo "ALLOWED_HOSTS=localhost,127.0.0.1" >> .env
-          echo "DB_ENGINE=django.db.backends.sqlite3" >> .env
-          echo "DB_NAME=:memory:" >> .env
-          echo "✅ Django environment configured"
-        fi
-      continue-on-error: true
+        cd backend
+        echo "SECRET_KEY=test-secret-key-for-codeql-analysis" > .env
+        echo "DEBUG=False" >> .env
+        echo "ALLOWED_HOSTS=localhost,127.0.0.1" >> .env
+        echo "DB_ENGINE=django.db.backends.sqlite3" >> .env
+        echo "DB_NAME=:memory:" >> .env
 
     # Manual build step (если понадобится)
     - if: matrix.build-mode == 'manual'
@@ -180,30 +115,30 @@ jobs:
       with:
         category: "/language:${{matrix.language}}"
 
-    # Проверка зависимостей на известные уязвимости (только если установка прошла успешно)
-    - name: Run security checks
-      if: success() || failure()
-      run: |
-        if [ "${{ matrix.language }}" == "javascript-typescript" ]; then
-          echo "🔍 Running npm security audit..."
-          if [ -f package.json ]; then
-            npm audit --audit-level=moderate --omit=dev || echo "⚠️ npm audit found issues"
-          fi
-        elif [ "${{ matrix.language }}" == "python" ]; then
-          echo "🔍 Running Python security checks..."
-          if [ -d "backend" ]; then
-            cd backend
-            pip install safety || echo "⚠️ Could not install safety"
-            safety check --ignore=70612 || echo "⚠️ Safety check found issues"
-          fi
-        fi
+    # Дополнительная проверка безопасности с помощью Semgrep (опционально)
+    - name: Run Semgrep
+      if: (matrix.language == 'python' || matrix.language == 'javascript-typescript')
+      uses: returntocorp/semgrep-action@v1
+      with:
+        config: >-
+          p/security-audit
+          p/secrets
+          p/owasp-top-ten
+        generateSarif: "1"
+      env:
+        SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
       continue-on-error: true
 
-    # Финальный отчет
-    - name: Analysis Summary
-      if: always()
+    # Проверка зависимостей на известные уязвимости
+    - name: Run npm audit
+      if: matrix.language == 'javascript-typescript'
+      run: npm audit --audit-level=moderate --omit=dev
+      continue-on-error: true
+
+    - name: Run Python safety check
+      if: matrix.language == 'python'
       run: |
-        echo "=== CodeQL Analysis Summary ==="
-        echo "🎯 Language: ${{ matrix.language }}"
-        echo "✅ CodeQL analysis completed"
-        echo "📊 Results will be available in GitHub Security tab"
+        pip install safety
+        cd backend
+        safety check --ignore=70612
+      continue-on-error: true
