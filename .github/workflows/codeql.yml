@@ -1,0 +1,117 @@
+name: "CodeQL Security Analysis"
+
+on:
+  push:
+    branches: [ "main", "master", "develop" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  schedule:
+    - cron: '0 2 * * 1'
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
+    permissions:
+      # Необходимые права для CodeQL
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - language: javascript-typescript
+          build-mode: none
+        - language: python
+          build-mode: none
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      if: matrix.language == 'javascript-typescript'
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.19.0'
+        cache: 'npm'
+
+    - name: Setup Python
+      if: matrix.language == 'python'
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12.6'
+        cache: 'pip'
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        build-mode: ${{ matrix.build-mode }}
+        queries: +security-extended,security-and-quality
+
+    - name: Install JavaScript dependencies
+      if: matrix.language == 'javascript-typescript'
+      run: |
+        npm ci
+        # Устанавливаем Expo CLI глобально
+        npm install -g @expo/cli
+
+    - name: Install Python dependencies
+      if: matrix.language == 'python'
+      run: |
+        python -m pip install --upgrade pip
+        cd backend
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Setup Django environment
+      if: matrix.language == 'python'
+      run: |
+        cd backend
+        echo "SECRET_KEY=test-secret-key-for-codeql-analysis" > .env
+        echo "DEBUG=False" >> .env
+        echo "ALLOWED_HOSTS=localhost,127.0.0.1" >> .env
+        echo "DB_ENGINE=django.db.backends.sqlite3" >> .env
+        echo "DB_NAME=:memory:" >> .env
+
+    - if: matrix.build-mode == 'manual'
+      shell: bash
+      run: |
+        echo 'Manual build mode detected but not configured'
+        echo 'Add your build commands here if needed'
+        exit 1
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
+
+    - name: Run Semgrep
+      if: (matrix.language == 'python' || matrix.language == 'javascript-typescript')
+      uses: returntocorp/semgrep-action@v1
+      with:
+        config: >-
+          p/security-audit
+          p/secrets
+          p/owasp-top-ten
+        generateSarif: "1"
+      env:
+        SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+      continue-on-error: true
+
+    - name: Run npm audit
+      if: matrix.language == 'javascript-typescript'
+      run: npm audit --audit-level=moderate --omit=dev
+      continue-on-error: true
+
+    - name: Run Python safety check
+      if: matrix.language == 'python'
+      run: |
+        pip install safety
+        cd backend
+        safety check --ignore=70612
+      continue-on-error: true
