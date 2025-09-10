@@ -25,7 +25,7 @@ const EVENT_CATEGORIES = [
 ];
 
 export default function EventsManagementScreen() {
-  console.log('🔄 EventsManagementScreen render');
+  // Debug render log removed to reduce noise
   
   const { theme } = useTheme();
   const themeColors = getThemeColors(theme === 'dark');
@@ -37,8 +37,9 @@ export default function EventsManagementScreen() {
   
   // Добавляем логирование изменений events
   React.useEffect(() => {
-    console.log('📋 Events updated in component:', events.map(e => ({ id: e.id, title: e.title })));
-  }, [events]);
+    // Lightweight change log (only when length changes)
+    console.log(`📋 Events count: ${events.length}`);
+  }, [events.length]);
 
   // Уберем принудительное обновление - оно может вызывать лишние рендеры
   // const [forceUpdate, setForceUpdate] = React.useState(0);
@@ -152,12 +153,20 @@ export default function EventsManagementScreen() {
   // Функция для выбора изображения
   const pickImage = async () => {
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      const pickerOptions: any = {
         allowsEditing: true,
         aspect: [16, 9],
-        quality: 0.8, // Хорошее качество изображения
-      });
+        quality: 0.8,
+      };
+      // Try new API if available, else fallback to deprecated constant
+      if ((ImagePicker as any).MediaType) {
+        pickerOptions.mediaTypes = [(ImagePicker as any).MediaType.IMAGE];
+      } else {
+        // Fallback (will show deprecation warning but still works)
+        pickerOptions.mediaTypes = ImagePicker.MediaTypeOptions.Images;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync(pickerOptions);
 
       if (!result.canceled && result.assets && result.assets[0]) {
         setImage(result.assets[0]);
