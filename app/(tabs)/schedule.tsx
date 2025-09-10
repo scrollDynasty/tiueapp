@@ -162,11 +162,11 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
       {/* Предмет */}
       <ThemedText
         style={{
-          fontSize: 18,
+          fontSize: 16, // Уменьшили с 18 до 16
           fontWeight: '700',
           color: colors.text,
           marginBottom: Spacing.s,
-          lineHeight: 24,
+          lineHeight: 22, // Уменьшили пропорционально
           letterSpacing: -0.3,
         }}
       >
@@ -373,12 +373,16 @@ export default function ScheduleScreen() {
         {/* Современный селектор дней */}
         <Animated.View 
           entering={SlideInDown.delay(200).duration(800).springify()}
-          style={{ paddingHorizontal: Spacing.l, marginBottom: Spacing.l }}
+          style={{ 
+            paddingHorizontal: Spacing.l, 
+            marginBottom: Spacing.xl,
+            marginTop: Spacing.l 
+          }}
         >
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingRight: Spacing.l }}
+            contentContainerStyle={{ paddingRight: Spacing.xl }}
           >
             {days.map((day, index) => (
               <Animated.View
@@ -390,7 +394,7 @@ export default function ScheduleScreen() {
                   style={{
                     backgroundColor: 'transparent',
                     borderRadius: 18,
-                    marginRight: Spacing.s,
+                    marginRight: Spacing.m,
                     overflow: 'hidden',
                     shadowColor: selectedDay === day ? colors.primary : (isDarkMode ? '#000' : '#000'),
                     shadowOffset: { width: 0, height: selectedDay === day ? 8 : 4 },
@@ -407,8 +411,8 @@ export default function ScheduleScreen() {
                         : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)']
                     }
                     style={{
-                      paddingHorizontal: Spacing.l,
-                      paddingVertical: Spacing.s,
+                      paddingHorizontal: Spacing.l + 2,
+                      paddingVertical: Spacing.m,
                       borderRadius: 18,
                       borderWidth: 1,
                       borderColor: selectedDay === day 
@@ -441,7 +445,8 @@ export default function ScheduleScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: Spacing.l,
-            paddingBottom: 120,
+            paddingBottom: 100,
+            paddingTop: 100,
           }}
         >
           {currentSchedule.length > 0 ? (

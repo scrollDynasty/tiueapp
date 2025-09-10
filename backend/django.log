@@ -1,0 +1,248 @@
+nohup: ignoring input
+INFO Watching for file changes with StatReloader
+INFO Request: GET /api/auth/test/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'text/plain', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'curl/8.15.0', 'Accept': '*/*', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:31f8:7264:35fa:ebd9', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https', 'Accept-Encoding': 'gzip'}
+INFO Response: 200
+INFO "GET /api/auth/test/ HTTP/1.1" 200 84
+INFO Request: GET /api/auth/test/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'text/plain', 'Host': 'localhost:8000', 'User-Agent': 'curl/8.15.0', 'Accept': '*/*'}
+INFO Response: 200
+INFO "GET /api/auth/test/ HTTP/1.1" 200 84
+INFO Request: HEAD /api/auth/test/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'text/plain', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'curl/8.15.0', 'Accept': '*/*', 'Access-Control-Request-Headers': 'content-type,authorization', 'Access-Control-Request-Method': 'GET', 'Ngrok-Skip-Browser-Warning': 'true', 'Origin': 'https://88aedcf33d45.ngrok-free.app', 'X-Forwarded-For': '2a05:45c2:407c:d900:31f8:7264:35fa:ebd9', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "HEAD /api/auth/test/ HTTP/1.1" 200 0
+INFO Request: GET /api/auth/test/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'text/plain', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'curl/8.15.0', 'Accept': '*/*', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:31f8:7264:35fa:ebd9', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https', 'Accept-Encoding': 'gzip'}
+INFO Response: 200
+INFO "GET /api/auth/test/ HTTP/1.1" 200 84
+INFO Request: GET /api/auth/test/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'text/plain', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'curl/8.15.0', 'Accept': '*/*', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:31f8:7264:35fa:ebd9', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https', 'Accept-Encoding': 'gzip'}
+INFO Response: 200
+INFO "GET /api/auth/test/ HTTP/1.1" 200 84
+INFO Request: POST /api/auth/login/
+INFO Headers: {'Content-Length': '37', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Body: b'{"email":"rctct","password":"T tct "}'
+INFO Response: 401
+WARNING Unauthorized: /api/auth/login/
+WARNING "POST /api/auth/login/ HTTP/1.1" 401 70
+INFO Request: POST /api/auth/login/
+INFO Headers: {'Content-Length': '45', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Body: b'{"email":"admin@tiue.uz","password":"123456"}'
+INFO Response: 200
+INFO "POST /api/auth/login/ HTTP/1.1" 200 394
+INFO Request: GET /api/auth/me/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 2cbb066d328b6072b53ec559453ae6e81b630a8b', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "GET /api/auth/me/ HTTP/1.1" 200 334
+INFO Request: GET /api/news/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 2cbb066d328b6072b53ec559453ae6e81b630a8b', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "GET /api/news/ HTTP/1.1" 200 52
+INFO Request: GET /api/events/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 2cbb066d328b6072b53ec559453ae6e81b630a8b', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "GET /api/events/ HTTP/1.1" 200 52
+INFO Request: GET /api/events/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 2cbb066d328b6072b53ec559453ae6e81b630a8b', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:21:09 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "GET /api/events/ HTTP/1.1" 200 52
+INFO Request: GET /api/users/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 2cbb066d328b6072b53ec559453ae6e81b630a8b', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "GET /api/users/ HTTP/1.1" 200 634
+INFO Request: GET /api/users/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 2cbb066d328b6072b53ec559453ae6e81b630a8b', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:21:54 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "GET /api/users/ HTTP/1.1" 200 634
+INFO Request: GET /api/news/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 2cbb066d328b6072b53ec559453ae6e81b630a8b', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:21:09 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "GET /api/news/ HTTP/1.1" 200 52
+INFO Request: GET /api/events/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 2cbb066d328b6072b53ec559453ae6e81b630a8b', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:21:17 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "GET /api/events/ HTTP/1.1" 200 52
+INFO Request: GET /api/events/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 2cbb066d328b6072b53ec559453ae6e81b630a8b', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:23:46 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "GET /api/events/ HTTP/1.1" 200 52
+INFO Request: POST /api/auth/logout/
+INFO Headers: {'Content-Length': '0', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 2cbb066d328b6072b53ec559453ae6e81b630a8b', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "POST /api/auth/logout/ HTTP/1.1" 200 76
+INFO Request: POST /api/auth/login/
+INFO Headers: {'Content-Length': '56', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Body: b'{"email":"ymarumar502@gmail.com","password":"123456789"}'
+INFO Response: 200
+INFO "POST /api/auth/login/ HTTP/1.1" 200 405
+INFO Request: GET /api/auth/me/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token DZyZzbGfdMy5GTyn2ah2PDJu8LEoKPq9EhAkFRQ1Fn6K', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:21:08 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 401
+WARNING Unauthorized: /api/auth/me/
+WARNING "GET /api/auth/me/ HTTP/1.1" 401 49
+INFO Request: POST /api/auth/login/
+INFO Headers: {'Content-Length': '56', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Body: b'{"email":"ymarumar502@gmail.com","password":"123456789"}'
+INFO Response: 200
+INFO "POST /api/auth/login/ HTTP/1.1" 200 405
+INFO Request: GET /api/auth/me/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token DZyZzbGfdMy5GTyn2ah2PDJu8LEoKPq9EhAkFRQ1Fn6K', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:21:08 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 401
+WARNING Unauthorized: /api/auth/me/
+WARNING "GET /api/auth/me/ HTTP/1.1" 401 49
+INFO Request: POST /api/auth/login/
+INFO Headers: {'Content-Length': '45', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Body: b'{"email":"admin@tiue.uz","password":"123456"}'
+INFO Response: 200
+INFO "POST /api/auth/login/ HTTP/1.1" 200 394
+INFO Request: GET /api/auth/me/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 475cea03385eb4c079ee0f3582d60b1f6c934435', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:21:08 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "GET /api/auth/me/ HTTP/1.1" 200 334
+INFO Request: GET /api/events/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 475cea03385eb4c079ee0f3582d60b1f6c934435', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:23:48 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "GET /api/events/ HTTP/1.1" 200 52
+INFO Request: GET /api/news/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 475cea03385eb4c079ee0f3582d60b1f6c934435', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:23:46 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "GET /api/news/ HTTP/1.1" 200 52
+INFO Request: POST /api/auth/logout/
+INFO Headers: {'Content-Length': '0', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 475cea03385eb4c079ee0f3582d60b1f6c934435', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "POST /api/auth/logout/ HTTP/1.1" 200 76
+INFO Request: POST /api/auth/login/
+INFO Headers: {'Content-Length': '56', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Body: b'{"email":"ymarumar502@gmail.com","password":"123456789"}'
+INFO Response: 200
+INFO "POST /api/auth/login/ HTTP/1.1" 200 405
+INFO Request: GET /api/auth/me/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token DZyZzbGfdMy5GTyn2ah2PDJu8LEoKPq9EhAkFRQ1Fn6K', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:25:09 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 401
+WARNING Unauthorized: /api/auth/me/
+WARNING "GET /api/auth/me/ HTTP/1.1" 401 49
+INFO Request: GET /api/auth/me/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token DZyZzbGfdMy5GTyn2ah2PDJu8LEoKPq9EhAkFRQ1Fn6K', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:25:09 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 401
+WARNING Unauthorized: /api/auth/me/
+WARNING "GET /api/auth/me/ HTTP/1.1" 401 49
+INFO Request: POST /api/auth/login/
+INFO Headers: {'Content-Length': '56', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Body: b'{"email":"ymarumar502@gmail.com","password":"123456789"}'
+INFO Response: 200
+INFO "POST /api/auth/login/ HTTP/1.1" 200 405
+INFO Request: GET /api/auth/me/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token DZyZzbGfdMy5GTyn2ah2PDJu8LEoKPq9EhAkFRQ1Fn6K', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:25:09 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 401
+WARNING Unauthorized: /api/auth/me/
+WARNING "GET /api/auth/me/ HTTP/1.1" 401 49
+INFO Request: POST /api/auth/login/
+INFO Headers: {'Content-Length': '45', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Body: b'{"email":"admin@tiue.uz","password":"123456"}'
+INFO Response: 200
+INFO "POST /api/auth/login/ HTTP/1.1" 200 394
+INFO Request: GET /api/auth/me/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 29ffabfbca9cc8209a8be474d6d7b90554e8938b', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:25:09 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "GET /api/auth/me/ HTTP/1.1" 200 334
+INFO Request: GET /api/news/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 29ffabfbca9cc8209a8be474d6d7b90554e8938b', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:25:09 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "GET /api/news/ HTTP/1.1" 200 52
+INFO Request: GET /api/events/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 29ffabfbca9cc8209a8be474d6d7b90554e8938b', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:25:09 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "GET /api/events/ HTTP/1.1" 200 52
+INFO Request: GET /api/events/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 29ffabfbca9cc8209a8be474d6d7b90554e8938b', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:28:36 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "GET /api/events/ HTTP/1.1" 200 52
+INFO Request: POST /api/auth/logout/
+INFO Headers: {'Content-Length': '0', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 29ffabfbca9cc8209a8be474d6d7b90554e8938b', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "POST /api/auth/logout/ HTTP/1.1" 200 76
+INFO Request: POST /api/auth/login/
+INFO Headers: {'Content-Length': '56', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'curl/8.15.0', 'Accept': '*/*', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:31f8:7264:35fa:ebd9', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https', 'Accept-Encoding': 'gzip'}
+INFO Body: b'{"email": "student@test.com", "password": "password123"}'
+INFO Response: 200
+INFO "POST /api/auth/login/ HTTP/1.1" 200 395
+INFO Request: GET /api/auth/me/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'curl/8.15.0', 'Accept': '*/*', 'Authorization': 'Token 727864f37b13e8ef1a97c6d265fe4b828a58c952', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:31f8:7264:35fa:ebd9', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https', 'Accept-Encoding': 'gzip'}
+INFO Response: 200
+INFO "GET /api/auth/me/ HTTP/1.1" 200 335
+INFO Request: POST /api/auth/login/
+INFO Headers: {'Content-Length': '53', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Body: b'{"email":"student@test.com","password":"password123"}'
+INFO Response: 200
+INFO "POST /api/auth/login/ HTTP/1.1" 200 395
+INFO Request: GET /api/auth/me/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 9eU7SkkFGWvDoqSZLqoFJ9kRqJXDQYcEvSiJXyThCWGV', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:28:35 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 401
+WARNING Unauthorized: /api/auth/me/
+WARNING "GET /api/auth/me/ HTTP/1.1" 401 49
+INFO Request: GET /api/auth/me/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 9eU7SkkFGWvDoqSZLqoFJ9kRqJXDQYcEvSiJXyThCWGV', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:28:35 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 401
+WARNING Unauthorized: /api/auth/me/
+WARNING "GET /api/auth/me/ HTTP/1.1" 401 49
+INFO Request: POST /api/auth/login/
+INFO Headers: {'Content-Length': '53', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Body: b'{"email":"student@test.com","password":"password123"}'
+INFO Response: 200
+INFO "POST /api/auth/login/ HTTP/1.1" 200 395
+INFO Request: GET /api/auth/me/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 9eU7SkkFGWvDoqSZLqoFJ9kRqJXDQYcEvSiJXyThCWGV', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:28:35 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 401
+WARNING Unauthorized: /api/auth/me/
+WARNING "GET /api/auth/me/ HTTP/1.1" 401 49
+INFO /home/whoami/prj/tiueapp/backend/authentication/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+September 10, 2025 - 11:06:19
+Django version 4.2.16, using settings 'tiuebackend.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+Login attempt - Email: rctct, Password length: 6
+User not found for: rctct
+Login attempt - Email: admin@tiue.uz, Password length: 6
+Token deleted for user: admin@tiue.uz
+Login attempt - Email: ymarumar502@gmail.com, Password length: 9
+Login attempt - Email: ymarumar502@gmail.com, Password length: 9
+Login attempt - Email: admin@tiue.uz, Password length: 6
+Token deleted for user: admin@tiue.uz
+Login attempt - Email: ymarumar502@gmail.com, Password length: 9
+Login attempt - Email: ymarumar502@gmail.com, Password length: 9
+Login attempt - Email: admin@tiue.uz, Password length: 6
+Token deleted for user: admin@tiue.uz
+Login attempt - Email: student@test.com, Password length: 11
+Login attempt - Email: student@test.com, Password length: 11
+Login attempt - Email: student@test.com, Password length: 11
+INFO Watching for file changes with StatReloader
+INFO /home/whoami/prj/tiueapp/backend/authentication/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+September 10, 2025 - 11:35:53
+Django version 4.2.16, using settings 'tiuebackend.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+
+INFO Watching for file changes with StatReloader
+INFO Request: GET /api/auth/me/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 9eU7SkkFGWvDoqSZLqoFJ9kRqJXDQYcEvSiJXyThCWGV', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:28:35 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 401
+WARNING Unauthorized: /api/auth/me/
+WARNING "GET /api/auth/me/ HTTP/1.1" 401 49
+INFO Request: POST /api/auth/login/
+INFO Headers: {'Content-Length': '53', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Body: b'{"email":"student@test.com","password":"password123"}'
+INFO Response: 200
+INFO "POST /api/auth/login/ HTTP/1.1" 200 395
+INFO Request: GET /api/auth/me/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'application/json', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'okhttp/4.9.2', 'Accept-Encoding': 'gzip', 'Authorization': 'Token 9eU7SkkFGWvDoqSZLqoFJ9kRqJXDQYcEvSiJXyThCWGV', 'If-Modified-Since': 'Wed, 10 Sep 2025 08:28:35 GMT', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:2a6:d1f7:c647:3432', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 401
+WARNING Unauthorized: /api/auth/me/
+WARNING "GET /api/auth/me/ HTTP/1.1" 401 49
