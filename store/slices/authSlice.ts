@@ -12,7 +12,10 @@ export const loginUser = createAsyncThunk<
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await authApi.login(credentials);
+      console.log('[AUTH_SLICE] Login API response:', JSON.stringify(response, null, 2));
+      
       if (response.success && response.data) {
+        console.log('[AUTH_SLICE] Login data token:', response.data.token);
         return response.data;
       } else {
         return rejectWithValue(response.error || 'Login failed');

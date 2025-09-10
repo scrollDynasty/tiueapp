@@ -62,9 +62,13 @@ def login(request):
                     'token': token.key
                 }
             }
-            print(f"Login response: {response_data}")
+            print(f"Login response token: {token.key}")
+            print(f"COMPLETE RESPONSE DATA: {response_data}")
             
-            return Response(response_data)
+            # Создаем response объект и логируем его
+            response = Response(response_data)
+            print(f"DJANGO RESPONSE OBJECT: {response.data}")
+            return response
         else:
             print("Password is incorrect")
     
