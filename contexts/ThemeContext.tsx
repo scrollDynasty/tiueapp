@@ -77,5 +77,15 @@ export function useTheme() {
   if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
-  return context;
+  
+  // Убеждаемся что theme всегда имеет правильное значение
+  const { theme, isDarkMode, setTheme, toggleTheme } = context;
+  const safeTheme = theme || 'light';
+  
+  return { 
+    theme: safeTheme, 
+    isDarkMode: isDarkMode || false, 
+    setTheme, 
+    toggleTheme 
+  };
 }
