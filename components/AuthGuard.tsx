@@ -24,6 +24,9 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   useEffect(() => {
     console.log('[AUTH_GUARD] useEffect triggered, route:', currentRoute, 'isAuthenticated:', isAuthenticated, 'isInitializing:', isInitializing);
     
+    // Запускаем только один раз при первой загрузке
+    if (!isInitializing) return;
+    
     // Если это публичный маршрут, не проверяем аутентификацию
     if (isPublicRoute) {
       console.log('[AUTH_GUARD] Public route detected, skipping auth check');
@@ -32,7 +35,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     }
     
     initializeAuth();
-  }, [currentRoute, isPublicRoute]);
+  }, []); // Убираем зависимости, чтобы запускался только один раз
 
   const initializeAuth = async () => {
     console.log('[AUTH_GUARD] 🚀 Starting initialization...');
