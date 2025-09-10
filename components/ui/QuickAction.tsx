@@ -101,7 +101,6 @@ const styles = StyleSheet.create({
   
   title: {
     ...TYPOGRAPHY.h4,
-    fontWeight: '700',
     textAlign: 'center',
     letterSpacing: -0.2,
   },

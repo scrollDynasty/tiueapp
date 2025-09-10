@@ -350,7 +350,7 @@ export default function NewsManagementScreen() {
                     }}
                   >
                     <Ionicons name="image-outline" size={18} color="white" style={{ marginRight: 6 }} />
-                    <ThemedText style={{ color: 'white', fontWeight: '600' }}>
+                    <ThemedText style={{ color: 'white' }}>
                       Заменить
                     </ThemedText>
                   </Pressable>
@@ -464,8 +464,7 @@ export default function NewsManagementScreen() {
             )}
             <ThemedText style={{ 
               ...Typography.body, 
-              color: isLoading ? Colors.textSecondary : Colors.surface, 
-              fontWeight: '600' 
+              color: isLoading ? Colors.textSecondary : Colors.surface
             }}>
               {isLoading ? 'Добавляем...' : 'Добавить новость'}
             </ThemedText>

@@ -384,7 +384,6 @@ export default function LoginScreen() {
                     color: theme === 'dark' ? '#FFFFFF' : '#CC0000',
                     fontSize: 14,
                     flex: 1,
-                    fontWeight: '500'
                   }}>
                     {error}
                   </Text>
@@ -481,7 +480,6 @@ const styles = StyleSheet.create({
   },
   welcomeTitle: {
     fontSize: 28,
-    fontWeight: '700',
     color: Colors.textPrimary,
     marginBottom: Spacing.xs,
     textAlign: 'center',
@@ -489,7 +487,6 @@ const styles = StyleSheet.create({
   welcomeSubtitle: {
     fontSize: 16,
     color: Colors.textSecondary,
-    fontWeight: '400',
     textAlign: 'center',
   },
 
@@ -499,7 +496,6 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    fontWeight: '600',
     marginBottom: Spacing.xs,
     marginLeft: 4,
   },
@@ -523,7 +519,6 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    fontWeight: '500',
     height: '100%',
     paddingVertical: 0,
     backgroundColor: 'transparent',
@@ -582,7 +577,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: Colors.surface,
     fontSize: 16,
-    fontWeight: '600',
   },
 
   // Кнопка смены темы

@@ -198,7 +198,6 @@ export default function EventsScreen() {
                           color: filter === category.key 
                             ? '#ffffff' 
                             : isDarkMode ? '#E2E8F0' : '#475569',
-                          fontWeight: filter === category.key ? '600' : '500',
                           fontSize: isSmallScreen ? 14 : 15,
                           marginLeft: 6,
                         }
@@ -294,7 +293,6 @@ export default function EventsScreen() {
                         <ThemedText style={[styles.eventTitle, { 
                           color: colors.text,
                           fontSize: isSmallScreen ? 16 : 18,
-                          fontWeight: '700',
                           marginBottom: spacing.sm,
                         }]}>
                           {event.title}
@@ -318,7 +316,6 @@ export default function EventsScreen() {
                               { 
                                 color: getCategoryColor(event.category),
                                 fontSize: isSmallScreen ? 11 : 12,
-                                fontWeight: '600',
                               }
                             ]}>
                               {getCategoryLabel(event.category)}
@@ -331,7 +328,6 @@ export default function EventsScreen() {
                         <ThemedText style={[styles.dateText, { 
                           color: colors.primary,
                           fontSize: isSmallScreen ? 12 : 14,
-                          fontWeight: '600',
                         }]}>
                           {formatDate(event.date)}
                         </ThemedText>
@@ -446,7 +442,6 @@ export default function EventsScreen() {
                               {
                                 color: event.isRegistered ? colors.primary : '#fff',
                                 fontSize: isSmallScreen ? 16 : 18,
-                                fontWeight: '700',
                                 letterSpacing: 0.5,
                                 textAlign: 'center',
                               }
@@ -529,7 +524,6 @@ export default function EventsScreen() {
                 
                 <ThemedText style={{
                   fontSize: isSmallScreen ? 16 : 18,
-                  fontWeight: '600',
                   color: colors.text,
                   textAlign: 'center',
                   marginBottom: spacing.sm,
@@ -561,7 +555,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   title: {
-    fontWeight: 'bold',
   },
   searchButton: {
     justifyContent: 'center',
@@ -639,7 +632,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   registerButtonText: {
-    fontWeight: '700',
     textAlign: 'center',
     flex: 1,
   },

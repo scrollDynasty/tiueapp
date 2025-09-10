@@ -102,7 +102,6 @@ export function AnimatedHeader({
               <ThemedText
                 style={{
                   fontSize: isVerySmallScreen ? 12 : 14,
-                  fontWeight: '600',
                   color: colors.textSecondary,
                   textTransform: 'uppercase',
                   letterSpacing: 0.5,
@@ -116,7 +115,6 @@ export function AnimatedHeader({
             <ThemedText
               style={{
                 fontSize: isVerySmallScreen ? 18 : 22,
-                fontWeight: '700',
                 color: colors.text,
                 letterSpacing: -0.3,
                 lineHeight: isVerySmallScreen ? 22 : 26,
@@ -171,7 +169,6 @@ export function AnimatedHeader({
               <ThemedText
                 style={{
                   fontSize: 10,
-                  fontWeight: '600',
                   color: colors.surface,
                 }}
               >

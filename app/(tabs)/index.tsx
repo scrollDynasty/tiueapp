@@ -17,11 +17,11 @@ import { router } from 'expo-router';
 import React from 'react';
 import { Dimensions, Pressable, ScrollView, View } from 'react-native';
 import Animated, {
-    FadeInDown,
-    SlideInLeft,
-    SlideInRight,
-    useAnimatedScrollHandler,
-    useSharedValue,
+  FadeInDown,
+  SlideInLeft,
+  SlideInRight,
+  useAnimatedScrollHandler,
+  useSharedValue,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -168,7 +168,6 @@ export default function HomeScreen() {
         {!isVerySmallScreen && (
           <ThemedText style={{
             fontSize: 12,
-            fontWeight: '600',
             color: colors.textSecondary,
             textTransform: 'uppercase',
             letterSpacing: 0.5,
@@ -179,7 +178,6 @@ export default function HomeScreen() {
       </View>
       <ThemedText style={{
         fontSize: isVerySmallScreen ? 20 : 24,
-        fontWeight: '700',
         color: colors.text,
         textAlign: 'center',
       }}>
@@ -210,7 +208,6 @@ export default function HomeScreen() {
         <View style={{ flex: 1 }}>
           <ThemedText style={{
             fontSize: 14,
-            fontWeight: '600',
             color: colors.text,
             marginBottom: 4,
           }} numberOfLines={2}>
@@ -246,7 +243,6 @@ export default function HomeScreen() {
         }}>
           <ThemedText style={{
             fontSize: 10,
-            fontWeight: '600',
             color: colors.textSecondary,
             textTransform: 'uppercase',
           }}>
@@ -339,7 +335,6 @@ export default function HomeScreen() {
             style={{
               fontSize: 18,
               lineHeight: 24,
-              fontWeight: '700',
               color: colors.text,
               marginBottom: 16,
               fontFamily: 'Inter',
@@ -423,7 +418,6 @@ export default function HomeScreen() {
                 style={{
                   fontSize: 18,
                   lineHeight: 24,
-                  fontWeight: '700',
                   color: colors.text,
                   fontFamily: 'Inter',
                 }}
@@ -441,7 +435,6 @@ export default function HomeScreen() {
               >
                 <ThemedText style={{
                   fontSize: 12,
-                  fontWeight: '600',
                   color: colors.primary,
                 }}>
                   Все события
@@ -465,7 +458,6 @@ export default function HomeScreen() {
                 style={{
                   fontSize: 18,
                   lineHeight: 24,
-                  fontWeight: '700',
                   color: isDarkMode ? colors.text : '#1E293B',
                   fontFamily: 'Inter',
                 }}
@@ -485,7 +477,6 @@ export default function HomeScreen() {
               >
                 <ThemedText style={{
                   fontSize: 12,
-                  fontWeight: '600',
                   color: isDarkMode ? colors.warning : '#D97706',
                 }}>
                   Все новости
@@ -518,7 +509,6 @@ export default function HomeScreen() {
               style={{
                 fontSize: 18,
                 lineHeight: 24,
-                fontWeight: '700',
                 color: isDarkMode ? colors.text : '#1E293B',
                 fontFamily: 'Inter',
               }}
@@ -533,7 +523,6 @@ export default function HomeScreen() {
             }}>
               <ThemedText style={{
                 fontSize: 11,
-                fontWeight: '600',
                 color: isDarkMode ? colors.primary : '#0369A1',
               }}>
                 {newsData.length} новостей
@@ -579,7 +568,6 @@ export default function HomeScreen() {
                 </View>
                 <ThemedText style={{
                   fontSize: 16,
-                  fontWeight: '600',
                   color: isDarkMode ? colors.text : '#475569',
                   textAlign: 'center',
                   marginBottom: 8,
@@ -628,7 +616,6 @@ export default function HomeScreen() {
               <View style={{ flex: 1 }}>
                 <ThemedText style={{
                   fontSize: 16,
-                  fontWeight: '700',
                   color: isDarkMode ? colors.text : '#FFFFFF',
                   marginBottom: 4,
                 }}>
@@ -689,7 +676,7 @@ export default function HomeScreen() {
               }}>
                 <Ionicons name="help-circle" size={20} color={colors.error} />
               </View>
-              <ThemedText style={{ fontSize: 12, color: colors.textSecondary, fontWeight: '600' }}>
+              <ThemedText style={{ fontSize: 12, color: colors.textSecondary }}>
                 Помощь
               </ThemedText>
             </Pressable>
@@ -712,7 +699,7 @@ export default function HomeScreen() {
               }}>
                 <Ionicons name="chatbubble" size={20} color={colors.primary} />
               </View>
-              <ThemedText style={{ fontSize: 12, color: isDarkMode ? colors.textSecondary : '#64748B', fontWeight: '600' }}>
+              <ThemedText style={{ fontSize: 12, color: isDarkMode ? colors.textSecondary : '#64748B' }}>
                 События
               </ThemedText>
             </Pressable>
@@ -735,7 +722,7 @@ export default function HomeScreen() {
               }}>
                 <Ionicons name="settings" size={20} color={colors.success} />
               </View>
-              <ThemedText style={{ fontSize: 12, color: colors.textSecondary, fontWeight: '600' }}>
+              <ThemedText style={{ fontSize: 12, color: colors.textSecondary }}>
                 Настройки
               </ThemedText>
             </Pressable>
