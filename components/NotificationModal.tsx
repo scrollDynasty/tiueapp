@@ -173,7 +173,6 @@ export function NotificationModal({
           />
           <ThemedText style={{ 
             fontSize: 15,
-            fontWeight: '600',
             color: Colors.textPrimary
           }}>
             Уведомления
@@ -210,7 +209,6 @@ export function NotificationModal({
             <ThemedText
               style={{
                 fontSize: 14,
-                fontWeight: '500',
                 color: Colors.textPrimary,
                 marginBottom: 4,
               }}
@@ -283,7 +281,6 @@ export function NotificationModal({
                     <ThemedText
                       style={{
                         fontSize: 13,
-                        fontWeight: notification.isRead ? '500' : '600',
                         color: Colors.textPrimary,
                         flex: 1,
                         lineHeight: 16,
@@ -353,7 +350,6 @@ export function NotificationModal({
                 style={{
                   fontSize: 12,
                   color: Colors.brandPrimary,
-                  fontWeight: '600',
                 }}
               >
                 Отметить все как прочитанные

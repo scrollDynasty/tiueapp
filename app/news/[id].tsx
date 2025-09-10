@@ -61,7 +61,6 @@ export default function NewsDetailScreen() {
             <Ionicons name="newspaper-outline" size={isSmallScreen ? 48 : 64} color={colors.textSecondary} />
             <ThemedText style={{ 
               fontSize: isSmallScreen ? 18 : 20,
-              fontWeight: '600',
               color: colors.textSecondary,
               marginTop: isSmallScreen ? spacing.md : Spacing.m,
               textAlign: 'center'
@@ -78,7 +77,10 @@ export default function NewsDetailScreen() {
                 marginTop: isSmallScreen ? spacing.lg : Spacing.l,
               }}
             >
-              <ThemedText style={{ color: colors.surface, fontWeight: '600' }}>
+              <ThemedText style={{
+                fontSize: isSmallScreen ? 14 : 16,
+                color: 'white'
+              }}>
                 Назад
               </ThemedText>
             </Pressable>
@@ -176,13 +178,11 @@ export default function NewsDetailScreen() {
                 <ThemedText style={{ 
                   fontSize: isSmallScreen ? 12 : 14,
                   color: 'rgba(255,255,255,0.8)',
-                  fontWeight: '500'
                 }}>
                   Новость
                 </ThemedText>
                 <ThemedText style={{ 
                   fontSize: isSmallScreen ? 14 : 16,
-                  fontWeight: '600',
                   color: 'white'
                 }} numberOfLines={1}>
                   {news.title}
@@ -230,7 +230,6 @@ export default function NewsDetailScreen() {
               </ThemedText>
               <ThemedText style={{ 
                 fontSize: isSmallScreen ? 14 : 16,
-                fontWeight: '600' 
               }} numberOfLines={1}>
                 {news.title}
               </ThemedText>
@@ -281,7 +280,6 @@ export default function NewsDetailScreen() {
               <ThemedText style={{ 
                 fontSize: isSmallScreen ? 11 : 12,
                 color: colors.primary,
-                fontWeight: '600',
                 marginLeft: 6,
               }}>
                 {news.category}
@@ -301,7 +299,6 @@ export default function NewsDetailScreen() {
               <ThemedText style={{ 
                 fontSize: isSmallScreen ? 11 : 12,
                 color: colors.textSecondary,
-                fontWeight: '500',
                 marginLeft: 6,
               }}>
                 {formatDateYMD(news.date)}
@@ -312,7 +309,6 @@ export default function NewsDetailScreen() {
           {/* Адаптивный заголовок */}
           <ThemedText style={{
             fontSize: isSmallScreen ? 22 : 28,
-            fontWeight: '700',
             color: colors.text,
             lineHeight: isSmallScreen ? 28 : 36,
             marginBottom: spacing.lg,
@@ -325,7 +321,6 @@ export default function NewsDetailScreen() {
           {news.subtitle && (
             <ThemedText style={{
               fontSize: isSmallScreen ? 16 : 18,
-              fontWeight: '500',
               color: colors.textSecondary,
               lineHeight: isSmallScreen ? 22 : 26,
               marginBottom: spacing.xl,
@@ -337,7 +332,6 @@ export default function NewsDetailScreen() {
           {/* Адаптивный контент */}
           <ThemedText style={{
             fontSize: isSmallScreen ? 15 : 16,
-            fontWeight: '400',
             color: colors.text,
             lineHeight: isSmallScreen ? 22 : 24,
             marginBottom: spacing.xl,
@@ -375,13 +369,11 @@ export default function NewsDetailScreen() {
                 <ThemedText style={{ 
                   fontSize: isSmallScreen ? 12 : 14,
                   color: colors.textSecondary,
-                  fontWeight: '500'
                 }}>
                   Опубликовано
                 </ThemedText>
                 <ThemedText style={{ 
                   fontSize: isSmallScreen ? 14 : 16,
-                  fontWeight: '600',
                   color: colors.text
                 }}>
                   Администрация университета

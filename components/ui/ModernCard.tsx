@@ -151,20 +151,17 @@ const styles = StyleSheet.create({
   
   title: {
     ...TYPOGRAPHY.h4,
-    fontWeight: '700',
     marginBottom: SPACING.xs / 2,
     letterSpacing: -0.2,
   },
   
   subtitle: {
     ...TYPOGRAPHY.body2,
-    fontWeight: '500',
     marginBottom: SPACING.xs,
   },
   
   value: {
     ...TYPOGRAPHY.h2,
-    fontWeight: '800',
     letterSpacing: -0.5,
   },
 });

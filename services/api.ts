@@ -377,56 +377,26 @@ class ApiService {
           formData.append('max_participants', eventData.max_participants.toString());
         }
 
-        // Для React Native Web создаем File объект правильно
+        // Для React Native создаем правильный файл объект
         const imageUri = eventData.image.uri;
         
-        // Создаем изображение для получения правильных данных
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
+        // Создаем короткое уникальное имя файла
+        const now = new Date();
+        const dateStr = now.getFullYear().toString().slice(-2) + 
+                       (now.getMonth() + 1).toString().padStart(2, '0') + 
+                       now.getDate().toString().padStart(2, '0');
+        const timeStr = now.getHours().toString().padStart(2, '0') + 
+                       now.getMinutes().toString().padStart(2, '0') + 
+                       now.getSeconds().toString().padStart(2, '0');
+        const randomStr = Math.random().toString(36).substring(2, 8);
+        const filename = `evt_${dateStr}_${timeStr}_${randomStr}.jpg`;
         
-        const imageFile = await new Promise<File>((resolve, reject) => {
-          img.onload = () => {
-            // Создаем canvas для правильной обработки изображения
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            canvas.width = img.width;
-            canvas.height = img.height;
-            
-            if (ctx) {
-              ctx.drawImage(img, 0, 0);
-              
-              // Конвертируем в blob с правильным MIME типом
-              canvas.toBlob((blob) => {
-                if (blob) {
-                  // Создаем короткое уникальное имя файла (в пределах 100 символов)
-                  const now = new Date();
-                  const dateStr = now.getFullYear().toString().slice(-2) + 
-                                 (now.getMonth() + 1).toString().padStart(2, '0') + 
-                                 now.getDate().toString().padStart(2, '0');
-                  const timeStr = now.getHours().toString().padStart(2, '0') + 
-                                 now.getMinutes().toString().padStart(2, '0') + 
-                                 now.getSeconds().toString().padStart(2, '0');
-                  const randomStr = Math.random().toString(36).substring(2, 8);
-                  const filename = `evt_${dateStr}_${timeStr}_${randomStr}.jpg`;
-                  console.log('Generated filename:', filename, 'Length:', filename.length);
-                  const file = new File([blob], filename, { type: 'image/jpeg' });
-                  resolve(file);
-                } else {
-                  reject(new Error('Failed to create blob'));
-                }
-              }, 'image/jpeg', 0.8);
-            } else {
-              reject(new Error('Failed to get canvas context'));
-            }
-          };
-          
-          img.onerror = () => reject(new Error('Failed to load image'));
-          img.src = imageUri;
-        });
-        
-        // Добавляем файл в FormData
-        formData.append('image', imageFile);
+        // В React Native FormData принимает объект с uri, type и name
+        formData.append('image', {
+          uri: imageUri,
+          type: eventData.image.type || 'image/jpeg',
+          name: filename,
+        } as any);
 
         const apiResponse = await fetch(url, {
           method: 'POST',

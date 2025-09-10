@@ -94,7 +94,6 @@ export function ConfirmationModal({
           <ThemedText
             style={{
               fontSize: 20,
-              fontWeight: '700',
               color: Colors.textPrimary,
               textAlign: 'center',
               marginBottom: 8,
@@ -134,7 +133,6 @@ export function ConfirmationModal({
               <ThemedText
                 style={{
                   fontSize: 16,
-                  fontWeight: '600',
                   color: Colors.textSecondary,
                   textAlign: 'center',
                 }}
@@ -157,7 +155,6 @@ export function ConfirmationModal({
               <ThemedText
                 style={{
                   fontSize: 16,
-                  fontWeight: '600',
                   color: Colors.surface,
                   textAlign: 'center',
                 }}
