@@ -9,6 +9,7 @@ import 'react-native-reanimated';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 
+import AuthGuard from '@/components/AuthGuard';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useImmersiveMode } from '@/hooks/useSystemBars';
@@ -55,12 +56,15 @@ export default function RootLayout() {
               hidden={Platform.OS === 'android'}
             />
             <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-              <Stack>
-                <Stack.Screen name="login" options={{ headerShown: false }} />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="news" options={{ headerShown: false }} />
-                <Stack.Screen name="+not-found" />
-              </Stack>
+              <AuthGuard>
+                <Stack>
+                  <Stack.Screen name="login" options={{ headerShown: false }} />
+                  <Stack.Screen name="debug" options={{ headerShown: false }} />
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  <Stack.Screen name="news" options={{ headerShown: false }} />
+                  <Stack.Screen name="+not-found" />
+                </Stack>
+              </AuthGuard>
             </NavigationThemeProvider>
           </View>
         </SafeAreaProvider>

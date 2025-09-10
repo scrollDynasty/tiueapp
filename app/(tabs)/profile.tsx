@@ -70,7 +70,7 @@ function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightC
           style={{
             fontSize: 16,
             fontWeight: '600',
-            color: isDarkMode ? '#F1F5F9' : '#1E293B',
+            color: isDarkMode ? '#F1F5F9' : '#000000', // Черный текст в светлой теме
             marginBottom: subtitle ? 2 : 0,
           }}
         >
@@ -80,7 +80,7 @@ function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightC
           <ThemedText
             style={{
               fontSize: 13,
-              color: isDarkMode ? '#94A3B8' : '#64748B',
+              color: isDarkMode ? '#94A3B8' : '#4A5568', // Темно-серый текст для subtitle
             }}
           >
             {subtitle}
