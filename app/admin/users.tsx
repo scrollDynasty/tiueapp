@@ -115,9 +115,7 @@ const PasswordResetModal = React.memo(({
           textAlign: 'center'
         }}>
           Новый пароль для пользователя{'\n'}
-          <ThemedText style={{ fontWeight: 'bold', color: Colors.textPrimary }}>
             {user.first_name} {user.last_name}
-          </ThemedText>
         </ThemedText>
 
         <View style={{ marginBottom: Spacing.l }}>
@@ -160,7 +158,6 @@ const PasswordResetModal = React.memo(({
             <ThemedText style={{ 
               ...Typography.body, 
               color: Colors.textSecondary,
-              fontWeight: '600'
             }}>
               Отмена
             </ThemedText>
@@ -186,7 +183,6 @@ const PasswordResetModal = React.memo(({
             <ThemedText style={{ 
               ...Typography.body, 
               color: Colors.surface,
-              fontWeight: '600'
             }}>
               {isLoading ? 'Сохранение...' : 'Сохранить'}
             </ThemedText>
@@ -325,7 +321,7 @@ export default function UsersManagementScreen() {
                   borderRadius: 10,
                   marginLeft: 8,
                 }}>
-                  <ThemedText style={{ fontSize: 10, color: '#DC2626', fontWeight: '600' }}>
+                  <ThemedText style={{ fontSize: 10, color: '#DC2626' }}>
                     НЕАКТИВЕН
                   </ThemedText>
                 </View>
@@ -345,7 +341,6 @@ export default function UsersManagementScreen() {
               }}>
                 <ThemedText style={{
                   fontSize: 12,
-                  fontWeight: '600',
                   color: user.role === 'admin' ? '#DC2626' : user.role === 'professor' ? '#2563EB' : '#059669',
                 }}>
                   {user.role === 'admin' ? 'Администратор' : user.role === 'professor' ? 'Преподаватель' : 'Студент'}
@@ -786,7 +781,6 @@ export default function UsersManagementScreen() {
                 <ThemedText style={{
                   ...Typography.titleH2,
                   color: Colors.surface,
-                  fontWeight: '600',
                 }}>
                   Добавить
                 </ThemedText>
@@ -973,7 +967,6 @@ export default function UsersManagementScreen() {
               <ThemedText style={{ 
                 ...Typography.body, 
                 color: isLoading ? Colors.textSecondary : Colors.surface, 
-                fontWeight: '600' 
               }}>
                 {isLoading ? 'Создаем...' : 'Создать пользователя'}
               </ThemedText>
@@ -1037,7 +1030,6 @@ export default function UsersManagementScreen() {
                 <ThemedText style={{
                   ...Typography.body,
                   color: filterRole === filter ? Colors.surface : Colors.textPrimary,
-                  fontWeight: filterRole === filter ? '600' : 'normal',
                 }}>
                   {filter === 'all' ? 'Все' : 
                    filter === 'student' ? 'Студенты' :

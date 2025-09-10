@@ -92,7 +92,6 @@ const styles = StyleSheet.create({
     minWidth: 70,
   },
   tabText: {
-    fontWeight: '500',
     textAlign: 'center',
   },
 });

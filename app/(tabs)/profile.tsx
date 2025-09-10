@@ -69,7 +69,6 @@ function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightC
         <ThemedText
           style={{
             fontSize: 16,
-            fontWeight: '600',
             color: isDarkMode ? '#F1F5F9' : '#000000', // Черный текст в светлой теме
             marginBottom: subtitle ? 2 : 0,
           }}
@@ -175,7 +174,6 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
             <ThemedText style={{
               ...Typography.caption,
               color: colors.primary,
-              fontWeight: '700',
               fontSize: 11,
             }}>
               ADMIN
@@ -197,7 +195,6 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
               ...Typography.displayH1,
               color: 'white',
               fontSize: 20,
-              fontWeight: '700',
             }}>
               {newsItems.length}
             </ThemedText>
@@ -213,7 +210,6 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
               ...Typography.displayH1,
               color: 'white',
               fontSize: 20,
-              fontWeight: '700',
             }}>
               {eventsItems.length}
             </ThemedText>
@@ -229,7 +225,6 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
               ...Typography.displayH1,
               color: 'white',
               fontSize: 20,
-              fontWeight: '700',
             }}>
               1
             </ThemedText>
@@ -310,7 +305,6 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
               <ThemedText style={{
                 ...Typography.caption,
                 color: colors.textSecondary,
-                fontWeight: '600',
               }}>
                 {newsItems.length}
               </ThemedText>
@@ -369,7 +363,6 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
               <ThemedText style={{
                 ...Typography.caption,
                 color: '#F59E0B',
-                fontWeight: '600',
               }}>
                 {eventsItems.length}
               </ThemedText>
@@ -428,7 +421,6 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
               <ThemedText style={{
                 ...Typography.caption,
                 color: '#10B981',
-                fontWeight: '600',
               }}>
                 ∞
               </ThemedText>
@@ -544,7 +536,6 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
           <ThemedText style={{ 
             fontSize: 16,
             color: 'white',
-            fontWeight: '600',
           }}>
             Выйти из системы
           </ThemedText>
@@ -676,7 +667,6 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
               >
                 <ThemedText style={{
                   fontSize: 24,
-                  fontWeight: '700',
                   color: 'white',
                 }}>
                   {displayInfo.initials}
@@ -688,7 +678,6 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
               <ThemedText
                 style={{
                   fontSize: 20,
-                  fontWeight: '700',
                   color: isDarkMode ? '#FFFFFF' : '#1E293B',
                   marginBottom: 4,
                 }}
@@ -716,7 +705,7 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
                       paddingVertical: 4, 
                       borderRadius: 14,
                     }}>
-                      <ThemedText style={{ fontSize: 12, color: 'white', fontWeight: '600' }}>
+                      <ThemedText style={{ fontSize: 12, color: 'white' }}>
                         {user.student.group.name}
                       </ThemedText>
                     </View>
@@ -728,7 +717,7 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
                       paddingVertical: 4, 
                       borderRadius: 14,
                     }}>
-                      <ThemedText style={{ fontSize: 12, color: 'white', fontWeight: '600' }}>
+                      <ThemedText style={{ fontSize: 12, color: 'white' }}>
                         {user.student.course} курс
                       </ThemedText>
                     </View>
@@ -758,7 +747,7 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
                 alignItems: 'center',
                 marginBottom: 4,
               }}>
-                <ThemedText style={{ fontSize: 16, fontWeight: '700', color: 'white' }}>
+                <ThemedText style={{ color: 'white', fontSize: 13 }}>
                   4.2
                 </ThemedText>
               </View>
@@ -777,7 +766,7 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
                 alignItems: 'center',
                 marginBottom: 4,
               }}>
-                <ThemedText style={{ fontSize: 16, fontWeight: '700', color: 'white' }}>
+                <ThemedText style={{ color: 'white', fontSize: 13 }}>
                   12
                 </ThemedText>
               </View>
@@ -796,7 +785,7 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
                 alignItems: 'center',
                 marginBottom: 4,
               }}>
-                <ThemedText style={{ fontSize: 14, fontWeight: '700', color: 'white' }}>
+                <ThemedText style={{ color: 'white', fontSize: 13 }}>
                   87%
                 </ThemedText>
               </View>
@@ -812,7 +801,6 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
       <Animated.View entering={FadeInDown.duration(500).delay(200)}>
         <ThemedText style={{ 
           fontSize: 18, 
-          fontWeight: '700', 
           color: isDarkMode ? '#FFFFFF' : '#FFFFFF', 
           marginBottom: Spacing.m,
           marginLeft: 4,
@@ -853,7 +841,6 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
       <Animated.View entering={FadeInDown.duration(500).delay(300)} style={{ marginTop: Spacing.l }}>
         <ThemedText style={{ 
           fontSize: 18, 
-          fontWeight: '700', 
           color: isDarkMode ? '#FFFFFF' : '#FFFFFF', 
           marginBottom: Spacing.m,
           marginLeft: 4,
@@ -944,7 +931,6 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
           <ThemedText style={{ 
             fontSize: 15,
             color: 'white',
-            fontWeight: '600',
           }}>
             Выйти из аккаунта
           </ThemedText>
@@ -971,7 +957,6 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
           }}>
             <ThemedText style={{
               fontSize: 20,
-              fontWeight: '700',
               color: isDarkMode ? '#FFFFFF' : '#1E293B',
             }}>
               🔔 Настройки уведомлений
@@ -996,7 +981,6 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
             <View style={{ marginBottom: Spacing.l }}>
               <ThemedText style={{
                 fontSize: 16,
-                fontWeight: '600',
                 color: isDarkMode ? '#F1F5F9' : '#374151',
                 marginBottom: Spacing.m,
               }}>
@@ -1065,7 +1049,6 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
             <View style={{ marginBottom: Spacing.l }}>
               <ThemedText style={{
                 fontSize: 16,
-                fontWeight: '600',
                 color: isDarkMode ? '#F1F5F9' : '#374151',
                 marginBottom: Spacing.m,
               }}>
@@ -1172,7 +1155,6 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
             <View style={{ marginBottom: Spacing.l }}>
               <ThemedText style={{
                 fontSize: 16,
-                fontWeight: '600',
                 color: isDarkMode ? '#F1F5F9' : '#374151',
                 marginBottom: Spacing.m,
               }}>
@@ -1239,7 +1221,6 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
               <ThemedText style={{
                 fontSize: 16,
                 color: 'white',
-                fontWeight: '600',
               }}>
                 Сохранить настройки
               </ThemedText>

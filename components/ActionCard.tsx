@@ -152,7 +152,6 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
           style={{
             fontSize: fontSize.small,
             lineHeight: fontSize.small * 1.4,
-            fontWeight: '500',
             color: colors.textSecondary,
             letterSpacing: 0.5,
             textTransform: 'uppercase',

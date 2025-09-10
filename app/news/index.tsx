@@ -158,7 +158,6 @@ export default function AllNewsScreen() {
                 ...Typography.displayH1, 
                 color: colors.text,
                 fontSize: 28,
-                fontWeight: '700',
                 marginBottom: 4
               }}>
                 📰 University News
@@ -181,7 +180,6 @@ export default function AllNewsScreen() {
                 <ThemedText style={{ 
                   ...Typography.caption, 
                   color: isDarkMode ? '#A5B4FC' : '#6366F1',
-                  fontWeight: '600'
                 }}>
                   {newsData.length} articles available
                 </ThemedText>
@@ -240,7 +238,6 @@ export default function AllNewsScreen() {
               color: colors.text,
               marginBottom: Spacing.s,
               textAlign: 'center',
-              fontWeight: '700'
             }}>
               📰 No News Yet
             </ThemedText>

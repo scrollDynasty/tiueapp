@@ -4,13 +4,13 @@ import { formatDateYMD } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Dimensions, Image, Platform, Pressable, View, ViewStyle } from 'react-native';
+import { Dimensions, Image, Platform, Pressable, TextStyle, View, ViewStyle } from 'react-native';
 import Animated, {
-    FadeIn,
-    interpolate,
-    useAnimatedStyle,
-    useSharedValue,
-    withTiming
+  FadeIn,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming
 } from 'react-native-reanimated';
 import { Animation, Spacing } from '../constants/DesignTokens';
 import { ThemedText } from './ThemedText';
@@ -75,7 +75,7 @@ export function NewsCard({
       transform: [{ scale }],
       opacity,
     };
-  });
+  }, []);
 
   return (
     <AnimatedPressable
@@ -104,7 +104,6 @@ export function NewsCard({
         style,
       ]}
     >
-      {/* Градиентный фон карточки */}
       <LinearGradient
         colors={isDarkMode 
           ? ['rgba(30,41,59,0.95)', 'rgba(51,65,85,0.90)', 'rgba(71,85,105,0.85)']
@@ -118,7 +117,6 @@ export function NewsCard({
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        {/* Изображение с градиентным оверлеем */}
         {image && (
           <View style={{ position: 'relative' }}>
             <Image
@@ -131,7 +129,6 @@ export function NewsCard({
               }}
               resizeMode="cover"
             />
-            {/* Градиентный оверлей на изображение */}
             <LinearGradient
               colors={['transparent', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.6)']}
               style={{
@@ -144,7 +141,6 @@ export function NewsCard({
                 borderTopRightRadius: 20,
               }}
             />
-            {/* Дата на изображении */}
             <View style={{
               position: 'absolute',
               top: Spacing.m,
@@ -157,19 +153,17 @@ export function NewsCard({
               alignItems: 'center'
             }}>
               <Ionicons name="calendar-outline" size={14} color="#fff" style={{ marginRight: 4 }} />
-              <ThemedText style={{ 
+              <ThemedText style={[{ 
                 fontSize: 12, 
                 color: '#fff', 
-                fontWeight: '600' 
-              }}>
+              }, textStyles.title]}>
                 {formatDateYMD(date)}
               </ThemedText>
             </View>
           </View>
         )}
         
-        <View style={{ padding: Spacing.l }}>
-          {/* Заголовок с иконкой */}
+        <View style={{ padding: Spacing.m }}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: Spacing.s }}>
             <LinearGradient
               colors={isDarkMode 
@@ -196,13 +190,12 @@ export function NewsCard({
             
             <View style={{ flex: 1 }}>
               <ThemedText
-                style={{
-                  fontSize: 18,
-                  lineHeight: 26,
-                  fontWeight: '700',
+                style={[{
+                  fontSize: 15,
+                  lineHeight: 20,
                   color: colors.text,
-                  marginBottom: 4,
-                }}
+                  marginBottom: 3,
+                }, textStyles.subtitle]}
                 numberOfLines={2}
               >
                 {title}
@@ -215,11 +208,10 @@ export function NewsCard({
                   marginTop: 4
                 }}>
                   <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} style={{ marginRight: 6 }} />
-                  <ThemedText style={{ 
+                  <ThemedText style={[{ 
                     fontSize: 13, 
                     color: colors.textSecondary, 
-                    fontWeight: '500' 
-                  }}>
+                  }, textStyles.eventTitle]}>
                     {formatDateYMD(date)}
                   </ThemedText>
                 </View>
@@ -227,20 +219,18 @@ export function NewsCard({
             </View>
           </View>
 
-          {/* Подзаголовок */}
           <ThemedText
             style={{
-              fontSize: 15,
-              lineHeight: 22,
+              fontSize: 13,
+              lineHeight: 18,
               color: colors.textSecondary,
-              marginBottom: events.length > 0 ? Spacing.m : 0,
+              marginBottom: events.length > 0 ? Spacing.s : 0,
             }}
             numberOfLines={3}
           >
             {subtitle}
           </ThemedText>
 
-          {/* События, связанные с новостью */}
           {events.length > 0 && (
             <View
               style={{
@@ -268,11 +258,10 @@ export function NewsCard({
                   <Ionicons name="calendar" size={12} color={isDarkMode ? '#10B981' : '#059669'} />
                 </LinearGradient>
                 <ThemedText
-                  style={{
+                  style={[{
                     fontSize: 14,
-                    fontWeight: '600',
                     color: colors.text,
-                  }}
+                  }, textStyles.eventLocation]}
                 >
                   Связанные события ({events.length})
                 </ThemedText>
@@ -281,7 +270,7 @@ export function NewsCard({
               <View style={{ gap: Spacing.xs }}>
                 {events.slice(0, 2).map((event, eventIndex) => (
                   <Pressable
-                    key={eventIndex}
+                    key={`event-${event.id}-${eventIndex}`}
                     onPress={() => onEventPress?.(event)}
                     style={{
                       flexDirection: 'row',
@@ -302,12 +291,11 @@ export function NewsCard({
                       marginRight: Spacing.s,
                     }} />
                     <ThemedText
-                      style={{
+                      style={[{
                         flex: 1,
                         fontSize: 13,
                         color: colors.textSecondary,
-                        fontWeight: '500',
-                      }}
+                      }, textStyles.eventDate]}
                       numberOfLines={1}
                     >
                       {event.title}
@@ -317,13 +305,12 @@ export function NewsCard({
                 
                 {events.length > 2 && (
                   <ThemedText
-                    style={{
+                    style={[{
                       fontSize: 12,
                       color: colors.primary,
-                      fontWeight: '600',
                       textAlign: 'center',
                       marginTop: Spacing.xs,
-                    }}
+                    }, textStyles.moreEvents]}
                   >
                     +{events.length - 2} еще
                   </ThemedText>
@@ -336,3 +323,19 @@ export function NewsCard({
     </AnimatedPressable>
   );
 }
+
+// Стили с правильными типами
+const textStyles = {
+  title: {
+  } as TextStyle,
+  subtitle: {
+  } as TextStyle,
+  eventTitle: {
+  } as TextStyle,
+  eventLocation: {
+  } as TextStyle,
+  eventDate: {
+  } as TextStyle,
+  moreEvents: {
+  } as TextStyle,
+};
