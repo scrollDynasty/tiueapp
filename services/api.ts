@@ -1,11 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getApiBaseUrl } from '../config/environment';
 import { ApiResponse, LoginCredentials, User } from '../types';
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = getApiBaseUrl();
 
 class ApiService {
   private async getHeaders(): Promise<Record<string, string>> {
     const token = await AsyncStorage.getItem('authToken');
+    console.log('🔑 Token from storage:', token ? `${token.substring(0, 10)}...` : 'No token');
+    
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'ngrok-skip-browser-warning': 'true', // Пропускает предупреждение ngrok
@@ -13,6 +16,9 @@ class ApiService {
     
     if (token && token !== 'undefined' && token !== 'null') {
       headers.Authorization = `Token ${token}`;
+      console.log('✅ Authorization header added');
+    } else {
+      console.log('❌ No valid token found');
     }
     
     return headers;
@@ -26,23 +32,33 @@ class ApiService {
       const headers = await this.getHeaders();
       const url = `${API_BASE_URL}${endpoint}`;
       
+      const finalHeaders = {
+        ...headers,
+        ...options.headers,
+      };
+      
+      console.log(`🌐 Making request to: ${url}`);
+      console.log(`📋 Headers:`, JSON.stringify(finalHeaders, null, 2));
+      
       const response = await fetch(url, {
         ...options,
-        headers: {
-          ...headers,
-          ...options.headers,
-        },
+        headers: finalHeaders,
       });
 
+      console.log(`📡 Response status: ${response.status} ${response.statusText}`);
+      
       const data = await response.json();
+      console.log(`📦 Response data:`, data);
 
       if (!response.ok) {
+        console.log(`❌ Request failed: ${response.status} - ${data.error || data.message}`);
         return {
           success: false,
           error: data.error || data.message || `HTTP ${response.status}`,
         };
       }
 
+      console.log(`✅ Request successful`);
       return {
         success: true,
         data: data.data || data, // Обрабатываем как wrapped, так и unwrapped ответы
@@ -95,7 +111,12 @@ class ApiService {
       };
 
       if (result.success && result.data) {
+        console.log('💾 Saving token to storage:', result.data.token ? `${result.data.token.substring(0, 10)}...` : 'No token');
         await AsyncStorage.setItem('authToken', result.data.token);
+        
+        // Проверяем, что токен действительно сохранился
+        const savedToken = await AsyncStorage.getItem('authToken');
+        console.log('✅ Token saved successfully:', savedToken ? `${savedToken.substring(0, 10)}...` : 'Failed to save');
       }
 
       return result;
@@ -115,11 +136,23 @@ class ApiService {
       // Ignore errors during logout
     }
     // Remove token from storage after backend call (or if it fails)
+    console.log('🗑️ Clearing token from storage');
     await AsyncStorage.removeItem('authToken');
+    console.log('✅ Token cleared successfully');
+  }
+
+  // Добавляем функцию для принудительной очистки storage
+  async clearStorage(): Promise<void> {
+    console.log('🧹 Clearing all AsyncStorage');
+    await AsyncStorage.clear();
+    console.log('✅ AsyncStorage cleared');
   }
 
   async getCurrentUser(): Promise<ApiResponse<User>> {
-    return this.request<User>('/auth/me/');
+    console.log('👤 Getting current user...');
+    const result = await this.request<User>('/auth/me/');
+    console.log('👤 getCurrentUser result:', result.success ? 'Success' : `Failed: ${result.error}`);
+    return result;
   }
 
   // User management (admin only)

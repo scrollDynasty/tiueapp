@@ -3,11 +3,11 @@ import React, { useMemo } from 'react';
 import { useWindowDimensions } from 'react-native';
 
 import {
-  EventsTabIcon,
-  HomeTabIcon,
-  ScheduleTabIcon,
-  SearchTabIcon,
-  SettingsTabIcon
+    EventsTabIcon,
+    HomeTabIcon,
+    ScheduleTabIcon,
+    SearchTabIcon,
+    SettingsTabIcon
 } from '@/components/AnimatedTabIcons';
 import AuthGuard from '@/components/AuthGuard';
 import { ImmersiveContainer } from '@/components/ImmersiveContainer';
@@ -28,9 +28,9 @@ export default function TabLayout() {
       backgroundColor: colors.surface,
       borderTopWidth: 1,
       borderTopColor: colors.border,
-      height: isVerySmallScreen ? 55 : 65,
-      paddingBottom: isVerySmallScreen ? 4 : 8,
-      paddingTop: isVerySmallScreen ? 4 : 8,
+      height: isVerySmallScreen ? 65 : 75,
+      paddingBottom: isVerySmallScreen ? 8 : 12,
+      paddingTop: isVerySmallScreen ? 8 : 12,
       position: 'absolute' as const,
       bottom: 0,
       left: 0,

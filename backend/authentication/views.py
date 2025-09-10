@@ -53,14 +53,18 @@ def login(request):
             
             # Создаем или получаем токен
             token, created = Token.objects.get_or_create(user=user)
+            print(f"Token for {user.email}: {token.key} (created: {created})")
             
-            return Response({
+            response_data = {
                 'success': True,
                 'data': {
                     'user': CustomUserSerializer(user).data,
                     'token': token.key
                 }
-            })
+            }
+            print(f"Login response: {response_data}")
+            
+            return Response(response_data)
         else:
             print("Password is incorrect")
     

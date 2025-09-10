@@ -1325,7 +1325,7 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingHorizontal: Spacing.l,
-          paddingBottom: 100,
+          paddingBottom: 90,
           paddingTop: Spacing.m,
         }}
       >
