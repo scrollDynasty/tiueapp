@@ -362,11 +362,14 @@ class ApiService {
       const token = await AsyncStorage.getItem('authToken');
       const url = `${API_BASE_URL}/events/`;
 
-      // Если есть изображение, используем FormData
+      // Log intent
+      console.log('🆕 createEvent(): preparing payload', {
+        hasImage: !!eventData.image,
+        title: eventData?.title,
+      });
+
       if (eventData.image) {
         const formData = new FormData();
-        
-        // Добавляем все поля события
         formData.append('title', eventData.title);
         formData.append('description', eventData.description);
         formData.append('location', eventData.location);
@@ -377,81 +380,78 @@ class ApiService {
           formData.append('max_participants', eventData.max_participants.toString());
         }
 
-        // Для React Native Web создаем File объект правильно
-        const imageUri = eventData.image.uri;
-        
-        // Создаем изображение для получения правильных данных
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        
-        const imageFile = await new Promise<File>((resolve, reject) => {
-          img.onload = () => {
-            // Создаем canvas для правильной обработки изображения
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            canvas.width = img.width;
-            canvas.height = img.height;
-            
-            if (ctx) {
-              ctx.drawImage(img, 0, 0);
-              
-              // Конвертируем в blob с правильным MIME типом
-              canvas.toBlob((blob) => {
-                if (blob) {
-                  // Создаем короткое уникальное имя файла (в пределах 100 символов)
-                  const now = new Date();
-                  const dateStr = now.getFullYear().toString().slice(-2) + 
-                                 (now.getMonth() + 1).toString().padStart(2, '0') + 
-                                 now.getDate().toString().padStart(2, '0');
-                  const timeStr = now.getHours().toString().padStart(2, '0') + 
-                                 now.getMinutes().toString().padStart(2, '0') + 
-                                 now.getSeconds().toString().padStart(2, '0');
-                  const randomStr = Math.random().toString(36).substring(2, 8);
-                  const filename = `evt_${dateStr}_${timeStr}_${randomStr}.jpg`;
-                  console.log('Generated filename:', filename, 'Length:', filename.length);
-                  const file = new File([blob], filename, { type: 'image/jpeg' });
-                  resolve(file);
-                } else {
-                  reject(new Error('Failed to create blob'));
-                }
-              }, 'image/jpeg', 0.8);
-            } else {
-              reject(new Error('Failed to get canvas context'));
-            }
-          };
-          
-          img.onerror = () => reject(new Error('Failed to load image'));
-          img.src = imageUri;
-        });
-        
-        // Добавляем файл в FormData
-        formData.append('image', imageFile);
-
-        const apiResponse = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Authorization': token ? `Token ${token}` : '',
-            // НЕ устанавливаем Content-Type для multipart/form-data
-          },
-          body: formData,
-        });
-
-        const data = await apiResponse.json();
-
-        if (!apiResponse.ok) {
-          return {
-            success: false,
-            error: data.error || data.message || `HTTP ${apiResponse.status}`,
-          };
+        let imageUri = eventData.image.uri;
+        console.log('🖼 createEvent(): image object', eventData.image);
+        if (!imageUri) {
+          console.warn('⚠️ createEvent(): image object missing uri');
+        } else if (imageUri.startsWith('/')) {
+          // Normalize plain path to file:// for Android
+            imageUri = 'file://' + imageUri;
+            console.log('🛠 createEvent(): normalized uri ->', imageUri);
         }
 
-        return {
-          success: true,
-          data: data.data || data,
-        };
+        const now = new Date();
+        const filename = `evt_${now.getTime()}.jpg`;
+
+        formData.append('image', {
+          uri: imageUri,
+          type: eventData.image.type || 'image/jpeg',
+            name: filename,
+        } as any);
+
+        console.log('📤 createEvent(): sending multipart request', { url });
+
+        let apiResponse: Response;
+        try {
+          apiResponse = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Authorization': token ? `Token ${token}` : '',
+            },
+            body: formData,
+          });
+        } catch (networkErr: any) {
+          console.error('🌐 createEvent(): network layer failure', networkErr?.message || networkErr);
+          console.log('💡 Hint: If using ngrok, ensure tunnel is active and device can reach it (same Wi-Fi, not asleep).');
+          console.log('↩️ Fallback: try create WITHOUT image');
+          try {
+            const fallback = await this.request<any>('/events/', {
+              method: 'POST',
+              body: JSON.stringify({
+                title: eventData.title,
+                description: eventData.description,
+                location: eventData.location,
+                date: eventData.date,
+                time: eventData.time,
+                category: eventData.category,
+                max_participants: eventData.max_participants,
+              }),
+            });
+            if (fallback.success) {
+              return { success: true, data: fallback.data, error: 'Изображение не загружено (fallback)' };
+            }
+            return { success: false, error: 'Сеть недоступна (multipart) и fallback не удался' };
+          } catch (fbErr) {
+            console.error('❌ createEvent(): fallback failed', fbErr);
+            return { success: false, error: 'Сеть недоступна (multipart)' };
+          }
+        }
+
+        let data: any = null;
+        try {
+          data = await apiResponse.json();
+        } catch (parseErr) {
+          console.error('🧩 createEvent(): JSON parse failed', parseErr);
+        }
+
+        if (!apiResponse.ok) {
+          console.error('❌ createEvent(): server responded with error status', apiResponse.status, data);
+          return { success: false, error: data?.error || data?.message || `HTTP ${apiResponse.status}` };
+        }
+
+        console.log('✅ createEvent(): success (multipart)');
+        return { success: true, data: data?.data || data };
       } else {
-        // Без изображения используем обычный JSON
         return this.request<any>('/events/', {
           method: 'POST',
           body: JSON.stringify(eventData),

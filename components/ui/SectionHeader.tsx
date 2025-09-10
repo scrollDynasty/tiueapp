@@ -48,7 +48,6 @@ const styles = StyleSheet.create({
   
   title: {
     ...TYPOGRAPHY.h3,
-    fontWeight: '700',
     letterSpacing: -0.3,
   },
   
@@ -59,6 +58,5 @@ const styles = StyleSheet.create({
   
   actionText: {
     ...TYPOGRAPHY.body2,
-    fontWeight: '600',
   },
 });

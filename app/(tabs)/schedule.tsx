@@ -124,7 +124,6 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
           <ThemedText
             style={{
               fontSize: 12,
-              fontWeight: '600',
               color: getTypeColor(item.type),
               letterSpacing: 0.5,
             }}
@@ -149,7 +148,6 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
           <ThemedText
             style={{
               fontSize: 14,
-              fontWeight: '700',
               color: colors.primary,
               letterSpacing: -0.2,
             }}
@@ -163,7 +161,6 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
       <ThemedText
         style={{
           fontSize: 16, // Уменьшили с 18 до 16
-          fontWeight: '700',
           color: colors.text,
           marginBottom: Spacing.s,
           lineHeight: 22, // Уменьшили пропорционально
@@ -195,7 +192,6 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
           <ThemedText
             style={{
               fontSize: 14,
-              fontWeight: '500',
               color: colors.textSecondary,
               flex: 1,
             }}
@@ -224,7 +220,6 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
           <ThemedText
             style={{
               fontSize: 14,
-              fontWeight: '600',
               color: colors.text,
             }}
           >
@@ -342,7 +337,6 @@ export default function ScheduleScreen() {
             <ThemedText
               style={{
                 fontSize: 28,
-                fontWeight: '700',
                 color: colors.text,
                 letterSpacing: -0.5,
               }}
@@ -360,7 +354,6 @@ export default function ScheduleScreen() {
             <ThemedText
               style={{
                 fontSize: 16,
-                fontWeight: '400',
                 color: colors.textSecondary,
                 lineHeight: 24,
               }}
@@ -425,7 +418,6 @@ export default function ScheduleScreen() {
                     <ThemedText
                       style={{
                         fontSize: 14,
-                        fontWeight: '600',
                         color: selectedDay === day ? colors.surface : colors.text,
                         letterSpacing: -0.1,
                       }}
@@ -512,7 +504,6 @@ export default function ScheduleScreen() {
               <ThemedText
                 style={{
                   fontSize: 20,
-                  fontWeight: '700',
                   color: colors.text,
                   textAlign: 'center',
                   marginBottom: Spacing.s,
@@ -524,7 +515,6 @@ export default function ScheduleScreen() {
               <ThemedText
                 style={{
                   fontSize: 16,
-                  fontWeight: '400',
                   color: colors.textSecondary,
                   textAlign: 'center',
                   lineHeight: 24,

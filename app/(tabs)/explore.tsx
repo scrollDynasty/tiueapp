@@ -98,7 +98,6 @@ export default function ExploreScreen() {
               <ThemedText
                 style={{
                   fontSize: 28,
-                  fontWeight: '700',
                   color: colors.text,
                   letterSpacing: -0.5,
                 }}
@@ -109,7 +108,6 @@ export default function ExploreScreen() {
             <ThemedText
               style={{
                 fontSize: 16,
-                fontWeight: '400',
                 color: colors.textSecondary,
                 lineHeight: 24,
                 marginLeft: spacing.lg,
@@ -165,7 +163,6 @@ export default function ExploreScreen() {
                   flex: 1,
                   fontSize: 16,
                   color: colors.text,
-                  fontWeight: '500',
                   backgroundColor: 'transparent',
                   borderWidth: 0,
                   margin: 0,
@@ -211,7 +208,6 @@ export default function ExploreScreen() {
               <ThemedText
                 style={{
                   fontSize: 20,
-                  fontWeight: '700',
                   color: colors.text,
                   flex: 1,
                 }}
@@ -224,7 +220,7 @@ export default function ExploreScreen() {
                 borderRadius: 8,
                 backgroundColor: colors.primary + '10',
               }}>
-                <ThemedText style={{ fontSize: 14, color: colors.primary, fontWeight: '600' }}>
+                <ThemedText style={{ fontSize: 14, color: colors.primary }}>
                   Все
                 </ThemedText>
               </TouchableOpacity>
@@ -306,7 +302,6 @@ export default function ExploreScreen() {
                     <ThemedText
                       style={{
                         fontSize: 14,
-                        fontWeight: '700',
                         color: colors.text,
                         marginBottom: 4,
                         letterSpacing: -0.2,
@@ -317,7 +312,6 @@ export default function ExploreScreen() {
                     <ThemedText
                       style={{
                         fontSize: 12,
-                        fontWeight: '400',
                         color: colors.textSecondary,
                         lineHeight: 16,
                       }}
@@ -338,7 +332,6 @@ export default function ExploreScreen() {
             <ThemedText
               style={{
                 fontSize: 20,
-                fontWeight: '700',
                 color: colors.text,
                 marginBottom: spacing.lg,
               }}
@@ -416,7 +409,6 @@ export default function ExploreScreen() {
                     <ThemedText
                       style={{
                         fontSize: 16,
-                        fontWeight: '600',
                         color: colors.text,
                         flex: 1,
                       }}

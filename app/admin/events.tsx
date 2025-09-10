@@ -25,7 +25,7 @@ const EVENT_CATEGORIES = [
 ];
 
 export default function EventsManagementScreen() {
-  console.log('🔄 EventsManagementScreen render');
+  // Debug render log removed to reduce noise
   
   const { theme } = useTheme();
   const themeColors = getThemeColors(theme === 'dark');
@@ -37,8 +37,9 @@ export default function EventsManagementScreen() {
   
   // Добавляем логирование изменений events
   React.useEffect(() => {
-    console.log('📋 Events updated in component:', events.map(e => ({ id: e.id, title: e.title })));
-  }, [events]);
+    // Lightweight change log (only when length changes)
+    console.log(`📋 Events count: ${events.length}`);
+  }, [events.length]);
 
   // Уберем принудительное обновление - оно может вызывать лишние рендеры
   // const [forceUpdate, setForceUpdate] = React.useState(0);
@@ -152,12 +153,20 @@ export default function EventsManagementScreen() {
   // Функция для выбора изображения
   const pickImage = async () => {
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      const pickerOptions: any = {
         allowsEditing: true,
         aspect: [16, 9],
-        quality: 0.8, // Хорошее качество изображения
-      });
+        quality: 0.8,
+      };
+      // Try new API if available, else fallback to deprecated constant
+      if ((ImagePicker as any).MediaType) {
+        pickerOptions.mediaTypes = [(ImagePicker as any).MediaType.IMAGE];
+      } else {
+        // Fallback (will show deprecation warning but still works)
+        pickerOptions.mediaTypes = ImagePicker.MediaTypeOptions.Images;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync(pickerOptions);
 
       if (!result.canceled && result.assets && result.assets[0]) {
         setImage(result.assets[0]);
@@ -383,8 +392,7 @@ export default function EventsManagementScreen() {
             <Text style={{ 
               fontSize: 16, 
               color: theme === 'dark' ? '#FFFFFF' : '#000000', 
-              marginBottom: Spacing.s, 
-              fontWeight: '600' 
+              marginBottom: Spacing.s
             }}>
               Название события
             </Text>
@@ -408,8 +416,7 @@ export default function EventsManagementScreen() {
             <Text style={{ 
               fontSize: 16, 
               color: theme === 'dark' ? '#FFFFFF' : '#000000', 
-              marginBottom: Spacing.s, 
-              fontWeight: '600' 
+              marginBottom: Spacing.s
             }}>
               Описание
             </Text>
@@ -437,8 +444,7 @@ export default function EventsManagementScreen() {
             <Text style={{ 
               fontSize: 16, 
               color: theme === 'dark' ? '#FFFFFF' : '#000000', 
-              marginBottom: Spacing.s, 
-              fontWeight: '600' 
+              marginBottom: Spacing.s
             }}>
               Место проведения
             </Text>
@@ -462,8 +468,7 @@ export default function EventsManagementScreen() {
             <Text style={{ 
               fontSize: 16, 
               color: theme === 'dark' ? '#FFFFFF' : '#000000', 
-              marginBottom: Spacing.s, 
-              fontWeight: '600' 
+              marginBottom: Spacing.s
             }}>
               Категория события
             </Text>
@@ -498,7 +503,7 @@ export default function EventsManagementScreen() {
                   <ThemedText style={{
                     color: category === cat.key ? 'white' : themeColors.text,
                     fontSize: 14,
-                    fontWeight: category === cat.key ? '600' : '400',
+                    opacity: category === cat.key ? 1 : 0.85,
                   }}>
                     {cat.label}
                   </ThemedText>
@@ -512,8 +517,7 @@ export default function EventsManagementScreen() {
             <Text style={{ 
               fontSize: 16, 
               color: theme === 'dark' ? '#FFFFFF' : '#000000', 
-              marginBottom: Spacing.s, 
-              fontWeight: '600' 
+              marginBottom: Spacing.s
             }}>
               Изображение события (необязательно)
             </Text>
@@ -548,7 +552,7 @@ export default function EventsManagementScreen() {
                     }}
                   >
                     <Ionicons name="image-outline" size={16} color="white" style={{ marginRight: 6 }} />
-                    <Text style={{ color: 'white', fontSize: 14, fontWeight: '600' }}>
+                    <Text style={{ color: 'white', fontSize: 14 }}>
                       Изменить
                     </Text>
                   </Pressable>
@@ -564,7 +568,7 @@ export default function EventsManagementScreen() {
                     }}
                   >
                     <Ionicons name="trash-outline" size={16} color="white" style={{ marginRight: 6 }} />
-                    <Text style={{ color: 'white', fontSize: 14, fontWeight: '600' }}>
+                    <Text style={{ color: 'white', fontSize: 14 }}>
                       Удалить
                     </Text>
                   </Pressable>
@@ -589,7 +593,6 @@ export default function EventsManagementScreen() {
                   fontSize: 16,
                   color: themeColors.textSecondary,
                   marginTop: Spacing.s,
-                  fontWeight: '500',
                 }}>
                   Выбрать изображение
                 </Text>
@@ -610,8 +613,7 @@ export default function EventsManagementScreen() {
               <Text style={{ 
                 fontSize: 16, 
                 color: theme === 'dark' ? '#FFFFFF' : '#000000', 
-                marginBottom: Spacing.s, 
-                fontWeight: '600' 
+                marginBottom: Spacing.s
               }}>
                 Дата
               </Text>
@@ -645,8 +647,7 @@ export default function EventsManagementScreen() {
               <Text style={{ 
                 fontSize: 16, 
                 color: theme === 'dark' ? '#FFFFFF' : '#000000', 
-                marginBottom: Spacing.s, 
-                fontWeight: '600' 
+                marginBottom: Spacing.s
               }}>
                 Время
               </Text>
@@ -700,8 +701,7 @@ export default function EventsManagementScreen() {
             )}
             <ThemedText style={{ 
               ...Typography.body, 
-              color: (isLoading || isCreating) ? themeColors.textSecondary : 'white', 
-              fontWeight: '600' 
+              color: (isLoading || isCreating) ? themeColors.textSecondary : 'white'
             }}>
               {isCreating ? 'Создание...' : isLoading ? 'Добавляем...' : 'Добавить событие'}
             </ThemedText>
@@ -759,7 +759,6 @@ export default function EventsManagementScreen() {
                         <View style={{ flex: 1, marginRight: Spacing.m }}>
                           <Text style={{ 
                             fontSize: 18, 
-                            fontWeight: '700', 
                             color: theme === 'dark' ? '#FFFFFF' : '#000000', 
                             marginBottom: 6 
                           }}>
@@ -788,7 +787,6 @@ export default function EventsManagementScreen() {
                               <Text style={{
                                 fontSize: 13,
                                 color: categoryInfo.color,
-                                fontWeight: '600',
                               }}>
                                 {categoryInfo.label}
                               </Text>
@@ -878,15 +876,13 @@ export default function EventsManagementScreen() {
                             <View>
                               <Text style={{ 
                                 fontSize: 13, 
-                                color: theme === 'dark' ? '#CCCCCC' : '#666666',
-                                fontWeight: '500'
+                                color: theme === 'dark' ? '#CCCCCC' : '#666666'
                               }}>
                                 Дата и время
                               </Text>
                               <Text style={{ 
                                 fontSize: 14, 
-                                color: theme === 'dark' ? '#FFFFFF' : '#000000',
-                                fontWeight: '600'
+                                color: theme === 'dark' ? '#FFFFFF' : '#000000'
                               }}>
                                 {formatDateYMD(item.date)}
                               </Text>
@@ -907,15 +903,13 @@ export default function EventsManagementScreen() {
                             <View>
                               <Text style={{ 
                                 fontSize: 13, 
-                                color: theme === 'dark' ? '#CCCCCC' : '#666666',
-                                fontWeight: '500'
+                                color: theme === 'dark' ? '#CCCCCC' : '#666666'
                               }}>
                                 Время
                               </Text>
                               <Text style={{ 
                                 fontSize: 14, 
-                                color: theme === 'dark' ? '#FFFFFF' : '#000000',
-                                fontWeight: '600'
+                                color: theme === 'dark' ? '#FFFFFF' : '#000000'
                               }}>
                                 {item.time}
                               </Text>
@@ -940,8 +934,7 @@ export default function EventsManagementScreen() {
                             <View style={{ flex: 1 }}>
                               <Text style={{ 
                                 fontSize: 13, 
-                                color: theme === 'dark' ? '#CCCCCC' : '#666666',
-                                fontWeight: '500'
+                                color: theme === 'dark' ? '#CCCCCC' : '#666666'
                               }}>
                                 Место проведения
                               </Text>
@@ -949,8 +942,7 @@ export default function EventsManagementScreen() {
                                 numberOfLines={2}
                                 style={{ 
                                   fontSize: 14, 
-                                  color: theme === 'dark' ? '#FFFFFF' : '#000000',
-                                  fontWeight: '600',
+                                  color: theme === 'dark' ? '#FFFFFF' : '#000000'
                                 }}
                               >
                                 {item.location}
@@ -981,8 +973,7 @@ export default function EventsManagementScreen() {
                           <Ionicons name="people-outline" size={14} color="#10B981" style={{ marginRight: 4 }} />
                           <ThemedText style={{ 
                             fontSize: 13, 
-                            color: '#10B981',
-                            fontWeight: '600'
+                            color: '#10B981'
                           }}>
                             {item.currentParticipants || 0} участников
                           </ThemedText>
@@ -999,8 +990,7 @@ export default function EventsManagementScreen() {
                           <Ionicons name="person-outline" size={14} color={themeColors.textSecondary} style={{ marginRight: 4 }} />
                           <ThemedText style={{ 
                             fontSize: 13, 
-                            color: themeColors.textSecondary,
-                            fontWeight: '600'
+                            color: themeColors.textSecondary
                           }}>
                             Администратор
                           </ThemedText>
