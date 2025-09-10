@@ -1,0 +1,14 @@
+nohup: ignoring input
+INFO Watching for file changes with StatReloader
+INFO Request: GET /api/auth/test/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'text/plain', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'curl/8.15.0', 'Accept': '*/*', 'Ngrok-Skip-Browser-Warning': 'true', 'X-Forwarded-For': '2a05:45c2:407c:d900:31f8:7264:35fa:ebd9', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https', 'Accept-Encoding': 'gzip'}
+INFO Response: 200
+INFO "GET /api/auth/test/ HTTP/1.1" 200 84
+INFO Request: GET /api/auth/test/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'text/plain', 'Host': 'localhost:8000', 'User-Agent': 'curl/8.15.0', 'Accept': '*/*'}
+INFO Response: 200
+INFO "GET /api/auth/test/ HTTP/1.1" 200 84
+INFO Request: HEAD /api/auth/test/
+INFO Headers: {'Content-Length': '', 'Content-Type': 'text/plain', 'Host': '88aedcf33d45.ngrok-free.app', 'User-Agent': 'curl/8.15.0', 'Accept': '*/*', 'Access-Control-Request-Headers': 'content-type,authorization', 'Access-Control-Request-Method': 'GET', 'Ngrok-Skip-Browser-Warning': 'true', 'Origin': 'https://88aedcf33d45.ngrok-free.app', 'X-Forwarded-For': '2a05:45c2:407c:d900:31f8:7264:35fa:ebd9', 'X-Forwarded-Host': '88aedcf33d45.ngrok-free.app', 'X-Forwarded-Proto': 'https'}
+INFO Response: 200
+INFO "HEAD /api/auth/test/ HTTP/1.1" 200 0
