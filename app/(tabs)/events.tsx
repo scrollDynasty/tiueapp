@@ -130,12 +130,15 @@ export default function EventsScreen() {
         </Animated.View>
 
         {/* Красивый Category Filter */}
-        <Animated.View entering={SlideInRight.delay(200).duration(800)}>
+        <Animated.View 
+          entering={SlideInRight.delay(200).duration(800)}
+          style={{ marginBottom: spacing.lg }}
+        >
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false}
             style={[styles.categoryContainer, { paddingHorizontal: spacing.lg }]}
-            contentContainerStyle={styles.categoryContent}
+            contentContainerStyle={[styles.categoryContent, { paddingBottom: spacing.sm }]}
           >
             {CATEGORIES.map((category, index) => (
               <Animated.View
@@ -148,9 +151,10 @@ export default function EventsScreen() {
                     {
                       backgroundColor: 'transparent',
                       paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md,
-                      paddingVertical: isSmallScreen ? spacing.xs : spacing.sm,
-                      borderRadius: isSmallScreen ? 14 : 16,
-                      marginRight: spacing.xs,
+                      paddingVertical: isSmallScreen ? spacing.sm : spacing.md,
+                      borderRadius: isSmallScreen ? 16 : 18,
+                      marginRight: spacing.sm,
+                      marginBottom: spacing.xs,
                       overflow: 'hidden',
                     }
                   ]}
@@ -168,9 +172,9 @@ export default function EventsScreen() {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md,
-                      paddingVertical: isSmallScreen ? spacing.xs : spacing.sm,
-                      borderRadius: isSmallScreen ? 14 : 16,
+                      paddingHorizontal: isSmallScreen ? spacing.md : spacing.lg,
+                      paddingVertical: isSmallScreen ? spacing.sm : spacing.md,
+                      borderRadius: isSmallScreen ? 16 : 18,
                       borderWidth: 1,
                       borderColor: filter === category.key 
                         ? isDarkMode ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.2)'
@@ -211,9 +215,9 @@ export default function EventsScreen() {
 
         {/* Адаптивный Events List */}
         <ScrollView 
-          style={[styles.eventsList, { paddingHorizontal: spacing.lg }]} 
+          style={[styles.eventsList, { paddingHorizontal: spacing.lg, marginTop: spacing.lg }]} 
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 100 }}
+          contentContainerStyle={{ paddingBottom: 90, paddingTop: 90 }}
         >
           <Animated.View entering={FadeInDown.delay(400).duration(800)}>
             {filteredEvents.length > 0 ? (
@@ -564,10 +568,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   categoryContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   categoryContent: {
-    paddingRight: 20,
+    paddingRight: 24,
+    paddingBottom: 8,
   },
   categoryButton: {
     flexDirection: 'row',
