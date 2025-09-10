@@ -217,7 +217,7 @@ export default function EventsScreen() {
         <ScrollView 
           style={[styles.eventsList, { paddingHorizontal: spacing.lg, marginTop: spacing.lg }]} 
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 90, paddingTop: spacing.sm }}
+          contentContainerStyle={{ paddingBottom: 90, paddingTop: 90 }}
         >
           <Animated.View entering={FadeInDown.delay(400).duration(800)}>
             {filteredEvents.length > 0 ? (

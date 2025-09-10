@@ -162,11 +162,11 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
       {/* Предмет */}
       <ThemedText
         style={{
-          fontSize: 18,
+          fontSize: 16, // Уменьшили с 18 до 16
           fontWeight: '700',
           color: colors.text,
           marginBottom: Spacing.s,
-          lineHeight: 24,
+          lineHeight: 22, // Уменьшили пропорционально
           letterSpacing: -0.3,
         }}
       >
@@ -446,7 +446,7 @@ export default function ScheduleScreen() {
           contentContainerStyle={{
             paddingHorizontal: Spacing.l,
             paddingBottom: 100,
-            paddingTop: Spacing.m,
+            paddingTop: 100,
           }}
         >
           {currentSchedule.length > 0 ? (
