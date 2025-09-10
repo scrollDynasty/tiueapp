@@ -17,11 +17,11 @@ import { router } from 'expo-router';
 import React from 'react';
 import { Dimensions, Pressable, ScrollView, View } from 'react-native';
 import Animated, {
-  FadeInDown,
-  SlideInLeft,
-  SlideInRight,
-  useAnimatedScrollHandler,
-  useSharedValue,
+    FadeInDown,
+    SlideInLeft,
+    SlideInRight,
+    useAnimatedScrollHandler,
+    useSharedValue,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -297,7 +297,7 @@ export default function HomeScreen() {
         }
         contentContainerStyle={{
           paddingHorizontal: horizontalPadding,
-          paddingBottom: 100,
+          paddingBottom: 90,
         }}
       >
 

@@ -19,7 +19,7 @@ const productionConfig: EnvironmentConfig = {
 
 // Определяем, находимся ли мы в режиме разработки
 // __DEV__ автоматически определяется React Native
-const isDevelopment = __DEV__;
+const isDevelopment = false; // Принудительно включаем production для тестирования на устройстве
 
 // Экспортируем конфигурацию в зависимости от окружения
 export const config: EnvironmentConfig = isDevelopment ? developmentConfig : productionConfig;
