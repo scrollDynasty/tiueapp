@@ -12,14 +12,22 @@ const developmentConfig: EnvironmentConfig = {
 };
 
 const productionConfig: EnvironmentConfig = {
-  API_BASE_URL: 'https://88aedcf33d45.ngrok-free.app/api',
-  WS_BASE_URL: 'wss://88aedcf33d45.ngrok-free.app/ws',  
+  API_BASE_URL: 'https://e61fbe15db44.ngrok-free.app/api',
+  WS_BASE_URL: 'wss://e61fbe15db44.ngrok-free.app/ws',  
   DEBUG: false,
 };
 
+// 📝 Инструкция для переключения на ngrok:
+// 1. Установите forceProduction = true выше
+// 2. Обновите URL в productionConfig на ваш текущий ngrok URL
+// 3. Убедитесь, что Django запущен: python manage.py runserver 0.0.0.0:8000
+// 4. Убедитесь, что ngrok запущен: ngrok http 8000
+
 // Определяем, находимся ли мы в режиме разработки
 // __DEV__ автоматически определяется React Native
-const isDevelopment = __DEV__ ?? true; // Автоматическое определение режима разработки
+// Добавляем флаг для принудительного использования продакшн режима
+const forceProduction = false; // Установите true для принудительного использования ngrok
+const isDevelopment = forceProduction ? false : (__DEV__ ?? true);
 
 // Экспортируем конфигурацию в зависимости от окружения
 export const config: EnvironmentConfig = isDevelopment ? developmentConfig : productionConfig;

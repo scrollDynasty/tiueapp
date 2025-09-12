@@ -19,6 +19,10 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# Android (для CNG/Prebuild)
+# /android/
+# /ios/
+
 # Metro
 .metro-health-check*
 
