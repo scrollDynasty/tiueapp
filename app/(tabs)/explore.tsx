@@ -14,7 +14,7 @@ export default function ExploreScreen() {
   const colors = getThemeColors(isDarkMode);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [focusedInput, setFocusedInput] = React.useState<string | null>(null);
-  const { horizontalPadding, cardGap, cardWidth, cardHeight, isSmallScreen, fontSize, spacing } = useResponsive();
+  const { horizontalPadding, cardGap, cardWidth, cardHeight, isSmallScreen, fontSize, spacing, isVerySmallScreen } = useResponsive();
 
   const categories = [
     { 
@@ -78,26 +78,26 @@ export default function ExploreScreen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
-            paddingHorizontal: horizontalPadding,
-            paddingBottom: 120,
+            paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : horizontalPadding,
+            paddingBottom: isVerySmallScreen ? spacing.lg : isSmallScreen ? spacing.xl : 120,
           }}
         >
           {/* Современный заголовок */}
           <Animated.View 
             entering={FadeInUp.duration(600).springify()}
-            style={{ paddingVertical: spacing.lg }}
+            style={{ paddingVertical: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : spacing.lg }}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : spacing.sm }}>
               <View style={{
                 width: 4,
-                height: 32,
+                height: isVerySmallScreen ? 24 : isSmallScreen ? 28 : 32,
                 backgroundColor: colors.primary,
                 borderRadius: 2,
-                marginRight: spacing.sm
+                marginRight: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : spacing.sm
               }} />
               <ThemedText
                 style={{
-                  fontSize: 28,
+                  fontSize: isVerySmallScreen ? fontSize.title : isSmallScreen ? 24 : 28,
                   color: colors.text,
                   letterSpacing: -0.5,
                 }}
@@ -107,10 +107,10 @@ export default function ExploreScreen() {
             </View>
             <ThemedText
               style={{
-                fontSize: 16,
+                fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : 16,
                 color: colors.textSecondary,
-                lineHeight: 24,
-                marginLeft: spacing.lg,
+                lineHeight: isVerySmallScreen ? 18 : isSmallScreen ? 20 : 24,
+                marginLeft: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : spacing.lg,
               }}
             >
               Откройте для себя возможности университета
@@ -122,10 +122,10 @@ export default function ExploreScreen() {
             entering={SlideInDown.delay(200).duration(800).springify()}
             style={{
               backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : colors.surface,
-              borderRadius: 20,
-              paddingHorizontal: spacing.lg,
-              paddingVertical: spacing.md,
-              marginBottom: spacing.xl,
+              borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20,
+              paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : spacing.lg,
+              paddingVertical: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.md,
+              marginBottom: isVerySmallScreen ? spacing.lg : isSmallScreen ? spacing.xl : spacing.xl,
               shadowColor: isDarkMode ? '#000' : '#000',
               shadowOffset: { width: 0, height: 4 },
               shadowOpacity: isDarkMode ? 0.3 : 0.08,
@@ -139,19 +139,19 @@ export default function ExploreScreen() {
           >
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
+                width: isVerySmallScreen ? 36 : isSmallScreen ? 38 : 40,
+                height: isVerySmallScreen ? 36 : isSmallScreen ? 38 : 40,
+                borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 11 : 12,
                 backgroundColor: focusedInput === 'search' 
                   ? colors.primary + '15' 
                   : isDarkMode ? 'rgba(255,255,255,0.08)' : colors.surfaceSecondary,
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginRight: spacing.sm
+                marginRight: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : spacing.sm
               }}>
                 <Ionicons 
                   name="search-outline" 
-                  size={20} 
+                  size={isVerySmallScreen ? 18 : isSmallScreen ? 19 : 20} 
                   color={focusedInput === 'search' ? colors.primary : colors.textSecondary}
                 />
               </View>
@@ -161,7 +161,7 @@ export default function ExploreScreen() {
                 onChangeText={setSearchQuery}
                 style={{
                   flex: 1,
-                  fontSize: 16,
+                  fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : 16,
                   color: colors.text,
                   backgroundColor: 'transparent',
                   borderWidth: 0,
@@ -204,10 +204,10 @@ export default function ExploreScreen() {
 
           {/* Современные категории */}
           <Animated.View entering={FadeInDown.delay(400).duration(800)}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : spacing.lg }}>
               <ThemedText
                 style={{
-                  fontSize: 20,
+                  fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? fontSize.title : 20,
                   color: colors.text,
                   flex: 1,
                 }}
@@ -215,8 +215,8 @@ export default function ExploreScreen() {
                 Категории
               </ThemedText>
               <TouchableOpacity style={{
-                paddingHorizontal: spacing.sm,
-                paddingVertical: spacing.xs,
+                paddingHorizontal: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : spacing.sm,
+                paddingVertical: isVerySmallScreen ? 4 : isSmallScreen ? spacing.xs : spacing.xs,
                 borderRadius: 8,
                 backgroundColor: colors.primary + '10',
               }}>
@@ -239,12 +239,14 @@ export default function ExploreScreen() {
                 >
                   <TouchableOpacity
                     style={{
-                      width: (Dimensions.get('window').width - 48 - spacing.md) / 2,
+                      width: (Dimensions.get('window').width - (isVerySmallScreen ? 32 : isSmallScreen ? 40 : 48) - (isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.md)) / 2,
+                      minHeight: isVerySmallScreen ? 140 : isSmallScreen ? 150 : 160,
                       backgroundColor: 'transparent',
-                      borderRadius: 20,
-                      padding: spacing.lg,
-                      marginBottom: spacing.md,
+                      borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20,
+                      padding: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : spacing.lg,
+                      marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.md,
                       overflow: 'hidden',
+                      justifyContent: 'flex-start',
                       ...Platform.select({
                         ios: {
                           shadowColor: isDarkMode ? '#000' : '#000',
@@ -270,7 +272,7 @@ export default function ExploreScreen() {
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        borderRadius: 20,
+                        borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20,
                         borderWidth: 1,
                         borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
                       }}
@@ -278,46 +280,52 @@ export default function ExploreScreen() {
                       end={{ x: 1, y: 1 }}
                     />
                     
-                    {/* Иконка с градиентным фоном */}
-                    <LinearGradient
-                      colors={[category.color + '20', category.color + '10']}
-                      style={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: 18,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginBottom: spacing.md,
-                        borderWidth: 1,
-                        borderColor: category.color + '30',
-                      }}
-                    >
-                      <Ionicons 
-                        name={category.icon} 
-                        size={28} 
-                        color={category.color}
-                      />
-                    </LinearGradient>
-                    
-                    <ThemedText
-                      style={{
-                        fontSize: 14,
-                        color: colors.text,
-                        marginBottom: 4,
-                        letterSpacing: -0.2,
-                      }}
-                    >
-                      {category.title}
-                    </ThemedText>
-                    <ThemedText
-                      style={{
-                        fontSize: 12,
-                        color: colors.textSecondary,
-                        lineHeight: 16,
-                      }}
-                    >
-                      {category.description}
-                    </ThemedText>
+                    {/* Контейнер содержимого */}
+                    <View style={{ flex: 1, justifyContent: 'space-between' }}>
+                      {/* Иконка с градиентным фоном */}
+                      <LinearGradient
+                        colors={[category.color + '20', category.color + '10']}
+                        style={{
+                          width: isVerySmallScreen ? 48 : isSmallScreen ? 52 : 56,
+                          height: isVerySmallScreen ? 48 : isSmallScreen ? 52 : 56,
+                          borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 17 : 18,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.md,
+                          borderWidth: 1,
+                          borderColor: category.color + '30',
+                        }}
+                      >
+                        <Ionicons 
+                          name={category.icon} 
+                          size={isVerySmallScreen ? 24 : isSmallScreen ? 26 : 28} 
+                          color={category.color}
+                        />
+                      </LinearGradient>
+                      
+                      {/* Текстовый контент */}
+                      <View style={{ flex: 1 }}>
+                        <ThemedText
+                          style={{
+                            fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? 13 : 14,
+                            color: colors.text,
+                            marginBottom: 4,
+                            letterSpacing: -0.2,
+                          }}
+                        >
+                          {category.title}
+                        </ThemedText>
+                        <ThemedText
+                          style={{
+                            fontSize: isVerySmallScreen ? 10 : isSmallScreen ? 11 : 12,
+                            color: colors.textSecondary,
+                            lineHeight: isVerySmallScreen ? 14 : isSmallScreen ? 15 : 16,
+                          }}
+                        >
+                          {category.description}
+                        </ThemedText>
+                      </View>
+                    </View>
                   </TouchableOpacity>
                 </Animated.View>
               ))}
@@ -331,15 +339,15 @@ export default function ExploreScreen() {
           >
             <ThemedText
               style={{
-                fontSize: 20,
+                fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? fontSize.title : 20,
                 color: colors.text,
-                marginBottom: spacing.lg,
+                marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : spacing.lg,
               }}
             >
               Быстрые действия
             </ThemedText>
 
-            <View style={{ gap: spacing.sm }}>
+            <View style={{ gap: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : spacing.sm }}>
               {[
                 { title: 'Расписание экзаменов', icon: 'calendar', color: '#EF4444' },
                 { title: 'Электронная библиотека', icon: 'book', color: '#6366F1' },
@@ -355,8 +363,8 @@ export default function ExploreScreen() {
                       flexDirection: 'row',
                       alignItems: 'center',
                       backgroundColor: 'transparent',
-                      borderRadius: 16,
-                      padding: spacing.lg,
+                      borderRadius: isVerySmallScreen ? 12 : isSmallScreen ? 14 : 16,
+                      padding: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : spacing.lg,
                       overflow: 'hidden',
                       ...Platform.select({
                         ios: {
@@ -383,7 +391,7 @@ export default function ExploreScreen() {
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        borderRadius: 16,
+                        borderRadius: isVerySmallScreen ? 12 : isSmallScreen ? 14 : 16,
                         borderWidth: 1,
                         borderColor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
                       }}
@@ -392,23 +400,23 @@ export default function ExploreScreen() {
                     />
                     
                     <View style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 12,
+                      width: isVerySmallScreen ? 36 : isSmallScreen ? 38 : 40,
+                      height: isVerySmallScreen ? 36 : isSmallScreen ? 38 : 40,
+                      borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 11 : 12,
                       backgroundColor: item.color + '15',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      marginRight: spacing.md,
+                      marginRight: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.md,
                     }}>
                       <Ionicons 
                         name={item.icon as any} 
-                        size={20} 
+                        size={isVerySmallScreen ? 18 : isSmallScreen ? 19 : 20} 
                         color={item.color}
                       />
                     </View>
                     <ThemedText
                       style={{
-                        fontSize: 16,
+                        fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : 16,
                         color: colors.text,
                         flex: 1,
                       }}
@@ -417,7 +425,7 @@ export default function ExploreScreen() {
                     </ThemedText>
                     <Ionicons 
                       name="chevron-forward" 
-                      size={20} 
+                      size={isVerySmallScreen ? 18 : isSmallScreen ? 19 : 20} 
                       color={colors.textSecondary}
                     />
                   </TouchableOpacity>
