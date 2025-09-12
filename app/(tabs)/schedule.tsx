@@ -3,6 +3,7 @@ import { getThemeColors } from '@/constants/Colors';
 import { Colors, Spacing } from '@/constants/DesignTokens';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAppSelector } from '@/hooks/redux';
+import { useResponsive } from '@/hooks/useResponsive';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
@@ -26,6 +27,7 @@ interface ScheduleCardProps {
 function ScheduleCard({ item, index }: ScheduleCardProps) {
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
+  const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'lecture':
@@ -70,9 +72,9 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
       entering={FadeInUp.duration(700).delay(index * 150).springify()}
       style={{
         backgroundColor: 'transparent',
-        borderRadius: 24,
-        padding: Spacing.l,
-        marginBottom: Spacing.m,
+        borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
+        padding: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
+        marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
         overflow: 'hidden',
         shadowColor: isDarkMode ? '#000' : '#000',
         shadowOffset: { width: 0, height: 8 },
@@ -93,7 +95,7 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
           left: 0,
           right: 0,
           bottom: 0,
-          borderRadius: 24,
+          borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
           borderWidth: 1,
           borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
         }}
@@ -102,13 +104,13 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
       />
       
       {/* Время и тип */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.m }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m }}>
         <LinearGradient
           colors={[getTypeColor(item.type) + '20', getTypeColor(item.type) + '10']}
           style={{
-            paddingHorizontal: Spacing.s,
-            paddingVertical: Spacing.xs,
-            borderRadius: 16,
+            paddingHorizontal: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+            paddingVertical: isVerySmallScreen ? 4 : isSmallScreen ? spacing.xs : Spacing.xs,
+            borderRadius: isVerySmallScreen ? 12 : isSmallScreen ? 14 : 16,
             flexDirection: 'row',
             alignItems: 'center',
             borderWidth: 1,
@@ -117,13 +119,13 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
         >
           <Ionicons 
             name={getTypeIcon(item.type) as any} 
-            size={16} 
+            size={isVerySmallScreen ? 14 : isSmallScreen ? 15 : 16} 
             color={getTypeColor(item.type)}
-            style={{ marginRight: 6 }}
+            style={{ marginRight: isVerySmallScreen ? 4 : isSmallScreen ? 5 : 6 }}
           />
           <ThemedText
             style={{
-              fontSize: 12,
+              fontSize: isVerySmallScreen ? 10 : isSmallScreen ? 11 : 12,
               color: getTypeColor(item.type),
               letterSpacing: 0.5,
             }}
@@ -138,16 +140,16 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
             : [colors.primary + '20', colors.primary + '10']
           }
           style={{
-            paddingHorizontal: Spacing.s,
-            paddingVertical: Spacing.xs,
-            borderRadius: 12,
+            paddingHorizontal: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+            paddingVertical: isVerySmallScreen ? 4 : isSmallScreen ? spacing.xs : Spacing.xs,
+            borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 11 : 12,
             borderWidth: 1,
             borderColor: colors.primary + '40',
           }}
         >
           <ThemedText
             style={{
-              fontSize: 14,
+              fontSize: isVerySmallScreen ? 12 : isSmallScreen ? 13 : 14,
               color: colors.primary,
               letterSpacing: -0.2,
             }}
@@ -160,10 +162,10 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
       {/* Предмет */}
       <ThemedText
         style={{
-          fontSize: 16, // Уменьшили с 18 до 16
+          fontSize: isVerySmallScreen ? 14 : isSmallScreen ? 15 : 16,
           color: colors.text,
-          marginBottom: Spacing.s,
-          lineHeight: 22, // Уменьшили пропорционально
+          marginBottom: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+          lineHeight: isVerySmallScreen ? 18 : isSmallScreen ? 20 : 22,
           letterSpacing: -0.3,
         }}
       >
@@ -179,19 +181,19 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
               : ['rgba(99,102,241,0.1)', 'rgba(139,92,246,0.1)']
             }
             style={{
-              width: 36,
-              height: 32,
-              borderRadius: 10,
+              width: isVerySmallScreen ? 30 : isSmallScreen ? 33 : 36,
+              height: isVerySmallScreen ? 28 : isSmallScreen ? 30 : 32,
+              borderRadius: isVerySmallScreen ? 8 : isSmallScreen ? 9 : 10,
               alignItems: 'center',
               justifyContent: 'center',
-              marginRight: Spacing.s,
+              marginRight: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
             }}
           >
-            <Ionicons name="person-outline" size={16} color={isDarkMode ? '#A5B4FC' : '#6366F1'} />
+            <Ionicons name="person-outline" size={isVerySmallScreen ? 14 : isSmallScreen ? 15 : 16} color={isDarkMode ? '#A5B4FC' : '#6366F1'} />
           </LinearGradient>
           <ThemedText
             style={{
-              fontSize: 14,
+              fontSize: isVerySmallScreen ? 12 : isSmallScreen ? 13 : 14,
               color: colors.textSecondary,
               flex: 1,
             }}
@@ -207,19 +209,19 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
               : ['rgba(34,197,94,0.1)', 'rgba(16,185,129,0.1)']
             }
             style={{
-              width: 32,
-              height: 32,
-              borderRadius: 10,
+              width: isVerySmallScreen ? 28 : isSmallScreen ? 30 : 32,
+              height: isVerySmallScreen ? 28 : isSmallScreen ? 30 : 32,
+              borderRadius: isVerySmallScreen ? 8 : isSmallScreen ? 9 : 10,
               alignItems: 'center',
               justifyContent: 'center',
-              marginRight: Spacing.s,
+              marginRight: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
             }}
           >
-            <Ionicons name="location-outline" size={16} color={isDarkMode ? '#10B981' : '#059669'} />
+            <Ionicons name="location-outline" size={isVerySmallScreen ? 14 : isSmallScreen ? 15 : 16} color={isDarkMode ? '#10B981' : '#059669'} />
           </LinearGradient>
           <ThemedText
             style={{
-              fontSize: 14,
+              fontSize: isVerySmallScreen ? 12 : isSmallScreen ? 13 : 14,
               color: colors.text,
             }}
           >
@@ -234,6 +236,7 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
 export default function ScheduleScreen() {
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
+  const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
   const [selectedDay, setSelectedDay] = React.useState<string>('Понедельник');
   const { user } = useAppSelector((state) => state.auth);
 
@@ -367,15 +370,15 @@ export default function ScheduleScreen() {
         <Animated.View 
           entering={SlideInDown.delay(200).duration(800).springify()}
           style={{ 
-            paddingHorizontal: Spacing.l, 
-            marginBottom: Spacing.xl,
-            marginTop: Spacing.l 
+            paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l, 
+            marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.xl,
+            marginTop: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.l 
           }}
         >
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingRight: Spacing.xl }}
+            contentContainerStyle={{ paddingRight: isVerySmallScreen ? spacing.lg : isSmallScreen ? spacing.xl : Spacing.xl }}
           >
             {days.map((day, index) => (
               <Animated.View
@@ -386,8 +389,8 @@ export default function ScheduleScreen() {
                   onPress={() => setSelectedDay(day)}
                   style={{
                     backgroundColor: 'transparent',
-                    borderRadius: 18,
-                    marginRight: Spacing.m,
+                    borderRadius: isVerySmallScreen ? 14 : isSmallScreen ? 16 : 18,
+                    marginRight: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
                     overflow: 'hidden',
                     shadowColor: selectedDay === day ? colors.primary : (isDarkMode ? '#000' : '#000'),
                     shadowOffset: { width: 0, height: selectedDay === day ? 8 : 4 },
@@ -404,9 +407,9 @@ export default function ScheduleScreen() {
                         : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)']
                     }
                     style={{
-                      paddingHorizontal: Spacing.l + 2,
-                      paddingVertical: Spacing.m,
-                      borderRadius: 18,
+                      paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l + 2,
+                      paddingVertical: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+                      borderRadius: isVerySmallScreen ? 14 : isSmallScreen ? 16 : 18,
                       borderWidth: 1,
                       borderColor: selectedDay === day 
                         ? colors.primary + '40'
@@ -417,7 +420,7 @@ export default function ScheduleScreen() {
                   >
                     <ThemedText
                       style={{
-                        fontSize: 14,
+                        fontSize: isVerySmallScreen ? 12 : isSmallScreen ? 13 : 14,
                         color: selectedDay === day ? colors.surface : colors.text,
                         letterSpacing: -0.1,
                       }}
@@ -436,9 +439,9 @@ export default function ScheduleScreen() {
           style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
-            paddingHorizontal: Spacing.l,
-            paddingBottom: 100,
-            paddingTop: 100,
+            paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
+            paddingBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : 100,
+            paddingTop: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : 100,
           }}
         >
           {currentSchedule.length > 0 ? (
