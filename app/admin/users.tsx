@@ -1296,6 +1296,8 @@ export default function UsersManagementScreen() {
                 ))}
               </View>
             </View>
+            
+            {renderRoleSpecificFields()}
 
             {/* Кнопка создания */}
             <Pressable
