@@ -11,6 +11,7 @@
     "lint": "expo lint"
   },
   "dependencies": {
+    "@expo/metro-config": "~0.20.0",
     "@expo/vector-icons": "^14.1.0",
     "@react-native-async-storage/async-storage": "2.1.2",
     "@react-native-community/cli": "^20.0.1",
@@ -63,6 +64,12 @@
     "eslint": "^9.25.0",
     "eslint-config-expo": "~9.2.0",
     "typescript": "~5.8.3"
+  },
+  "overrides": {
+    "metro": "0.82.5",
+    "metro-cache": "0.82.5",
+    "metro-config": "0.82.5",
+    "metro-transform-worker": "0.82.5"
   },
   "private": true
 }
