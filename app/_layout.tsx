@@ -62,6 +62,7 @@ export default function RootLayout() {
                   <Stack.Screen name="debug" options={{ headerShown: false }} />
                   <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                   <Stack.Screen name="news" options={{ headerShown: false }} />
+                  <Stack.Screen name="events" options={{ headerShown: false }} />
                   <Stack.Screen name="+not-found" />
                 </Stack>
               </AuthGuard>

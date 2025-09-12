@@ -34,11 +34,25 @@ class CorsMiddleware:
 
     def add_cors_headers(self, response, request):
         """Добавляем CORS заголовки к ответу"""
-        # Разрешаем все домены для разработки
+        # Получаем origin из запроса
         origin = request.META.get('HTTP_ORIGIN')
-        if origin:
+        
+        # Список разрешенных доменов
+        allowed_origins = [
+            'http://localhost:3000',
+            'http://127.0.0.1:3000',
+            'http://localhost:8081',
+            'http://127.0.0.1:8081',
+            'https://e61fbe15db44.ngrok-free.app',  # Ваш ngrok домен
+        ]
+        
+        # Проверяем ngrok домены (они могут меняться)
+        is_ngrok = origin and ('.ngrok-free.app' in origin or '.ngrok.io' in origin)
+        
+        if origin and (origin in allowed_origins or is_ngrok):
             response['Access-Control-Allow-Origin'] = origin
         else:
+            # Для разработки разрешаем все
             response['Access-Control-Allow-Origin'] = '*'
         
         # Разрешаем credentials

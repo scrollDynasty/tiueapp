@@ -30,7 +30,20 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-ih8*8x#9kf=@0s7ry9$2u
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
+# Настройки для ngrok и продакшн
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '0.0.0.0',
+    'e61fbe15db44.ngrok-free.app',  # Ваш ngrok домен
+    '*.ngrok-free.app',  # На случай если домен изменится
+    '*.ngrok.io',  # Старый формат ngrok
+]
+
+# Добавляем дополнительные хосты из переменных окружения если есть
+additional_hosts = config('ALLOWED_HOSTS', default='').split(',')
+if additional_hosts and additional_hosts != ['']:
+    ALLOWED_HOSTS.extend(additional_hosts)
 
 
 # Application definition
