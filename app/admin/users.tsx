@@ -4,12 +4,13 @@ import { getThemeColors } from '@/constants/Colors';
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { useResponsive } from '@/hooks/useResponsive';
 import { authApi } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Switch, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -196,6 +197,7 @@ const PasswordResetModal = React.memo(({
 export default function UsersManagementScreen() {
   const { theme } = useTheme();
   const themeColors = getThemeColors(theme === 'dark');
+  const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
   
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
@@ -231,35 +233,87 @@ export default function UsersManagementScreen() {
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [userToDelete, setUserToDelete] = React.useState<UserProfile | null>(null);
 
-  // Загружаем пользователей при загрузке компонента
-  React.useEffect(() => {
-    loadUsers();
+  // Функции управления ошибками и API
+  const handleApiError = React.useCallback((error: any, operation: string) => {
+    console.error(`${operation} error:`, error);
+    const message = error?.response?.data?.message || 
+                    error?.message || 
+                    `Произошла ошибка при ${operation.toLowerCase()}`;
+    Alert.alert('Ошибка', message);
   }, []);
 
-  const loadUsers = async () => {
+  // Responsive helper function
+  const getResponsiveValue = React.useCallback((small: number, medium: number, large: number) => {
+    if (isVerySmallScreen) return small;
+    if (isSmallScreen) return medium;
+    return large;
+  }, [isVerySmallScreen, isSmallScreen]);
+
+  // Мемоизированные responsive стили
+  const responsiveStyles = React.useMemo(() => ({
+    cardPadding: getResponsiveValue(spacing.sm, spacing.md, Spacing.m),
+    cardRadius: getResponsiveValue(10, 11, Radius.card),
+    fontSize: getResponsiveValue(fontSize.small, fontSize.body, Typography.body.fontSize),
+    buttonSize: getResponsiveValue(32, 34, 36),
+    borderRadius: getResponsiveValue(8, 10, Radius.icon),
+  }), [getResponsiveValue, spacing, fontSize]);
+
+  // Загружаем пользователей при загрузке компонента с memory leak protection
+  React.useEffect(() => {
+    let isMounted = true;
+    
+    const loadUsers = async () => {
+      if (!isMounted) return;
+      setIsLoadingUsers(true);
+      try {
+        const token = await AsyncStorage.getItem('authToken');
+        const response = await authApi.getUsers();
+        
+        if (isMounted && response.success && response.data) {
+          const usersData = Array.isArray(response.data) ? response.data : [];
+          setUsers(usersData);
+        } else if (isMounted) {
+          setUsers([]);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setUsers([]);
+          console.error('Load users error:', error);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingUsers(false);
+        }
+      }
+    };
+
+    loadUsers();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Функция для повторной загрузки пользователей
+  const loadUsers = React.useCallback(async () => {
     setIsLoadingUsers(true);
     try {
-      
-      // Проверим, есть ли токен
       const token = await AsyncStorage.getItem('authToken');
-      
       const response = await authApi.getUsers();
       
       if (response.success && response.data) {
-        // Убеждаемся, что данные - это массив
         const usersData = Array.isArray(response.data) ? response.data : [];
         setUsers(usersData);
       } else {
-        setUsers([]); // Устанавливаем пустой массив при ошибке
-        // Не показываем alert, только логируем
+        setUsers([]);
       }
     } catch (error) {
-      setUsers([]); // Устанавливаем пустой массив при ошибке
-      // Не показываем alert, только логируем
+      setUsers([]);
+      handleApiError(error, 'загрузке пользователей');
     } finally {
       setIsLoadingUsers(false);
     }
-  };
+  }, [handleApiError]);
 
   // Фильтрация пользователей
   const filteredUsers = React.useMemo(() => {
@@ -281,8 +335,8 @@ export default function UsersManagementScreen() {
     });
   }, [users, searchQuery, filterRole]);
 
-  // Компонент карточки пользователя
-  const UserCard = ({ 
+  // Компонент карточки пользователя с мемоизацией
+  const UserCard = React.memo(({ 
     user, 
     onEdit,
     onToggleStatus, 
@@ -296,147 +350,211 @@ export default function UsersManagementScreen() {
     onDelete: (userId: string) => void;
     onResetPassword: (userId: string) => void;
     animationDelay?: number;
-  }) => (
-    <Animated.View entering={FadeInDown.delay(animationDelay)}>
-      <View style={{
-        backgroundColor: Colors.surface,
-        borderRadius: Radius.card,
-        padding: Spacing.m,
-        marginBottom: Spacing.s,
-        borderLeftWidth: 4,
-        borderLeftColor: user.role === 'admin' ? '#EF4444' : user.role === 'professor' ? '#3B82F6' : '#10B981',
-        ...Shadows.card,
-      }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.xs }}>
-              <ThemedText style={{ ...Typography.titleH2, color: Colors.textPrimary, fontSize: 16 }}>
-                {user.first_name} {user.last_name}
-              </ThemedText>
-              {!user.is_active && (
-                <View style={{
-                  backgroundColor: '#FEE2E2',
-                  paddingHorizontal: 6,
-                  paddingVertical: 2,
-                  borderRadius: 10,
-                  marginLeft: 8,
+  }) => {
+    // Мемоизируем обработчики для избежания re-render
+    const handleEdit = React.useCallback(() => onEdit(user), [onEdit, user]);
+    const handleToggleStatus = React.useCallback(() => onToggleStatus(user.id), [onToggleStatus, user.id]);
+    const handleDelete = React.useCallback(() => onDelete(user.id), [onDelete, user.id]);
+    const handleResetPassword = React.useCallback(() => onResetPassword(user.id), [onResetPassword, user.id]);
+
+    return (
+      <Animated.View entering={FadeInDown.delay(animationDelay)}>
+        <View style={{
+          backgroundColor: Colors.surface,
+          borderRadius: responsiveStyles.cardRadius,
+          padding: responsiveStyles.cardPadding,
+          marginBottom: getResponsiveValue(spacing.xs, spacing.sm, Spacing.s),
+          borderLeftWidth: getResponsiveValue(3, 3.5, 4),
+          borderLeftColor: user.role === 'admin' ? '#EF4444' : user.role === 'professor' ? '#3B82F6' : '#10B981',
+          ...Shadows.card,
+        }}>
+          <View style={{ 
+            flexDirection: 'row', 
+            justifyContent: 'space-between', 
+            alignItems: 'flex-start' 
+          }}>
+            <View style={{ flex: 1 }}>
+              <View style={{ 
+                flexDirection: 'row', 
+                alignItems: 'center', 
+                marginBottom: getResponsiveValue(2, 4, Spacing.xs)
+              }}>
+                <ThemedText style={{ 
+                  ...Typography.titleH2, 
+                  color: Colors.textPrimary, 
+                  fontSize: getResponsiveValue(fontSize.body, 15, 16)
                 }}>
-                  <ThemedText style={{ fontSize: 10, color: '#DC2626' }}>
-                    НЕАКТИВЕН
+                  {user.first_name} {user.last_name}
+                </ThemedText>
+                {!user.is_active && (
+                  <View style={{
+                    backgroundColor: '#FEE2E2',
+                    paddingHorizontal: getResponsiveValue(4, 5, 6),
+                    paddingVertical: getResponsiveValue(1, 1.5, 2),
+                    borderRadius: getResponsiveValue(8, 9, 10),
+                    marginLeft: getResponsiveValue(6, 7, 8),
+                  }}>
+                    <ThemedText style={{ 
+                      fontSize: getResponsiveValue(8, 9, 10), 
+                      color: '#DC2626' 
+                    }}>
+                      НЕАКТИВЕН
+                    </ThemedText>
+                  </View>
+                )}
+              </View>
+              
+              <ThemedText style={{ 
+                ...Typography.body, 
+                color: Colors.textSecondary, 
+                marginBottom: getResponsiveValue(2, 4, Spacing.xs)
+              }}>
+                @{user.username} • {user.email}
+              </ThemedText>
+              
+              <View style={{ 
+                flexDirection: 'row', 
+                alignItems: 'center', 
+                marginBottom: getResponsiveValue(2, 4, Spacing.xs)
+              }}>
+                <View style={{
+                  backgroundColor: user.role === 'admin' ? '#FEE2E2' : user.role === 'professor' ? '#DBEAFE' : '#D1FAE5',
+                  paddingHorizontal: getResponsiveValue(6, 7, 8),
+                  paddingVertical: getResponsiveValue(2, 3, 4),
+                  borderRadius: getResponsiveValue(10, 11, 12),
+                }}>
+                  <ThemedText style={{
+                    fontSize: getResponsiveValue(10, 11, 12),
+                    color: user.role === 'admin' ? '#DC2626' : user.role === 'professor' ? '#2563EB' : '#059669',
+                  }}>
+                    {user.role === 'admin' ? 'Администратор' : user.role === 'professor' ? 'Преподаватель' : 'Студент'}
                   </ThemedText>
                 </View>
+              </View>
+
+              {/* Дополнительная информация в зависимости от роли */}
+              {user.role === 'student' && (user.faculty || user.group) && (
+                <ThemedText style={{ 
+                  ...Typography.caption, 
+                  color: Colors.textSecondary,
+                  fontSize: getResponsiveValue(fontSize.small, Typography.caption.fontSize, Typography.caption.fontSize)
+                }}>
+                  {user.faculty && `${user.faculty}`}
+                  {user.course && ` • ${user.course} курс`}
+                  {user.group && ` • группа ${user.group}`}
+                </ThemedText>
+              )}
+              
+              {user.role === 'professor' && user.department && (
+                <ThemedText style={{ 
+                  ...Typography.caption, 
+                  color: Colors.textSecondary,
+                  fontSize: getResponsiveValue(fontSize.small, Typography.caption.fontSize, Typography.caption.fontSize)
+                }}>
+                  {user.department}
+                </ThemedText>
               )}
             </View>
-            
-            <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: 2 }}>
-              @{user.username} • {user.email}
-            </ThemedText>
-            
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.xs }}>
-              <View style={{
-                backgroundColor: user.role === 'admin' ? '#FEE2E2' : user.role === 'professor' ? '#DBEAFE' : '#D1FAE5',
-                paddingHorizontal: 8,
-                paddingVertical: 4,
-                borderRadius: 12,
-              }}>
-                <ThemedText style={{
-                  fontSize: 12,
-                  color: user.role === 'admin' ? '#DC2626' : user.role === 'professor' ? '#2563EB' : '#059669',
-                }}>
-                  {user.role === 'admin' ? 'Администратор' : user.role === 'professor' ? 'Преподаватель' : 'Студент'}
-                </ThemedText>
-              </View>
+
+            {/* Кнопки управления */}
+            <View style={{ 
+              flexDirection: 'row', 
+              gap: getResponsiveValue(6, 7, 8)
+            }}>
+              {/* Переключатель активности */}
+              <Pressable
+                onPress={handleToggleStatus}
+                style={{
+                  width: responsiveStyles.buttonSize,
+                  height: responsiveStyles.buttonSize,
+                  borderRadius: responsiveStyles.buttonSize / 2,
+                  backgroundColor: user.is_active ? '#D1FAE5' : '#FEE2E2',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Ionicons 
+                  name={user.is_active ? 'checkmark' : 'close'} 
+                  size={getResponsiveValue(16, 17, 18)} 
+                  color={user.is_active ? '#059669' : '#DC2626'} 
+                />
+              </Pressable>
+
+              {/* Кнопка редактирования */}
+              <Pressable
+                onPress={handleEdit}
+                style={{
+                  width: responsiveStyles.buttonSize,
+                  height: responsiveStyles.buttonSize,
+                  borderRadius: responsiveStyles.buttonSize / 2,
+                  backgroundColor: '#DBEAFE',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Ionicons 
+                  name="create-outline" 
+                  size={getResponsiveValue(16, 17, 18)} 
+                  color="#2563EB" 
+                />
+              </Pressable>
+
+              {/* Кнопка сброса пароля */}
+              <Pressable
+                onPress={handleResetPassword}
+                style={{
+                  width: responsiveStyles.buttonSize,
+                  height: responsiveStyles.buttonSize,
+                  borderRadius: responsiveStyles.buttonSize / 2,
+                  backgroundColor: '#FEF3C7',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Ionicons 
+                  name="key-outline" 
+                  size={getResponsiveValue(16, 17, 18)} 
+                  color="#D97706" 
+                />
+              </Pressable>
+
+              {/* Кнопка удаления */}
+              <Pressable
+                onPress={handleDelete}
+                style={{
+                  width: responsiveStyles.buttonSize,
+                  height: responsiveStyles.buttonSize,
+                  borderRadius: responsiveStyles.buttonSize / 2,
+                  backgroundColor: '#FEE2E2',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Ionicons 
+                  name="trash-outline" 
+                  size={getResponsiveValue(16, 17, 18)} 
+                  color="#DC2626" 
+                />
+              </Pressable>
             </View>
-
-            {/* Дополнительная информация в зависимости от роли */}
-            {user.role === 'student' && (user.faculty || user.group) && (
-              <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary }}>
-                {user.faculty && `${user.faculty}`}
-                {user.course && ` • ${user.course} курс`}
-                {user.group && ` • группа ${user.group}`}
-              </ThemedText>
-            )}
-            
-            {user.role === 'professor' && user.department && (
-              <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary }}>
-                {user.department}
-              </ThemedText>
-            )}
-          </View>
-
-          {/* Кнопки управления */}
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            {/* Переключатель активности */}
-            <Pressable
-              onPress={() => onToggleStatus(user.id)}
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: user.is_active ? '#D1FAE5' : '#FEE2E2',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Ionicons 
-                name={user.is_active ? 'checkmark' : 'close'} 
-                size={18} 
-                color={user.is_active ? '#059669' : '#DC2626'} 
-              />
-            </Pressable>
-
-            {/* Кнопка редактирования */}
-            <Pressable
-              onPress={() => onEdit(user)}
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: '#DBEAFE',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Ionicons name="create-outline" size={18} color="#2563EB" />
-            </Pressable>
-
-            {/* Кнопка сброса пароля */}
-            <Pressable
-              onPress={() => {
-                onResetPassword(user.id);
-              }}
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: '#FEF3C7',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Ionicons name="key-outline" size={18} color="#D97706" />
-            </Pressable>
-
-            {/* Кнопка удаления */}
-            <Pressable
-              onPress={() => onDelete(user.id)}
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: '#FEE2E2',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Ionicons name="trash-outline" size={18} color="#DC2626" />
-            </Pressable>
           </View>
         </View>
-      </View>
-    </Animated.View>
-  );
-
+      </Animated.View>
+    );
+  }, (prevProps, nextProps) => {
+    // Кастомное сравнение для оптимизации
+    return (
+      prevProps.user.id === nextProps.user.id &&
+      prevProps.user.is_active === nextProps.user.is_active &&
+      prevProps.user.first_name === nextProps.user.first_name &&
+      prevProps.user.last_name === nextProps.user.last_name &&
+      prevProps.user.role === nextProps.user.role &&
+      prevProps.user.faculty === nextProps.user.faculty &&
+      prevProps.user.course === nextProps.user.course &&
+      prevProps.user.group === nextProps.user.group &&
+      prevProps.user.department === nextProps.user.department
+    );
+  });
   // Проверяем права доступа
   if (!user || user.role !== 'admin') {
     return (
@@ -466,7 +584,7 @@ export default function UsersManagementScreen() {
   }
 
   // Функция очистки формы
-  const clearForm = () => {
+  const clearForm = React.useCallback(() => {
     setFirstName('');
     setLastName('');
     setUsername('');
@@ -478,7 +596,165 @@ export default function UsersManagementScreen() {
     setGroup('');
     setDepartment('');
     setEditingUser(null);
-  };
+  }, []);
+
+  // Очищаем пароль при переключении в режим редактирования
+  React.useEffect(() => {
+    if (editingUser) {
+      setPassword(''); // Очищаем пароль при редактировании
+    }
+  }, [editingUser]);
+
+  // Функция валидации формы
+  const validateForm = React.useCallback(() => {
+    // Базовая валидация
+    if (!firstName.trim() || !lastName.trim() || !username.trim() || !email.trim()) {
+      Alert.alert('Ошибка', 'Заполните все обязательные поля');
+      return false;
+    }
+
+    // Валидация пароля для новых пользователей
+    if (!editingUser && !password.trim()) {
+      Alert.alert('Ошибка', 'Введите пароль для нового пользователя');
+      return false;
+    }
+
+    if (!editingUser && password.trim().length < 6) {
+      Alert.alert('Ошибка', 'Пароль должен содержать минимум 6 символов');
+      return false;
+    }
+
+    // Email валидация
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      Alert.alert('Ошибка', 'Введите корректный email адрес');
+      return false;
+    }
+
+    // Валидация для студентов
+    if (role === 'student' && !faculty.trim()) {
+      Alert.alert('Ошибка', 'Укажите факультет для студента');
+      return false;
+    }
+
+    if (role === 'student' && course && (isNaN(parseInt(course)) || parseInt(course) < 1 || parseInt(course) > 6)) {
+      Alert.alert('Ошибка', 'Курс должен быть от 1 до 6');
+      return false;
+    }
+
+    // Валидация для преподавателей
+    if (role === 'professor' && !department.trim()) {
+      Alert.alert('Ошибка', 'Укажите кафедру для преподавателя');
+      return false;
+    }
+
+    return true;
+  }, [firstName, lastName, username, email, password, role, faculty, course, department, editingUser]);
+
+  // Функция для рендеринга полей в зависимости от роли
+  const renderRoleSpecificFields = React.useCallback(() => {
+    const inputStyle = {
+      backgroundColor: Colors.surfaceSubtle,
+      borderRadius: responsiveStyles.borderRadius,
+      padding: responsiveStyles.cardPadding,
+      fontSize: responsiveStyles.fontSize,
+      color: Colors.textPrimary,
+      borderWidth: 1,
+      borderColor: Colors.strokeSoft,
+    };
+
+    if (role === 'student') {
+      return (
+        <>
+          <View style={{ marginBottom: Spacing.m }}>
+            <ThemedText style={{ 
+              ...Typography.body, 
+              color: Colors.textSecondary, 
+              marginBottom: Spacing.s,
+              fontSize: responsiveStyles.fontSize
+            }}>
+              Факультет *
+            </ThemedText>
+            <TextInput
+              value={faculty}
+              onChangeText={setFaculty}
+              placeholder="Введите факультет"
+              style={inputStyle}
+              placeholderTextColor={Colors.textSecondary}
+            />
+          </View>
+          
+          <View style={{ 
+            flexDirection: isVerySmallScreen ? 'column' : 'row', 
+            gap: isVerySmallScreen ? spacing.sm : Spacing.m, 
+            marginBottom: Spacing.m 
+          }}>
+            <View style={{ flex: 1 }}>
+              <ThemedText style={{ 
+                ...Typography.body, 
+                color: Colors.textSecondary, 
+                marginBottom: Spacing.s,
+                fontSize: responsiveStyles.fontSize
+              }}>
+                Курс
+              </ThemedText>
+              <TextInput
+                value={course}
+                onChangeText={setCourse}
+                placeholder="1-6"
+                keyboardType="numeric"
+                maxLength={1}
+                style={inputStyle}
+                placeholderTextColor={Colors.textSecondary}
+              />
+            </View>
+            
+            <View style={{ flex: 1 }}>
+              <ThemedText style={{ 
+                ...Typography.body, 
+                color: Colors.textSecondary, 
+                marginBottom: Spacing.s,
+                fontSize: responsiveStyles.fontSize
+              }}>
+                Группа
+              </ThemedText>
+              <TextInput
+                value={group}
+                onChangeText={setGroup}
+                placeholder="Введите группу"
+                style={inputStyle}
+                placeholderTextColor={Colors.textSecondary}
+              />
+            </View>
+          </View>
+        </>
+      );
+    }
+    
+    if (role === 'professor') {
+      return (
+        <View style={{ marginBottom: Spacing.m }}>
+          <ThemedText style={{ 
+            ...Typography.body, 
+            color: Colors.textSecondary, 
+            marginBottom: Spacing.s,
+            fontSize: responsiveStyles.fontSize
+          }}>
+            Кафедра *
+          </ThemedText>
+          <TextInput
+            value={department}
+            onChangeText={setDepartment}
+            placeholder="Введите кафедру"
+            style={inputStyle}
+            placeholderTextColor={Colors.textSecondary}
+          />
+        </View>
+      );
+    }
+    
+    return null;
+  }, [role, faculty, course, group, department, responsiveStyles, isVerySmallScreen, spacing]);
 
   // Функция сброса пароля
   const handleResetPassword = React.useCallback((userId: string) => {
@@ -538,17 +814,8 @@ export default function UsersManagementScreen() {
     setResetPasswordUser(null);
   }, []);
 
-  const handleCreateUser = async () => {
-    
-    if (!firstName.trim() || !lastName.trim() || !username.trim() || !email.trim()) {
-      Alert.alert('Ошибка', 'Заполните все обязательные поля');
-      return;
-    }
-
-    if (!editingUser && !password.trim()) {
-      Alert.alert('Ошибка', 'Введите пароль для нового пользователя');
-      return;
-    }
+  const handleCreateUser = React.useCallback(async () => {
+    if (!validateForm()) return;
 
     setIsLoading(true);
     
@@ -560,10 +827,10 @@ export default function UsersManagementScreen() {
         email: email.trim(),
         role: role,
         is_active: true,
-        faculty: role === 'student' ? faculty : undefined,
+        faculty: role === 'student' ? faculty.trim() : undefined,
         course: role === 'student' && course ? parseInt(course) : undefined,
-        group: role === 'student' ? group : undefined,
-        department: role === 'professor' ? department : undefined,
+        group: role === 'student' ? group.trim() : undefined,
+        department: role === 'professor' ? department.trim() : undefined,
       };
 
 
@@ -607,12 +874,11 @@ export default function UsersManagementScreen() {
       clearForm();
       setShowCreateForm(false);
     } catch (error) {
-      console.error('Error managing user:', error);
-      Alert.alert('Ошибка', 'Не удалось сохранить пользователя');
+      handleApiError(error, editingUser ? 'обновлении пользователя' : 'создании пользователя');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [validateForm, firstName, lastName, username, email, role, faculty, course, group, department, password, editingUser, clearForm, handleApiError, loadUsers]);
 
   const handleEditUser = (user: UserProfile) => {
     setEditingUser(user);
@@ -694,67 +960,100 @@ export default function UsersManagementScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
       <ScrollView 
         showsVerticalScrollIndicator={false} 
-        contentContainerStyle={{ padding: Spacing.l }}
+        contentContainerStyle={{ 
+          padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.l,
+          paddingBottom: isVerySmallScreen ? 120 : isSmallScreen ? 130 : 140,
+        }}
       >
-        {/* Заголовок */}
+        {/* Заголовок с кнопкой назад */}
         <Animated.View entering={FadeInDown.duration(500)}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.l }}>
-            <Pressable
-              onPress={() => router.back()}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: Colors.surface,
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginRight: Spacing.m,
-                ...Shadows.card,
-              }}
-            >
-              <Ionicons name="chevron-back" size={24} color={Colors.brandPrimary} />
-            </Pressable>
-            
-            <View style={{ flex: 1 }}>
-              <ThemedText style={{ ...Typography.displayH1, color: Colors.textPrimary }}>
-                Управление пользователями
-              </ThemedText>
-              <ThemedText style={{ ...Typography.body, color: Colors.textSecondary }}>
-                {users.length} пользователей в системе
-              </ThemedText>
-            </View>
+          <View style={{ 
+            marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
+            paddingTop: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : spacing.md,
+          }}>
+            <View style={{ 
+              flexDirection: 'row', 
+              justifyContent: 'space-between', 
+              alignItems: 'flex-start',
+              marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+            }}>
+              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+                {/* Кнопка назад */}
+                <Pressable
+                  onPress={() => router.back()}
+                  style={{
+                    width: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
+                    height: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
+                    borderRadius: isVerySmallScreen ? 18 : isSmallScreen ? 20 : 22,
+                    backgroundColor: Colors.surface,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginRight: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+                    ...Shadows.card,
+                  }}
+                >
+                  <Ionicons 
+                    name="arrow-back" 
+                    size={isVerySmallScreen ? 18 : isSmallScreen ? 20 : 24} 
+                    color={Colors.textPrimary} 
+                  />
+                </Pressable>
 
-            {/* Кнопка добавления пользователя */}
-            <Pressable
-              onPress={() => {
-                setShowCreateForm(!showCreateForm);
-                if (showCreateForm) {
-                  clearForm();
-                }
-              }}
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: 24,
-                backgroundColor: Colors.brandPrimary,
-                justifyContent: 'center',
-                alignItems: 'center',
-                ...Shadows.card,
-              }}
-            >
-              <Ionicons 
-                name={showCreateForm ? "close" : "add"} 
-                size={24} 
-                color={Colors.surface} 
-              />
-            </Pressable>
+                <View style={{ flex: 1 }}>
+                  <ThemedText style={{ 
+                    ...Typography.displayH1, 
+                    color: Colors.textPrimary,
+                    fontSize: isVerySmallScreen ? fontSize.header : isSmallScreen ? 22 : Typography.displayH1.fontSize,
+                    marginBottom: isVerySmallScreen ? 2 : isSmallScreen ? 4 : 6,
+                  }}>
+                    Управление пользователями
+                  </ThemedText>
+                  <ThemedText style={{ 
+                    ...Typography.body, 
+                    color: Colors.textSecondary,
+                    fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : Typography.body.fontSize
+                  }}>
+                    {users.length} {users.length === 1 ? 'пользователь' : users.length < 5 ? 'пользователя' : 'пользователей'} в системе
+                  </ThemedText>
+                </View>
+              </View>
+
+              {/* Компактная кнопка добавления */}
+              <Pressable
+                onPress={() => {
+                  setShowCreateForm(!showCreateForm);
+                  if (showCreateForm) {
+                    clearForm();
+                  }
+                }}
+                style={{
+                  width: isVerySmallScreen ? 44 : isSmallScreen ? 46 : 48,
+                  height: isVerySmallScreen ? 44 : isSmallScreen ? 46 : 48,
+                  borderRadius: isVerySmallScreen ? 22 : isSmallScreen ? 23 : 24,
+                  backgroundColor: Colors.brandPrimary,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  ...Shadows.card,
+                }}
+              >
+                <Ionicons 
+                  name={showCreateForm ? "close" : "add"} 
+                  size={isVerySmallScreen ? 20 : isSmallScreen ? 22 : 24} 
+                  color={Colors.surface} 
+                />
+              </Pressable>
+            </View>
           </View>
         </Animated.View>
 
         {/* Основная кнопка добавления пользователя */}
         {!showCreateForm && (
           <Animated.View entering={FadeInDown.duration(500).delay(300)}>
-            <View style={{ flexDirection: 'row', gap: Spacing.m, marginBottom: Spacing.l }}>
+            <View style={{ 
+              flexDirection: 'row', 
+              gap: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m, 
+              marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l 
+            }}>
               <Pressable
                 onPress={() => {
                   setShowCreateForm(true);
@@ -766,21 +1065,22 @@ export default function UsersManagementScreen() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  paddingVertical: Spacing.l,
-                  paddingHorizontal: Spacing.l,
-                  borderRadius: Radius.card,
+                  paddingVertical: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
+                  paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
+                  borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 11 : Radius.card,
                   ...Shadows.card,
                 }}
               >
                 <Ionicons 
                   name="person-add" 
-                  size={24} 
+                  size={isVerySmallScreen ? 20 : isSmallScreen ? 22 : 24} 
                   color={Colors.surface} 
-                  style={{ marginRight: Spacing.s }}
+                  style={{ marginRight: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s }}
                 />
                 <ThemedText style={{
                   ...Typography.titleH2,
                   color: Colors.surface,
+                  fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? fontSize.title : Typography.titleH2.fontSize,
                 }}>
                   Добавить
                 </ThemedText>
@@ -792,21 +1092,35 @@ export default function UsersManagementScreen() {
         {/* Форма создания пользователя */}
         {showCreateForm && (
           <Animated.View entering={FadeInDown.duration(500).delay(200)}>
-            <ThemedText style={{ ...Typography.titleH2, color: Colors.textPrimary, marginBottom: Spacing.m }}>
+            <ThemedText style={{ 
+              ...Typography.titleH2, 
+              color: Colors.textPrimary, 
+              marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+              fontSize: isVerySmallScreen ? fontSize.title : isSmallScreen ? Typography.titleH2.fontSize : Typography.titleH2.fontSize
+            }}>
               {editingUser ? 'Редактировать пользователя' : 'Создать нового пользователя'}
             </ThemedText>
           
           <View style={{
             backgroundColor: Colors.surface,
-            borderRadius: Radius.card,
-            padding: Spacing.l,
-            marginBottom: Spacing.l,
+            borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 11 : Radius.card,
+            padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.l,
+            marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
             ...Shadows.card,
           }}>
             {/* Имя и фамилия */}
-            <View style={{ flexDirection: 'row', gap: Spacing.m, marginBottom: Spacing.m }}>
+            <View style={{ 
+              flexDirection: isVerySmallScreen ? 'column' : 'row', 
+              gap: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m, 
+              marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m 
+            }}>
               <View style={{ flex: 1 }}>
-                <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
+                <ThemedText style={{ 
+                  ...Typography.body, 
+                  color: Colors.textSecondary, 
+                  marginBottom: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+                  fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : Typography.body.fontSize
+                }}>
                   Имя
                 </ThemedText>
                 <TextInput
@@ -815,9 +1129,9 @@ export default function UsersManagementScreen() {
                   placeholder="Введите имя"
                   style={{
                     backgroundColor: Colors.surfaceSubtle,
-                    borderRadius: Radius.icon,
-                    padding: Spacing.m,
-                    fontSize: 16,
+                    borderRadius: isVerySmallScreen ? 8 : isSmallScreen ? 10 : Radius.icon,
+                    padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+                    fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? 15 : 16,
                     color: Colors.textPrimary,
                     borderWidth: 1,
                     borderColor: Colors.strokeSoft,
@@ -827,7 +1141,12 @@ export default function UsersManagementScreen() {
               </View>
               
               <View style={{ flex: 1 }}>
-                <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
+                <ThemedText style={{ 
+                  ...Typography.body, 
+                  color: Colors.textSecondary, 
+                  marginBottom: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+                  fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : Typography.body.fontSize
+                }}>
                   Фамилия
                 </ThemedText>
                 <TextInput
@@ -836,9 +1155,9 @@ export default function UsersManagementScreen() {
                   placeholder="Введите фамилию"
                   style={{
                     backgroundColor: Colors.surfaceSubtle,
-                    borderRadius: Radius.icon,
-                    padding: Spacing.m,
-                    fontSize: 16,
+                    borderRadius: isVerySmallScreen ? 8 : isSmallScreen ? 10 : Radius.icon,
+                    padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+                    fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? 15 : 16,
                     color: Colors.textPrimary,
                     borderWidth: 1,
                     borderColor: Colors.strokeSoft,
@@ -849,8 +1168,15 @@ export default function UsersManagementScreen() {
             </View>
 
             {/* Username */}
-            <View style={{ marginBottom: Spacing.m }}>
-              <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
+            <View style={{ 
+              marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m 
+            }}>
+              <ThemedText style={{ 
+                ...Typography.body, 
+                color: Colors.textSecondary, 
+                marginBottom: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+                fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : Typography.body.fontSize
+              }}>
                 Имя пользователя
               </ThemedText>
               <TextInput
@@ -860,9 +1186,9 @@ export default function UsersManagementScreen() {
                 autoCapitalize="none"
                 style={{
                   backgroundColor: Colors.surfaceSubtle,
-                  borderRadius: Radius.icon,
-                  padding: Spacing.m,
-                  fontSize: 16,
+                  borderRadius: isVerySmallScreen ? 8 : isSmallScreen ? 10 : Radius.icon,
+                  padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+                  fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? 15 : 16,
                   color: Colors.textPrimary,
                   borderWidth: 1,
                   borderColor: Colors.strokeSoft,
@@ -872,8 +1198,15 @@ export default function UsersManagementScreen() {
             </View>
 
             {/* Email */}
-            <View style={{ marginBottom: Spacing.m }}>
-              <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
+            <View style={{ 
+              marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m 
+            }}>
+              <ThemedText style={{ 
+                ...Typography.body, 
+                color: Colors.textSecondary, 
+                marginBottom: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+                fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : Typography.body.fontSize
+              }}>
                 Email
               </ThemedText>
               <TextInput
@@ -884,9 +1217,9 @@ export default function UsersManagementScreen() {
                 autoCapitalize="none"
                 style={{
                   backgroundColor: Colors.surfaceSubtle,
-                  borderRadius: Radius.icon,
-                  padding: Spacing.m,
-                  fontSize: 16,
+                  borderRadius: isVerySmallScreen ? 8 : isSmallScreen ? 10 : Radius.icon,
+                  padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+                  fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? 15 : 16,
                   color: Colors.textPrimary,
                   borderWidth: 1,
                   borderColor: Colors.strokeSoft,
@@ -895,28 +1228,32 @@ export default function UsersManagementScreen() {
               />
             </View>
 
-            {/* Пароль */}
-            <View style={{ marginBottom: Spacing.m }}>
-              <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
-                Пароль
-              </ThemedText>
-              <TextInput
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Введите пароль"
-                secureTextEntry
-                style={{
-                  backgroundColor: Colors.surfaceSubtle,
-                  borderRadius: Radius.icon,
-                  padding: Spacing.m,
-                  fontSize: 16,
-                  color: Colors.textPrimary,
-                  borderWidth: 1,
-                  borderColor: Colors.strokeSoft,
-                }}
-                placeholderTextColor={Colors.textSecondary}
-              />
-            </View>
+            {/* Пароль - только для новых пользователей */}
+            {!editingUser && (
+              <View style={{ marginBottom: Spacing.m }}>
+                <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
+                  Пароль *
+                </ThemedText>
+                <TextInput
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Введите пароль (минимум 6 символов)"
+                  secureTextEntry
+                  autoComplete="new-password"
+                  textContentType="newPassword"
+                  style={{
+                    backgroundColor: Colors.surfaceSubtle,
+                    borderRadius: responsiveStyles.borderRadius,
+                    padding: responsiveStyles.cardPadding,
+                    fontSize: responsiveStyles.fontSize,
+                    color: Colors.textPrimary,
+                    borderWidth: 1,
+                    borderColor: Colors.strokeSoft,
+                  }}
+                  placeholderTextColor={Colors.textSecondary}
+                />
+              </View>
+            )}
 
             {/* Роль */}
             <View style={{ marginBottom: Spacing.l }}>
@@ -925,22 +1262,38 @@ export default function UsersManagementScreen() {
               </ThemedText>
               <View style={{
                 flexDirection: 'row',
-                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
                 backgroundColor: Colors.surfaceSubtle,
                 borderRadius: Radius.icon,
                 padding: Spacing.m,
                 borderWidth: 1,
                 borderColor: Colors.strokeSoft,
               }}>
-                <ThemedText style={{ ...Typography.body, color: Colors.textPrimary, flex: 1 }}>
-                  {role === 'admin' ? 'Администратор' : 'Студент'}
-                </ThemedText>
-                <Switch 
-                  value={role === 'admin'} 
-                  onValueChange={(value) => setRole(value ? 'admin' : 'student')}
-                  trackColor={{ false: Colors.strokeSoft, true: Colors.brandPrimary }}
-                  thumbColor={role === 'admin' ? Colors.surface : Colors.textSecondary}
-                />
+                {(['student', 'professor', 'admin'] as const).map((r) => (
+                  <Pressable
+                    key={r}
+                    onPress={() => setRole(r)}
+                    style={{
+                      backgroundColor: role === r ? Colors.brandPrimary : Colors.surface,
+                      paddingHorizontal: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+                      paddingVertical: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+                      borderRadius: isVerySmallScreen ? 6 : isSmallScreen ? 8 : Radius.icon,
+                      borderWidth: 1,
+                      borderColor: role === r ? Colors.brandPrimary : Colors.strokeSoft,
+                      ...Shadows.card,
+                    }}
+                  >
+                    <ThemedText style={{
+                      fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : Typography.body.fontSize,
+                      color: role === r ? Colors.surface : Colors.textPrimary,
+                      fontWeight: role === r ? '600' : '400',
+                    }}>
+                      {r === 'admin' ? 'Администратор' : 
+                       r === 'professor' ? 'Преподаватель' : 'Студент'}
+                    </ThemedText>
+                  </Pressable>
+                ))}
               </View>
             </View>
 
@@ -1046,13 +1399,22 @@ export default function UsersManagementScreen() {
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: Spacing.m,
+            marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
           }}>
-            <ThemedText style={{ ...Typography.titleH2, color: Colors.textPrimary }}>
+            <ThemedText style={{ 
+              ...Typography.titleH2, 
+              color: Colors.textPrimary,
+              fontSize: isVerySmallScreen ? fontSize.title : isSmallScreen ? Typography.titleH2.fontSize : Typography.titleH2.fontSize
+            }}>
               Пользователи системы
             </ThemedText>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginRight: Spacing.s }}>
+              <ThemedText style={{ 
+                ...Typography.body, 
+                color: Colors.textSecondary, 
+                marginRight: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+                fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : Typography.body.fontSize
+              }}>
                 {filteredUsers.length} из {users.length}
               </ThemedText>
               <Pressable
@@ -1060,9 +1422,9 @@ export default function UsersManagementScreen() {
                 disabled={isLoadingUsers}
                 style={{
                   backgroundColor: Colors.surface,
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
+                  width: isVerySmallScreen ? 28 : isSmallScreen ? 30 : 32,
+                  height: isVerySmallScreen ? 28 : isSmallScreen ? 30 : 32,
+                  borderRadius: isVerySmallScreen ? 14 : isSmallScreen ? 15 : 16,
                   justifyContent: 'center',
                   alignItems: 'center',
                   ...Shadows.card,
@@ -1070,7 +1432,7 @@ export default function UsersManagementScreen() {
               >
                 <Ionicons 
                   name="refresh" 
-                  size={16} 
+                  size={isVerySmallScreen ? 14 : isSmallScreen ? 15 : 16} 
                   color={isLoadingUsers ? Colors.textSecondary : Colors.brandPrimary} 
                 />
               </Pressable>
@@ -1080,8 +1442,8 @@ export default function UsersManagementScreen() {
           {isLoadingUsers ? (
             <View style={{
               backgroundColor: Colors.surface,
-              borderRadius: Radius.card,
-              padding: Spacing.xl,
+              borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 11 : Radius.card,
+              padding: isVerySmallScreen ? spacing.lg : isSmallScreen ? spacing.xl : Spacing.xl,
               alignItems: 'center',
               ...Shadows.card,
             }}>
@@ -1089,8 +1451,9 @@ export default function UsersManagementScreen() {
               <ThemedText style={{ 
                 ...Typography.body, 
                 color: Colors.textSecondary, 
-                marginTop: Spacing.m,
-                textAlign: 'center'
+                marginTop: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+                textAlign: 'center',
+                fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? Typography.body.fontSize : Typography.body.fontSize
               }}>
                 Загружаем пользователей...
               </ThemedText>
@@ -1098,17 +1461,22 @@ export default function UsersManagementScreen() {
           ) : filteredUsers.length === 0 ? (
             <View style={{
               backgroundColor: Colors.surface,
-              borderRadius: Radius.card,
-              padding: Spacing.xl,
+              borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 11 : Radius.card,
+              padding: isVerySmallScreen ? spacing.lg : isSmallScreen ? spacing.xl : Spacing.xl,
               alignItems: 'center',
               ...Shadows.card,
             }}>
-              <Ionicons name="people-outline" size={48} color={Colors.textSecondary} />
+              <Ionicons 
+                name="people-outline" 
+                size={isVerySmallScreen ? 40 : isSmallScreen ? 44 : 48} 
+                color={Colors.textSecondary} 
+              />
               <ThemedText style={{ 
                 ...Typography.titleH2, 
                 color: Colors.textSecondary, 
-                marginTop: Spacing.m,
-                textAlign: 'center'
+                marginTop: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+                textAlign: 'center',
+                fontSize: isVerySmallScreen ? fontSize.title : isSmallScreen ? Typography.titleH2.fontSize : Typography.titleH2.fontSize
               }}>
                 {searchQuery || filterRole !== 'all' ? 'Пользователи не найдены' : 'Пока нет пользователей'}
               </ThemedText>
@@ -1124,7 +1492,9 @@ export default function UsersManagementScreen() {
               </ThemedText>
             </View>
           ) : (
-            <View style={{ gap: Spacing.m }}> 
+            <View style={{ 
+              gap: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.m 
+            }}> 
               {filteredUsers.map((user, index) => (
                 <UserCard
                   key={user.id}
