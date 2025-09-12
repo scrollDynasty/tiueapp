@@ -3,6 +3,7 @@ import { getThemeColors } from '@/constants/Colors';
 import { Colors, Radius, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { useResponsive } from '@/hooks/useResponsive';
 import { clearCredentials, logoutUser } from '@/store/slices/authSlice';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -24,6 +25,7 @@ interface SettingsItemProps {
 
 function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightComponent }: SettingsItemProps) {
   const { isDarkMode } = useTheme();
+  const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
   
   const handlePress = () => {
     if (onPress) {
@@ -38,9 +40,9 @@ function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightC
         backgroundColor: pressed 
           ? isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
           : isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
-        borderRadius: 12,
-        padding: Spacing.m,
-        marginBottom: Spacing.s,
+        borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 11 : 12,
+        padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+        marginBottom: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
@@ -49,18 +51,18 @@ function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightC
     >
       <View
         style={{
-          width: 38,
-          height: 38,
-          borderRadius: 10,
+          width: isVerySmallScreen ? 34 : isSmallScreen ? 36 : 38,
+          height: isVerySmallScreen ? 34 : isSmallScreen ? 36 : 38,
+          borderRadius: isVerySmallScreen ? 8 : isSmallScreen ? 9 : 10,
           backgroundColor: isDarkMode ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.1)',
           justifyContent: 'center',
           alignItems: 'center',
-          marginRight: Spacing.m,
+          marginRight: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
         }}
       >
         <Ionicons 
           name={icon} 
-          size={20} 
+          size={isVerySmallScreen ? 18 : isSmallScreen ? 19 : 20} 
           color={isDarkMode ? '#8B5CF6' : '#6366F1'} 
         />
       </View>
@@ -68,7 +70,7 @@ function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightC
       <View style={{ flex: 1 }}>
         <ThemedText
           style={{
-            fontSize: 16,
+            fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : 16,
             color: isDarkMode ? '#F1F5F9' : '#000000', // Черный текст в светлой теме
             marginBottom: subtitle ? 2 : 0,
           }}
@@ -78,7 +80,7 @@ function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightC
         {subtitle && (
           <ThemedText
             style={{
-              fontSize: 13,
+              fontSize: isVerySmallScreen ? 11 : isSmallScreen ? 12 : 13,
               color: isDarkMode ? '#94A3B8' : '#4A5568', // Темно-серый текст для subtitle
             }}
           >
@@ -90,7 +92,7 @@ function SettingsItem({ title, subtitle, icon, onPress, showArrow = true, rightC
       {rightComponent || (showArrow && (
         <Ionicons 
           name="chevron-forward" 
-          size={18} 
+          size={isVerySmallScreen ? 16 : isSmallScreen ? 17 : 18} 
           color={isDarkMode ? '#64748B' : '#94A3B8'} 
         />
       ))}
@@ -105,6 +107,7 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
   const { items: eventsItems } = useAppSelector((state) => state.events);
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
+  const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
   
   const displayInfo = {
     name: `${user.first_name} ${user.last_name}`.trim() || user.username,
@@ -114,34 +117,34 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
   return (
     <View style={{ flex: 1 }}>
       {/* Современный заголовок админ панели с градиентом */}
-      <Animated.View entering={SlideInRight.duration(400)} style={{ marginTop: -Spacing.l, marginHorizontal: -Spacing.l, marginBottom: Spacing.l }}>
+      <Animated.View entering={SlideInRight.duration(400)} style={{ marginTop: isVerySmallScreen ? -spacing.md : isSmallScreen ? -spacing.lg : -Spacing.l, marginHorizontal: isVerySmallScreen ? -spacing.md : isSmallScreen ? -spacing.lg : -Spacing.l, marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l }}>
         <LinearGradient
           colors={[colors.primary, '#5B8DF7']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{
-            paddingHorizontal: Spacing.l,
-            paddingVertical: Spacing.xl,
-            borderBottomLeftRadius: 24,
-            borderBottomRightRadius: 24,
+            paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
+            paddingVertical: isVerySmallScreen ? spacing.lg : isSmallScreen ? spacing.xl : Spacing.xl,
+            borderBottomLeftRadius: isVerySmallScreen ? 20 : isSmallScreen ? 22 : 24,
+            borderBottomRightRadius: isVerySmallScreen ? 20 : isSmallScreen ? 22 : 24,
             ...Shadows.card,
           }}
         >
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.m }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m }}>
           <View
             style={{
-              width: 56,
-              height: 56,
-              borderRadius: 28,
+              width: isVerySmallScreen ? 48 : isSmallScreen ? 52 : 56,
+              height: isVerySmallScreen ? 48 : isSmallScreen ? 52 : 56,
+              borderRadius: isVerySmallScreen ? 24 : isSmallScreen ? 26 : 28,
               backgroundColor: 'rgba(255,255,255,0.15)',
               justifyContent: 'center',
               alignItems: 'center',
-              marginRight: Spacing.m,
+              marginRight: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
               borderWidth: 2,
               borderColor: 'rgba(255,255,255,0.2)',
             }}
           >
-            <Ionicons name="settings" size={28} color="white" />
+            <Ionicons name="settings" size={isVerySmallScreen ? 24 : isSmallScreen ? 26 : 28} color="white" />
           </View>
           
           <View style={{ flex: 1 }}>
@@ -150,7 +153,7 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
                 ...Typography.displayH1,
                 color: 'white',
                 marginBottom: 4,
-                fontSize: 22,
+                fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? 20 : 22,
               }}
             >
               {displayInfo.name}
@@ -159,6 +162,7 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
               style={{
                 ...Typography.body,
                 color: 'rgba(255,255,255,0.85)',
+                fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : Typography.body.fontSize,
               }}
             >
               {displayInfo.subtitle}
@@ -167,14 +171,14 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
 
           <View style={{
             backgroundColor: isDarkMode ? `${colors.primary}25` : colors.surface,
-            paddingHorizontal: Spacing.m,
-            paddingVertical: Spacing.xs,
-            borderRadius: 16,
+            paddingHorizontal: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+            paddingVertical: isVerySmallScreen ? 4 : isSmallScreen ? spacing.xs : Spacing.xs,
+            borderRadius: isVerySmallScreen ? 12 : isSmallScreen ? 14 : 16,
           }}>
             <ThemedText style={{
               ...Typography.caption,
               color: colors.primary,
-              fontSize: 11,
+              fontSize: isVerySmallScreen ? 9 : isSmallScreen ? 10 : 11,
             }}>
               ADMIN
             </ThemedText>
@@ -184,9 +188,9 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
         {/* Статистика в заголовке */}
         <View style={{
           backgroundColor: 'rgba(255,255,255,0.1)',
-          paddingHorizontal: Spacing.m,
-          paddingVertical: Spacing.m,
-          borderRadius: 16,
+          paddingHorizontal: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+          paddingVertical: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+          borderRadius: isVerySmallScreen ? 12 : isSmallScreen ? 14 : 16,
           flexDirection: 'row',
           justifyContent: 'space-around',
         }}>
@@ -194,13 +198,14 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
             <ThemedText style={{
               ...Typography.displayH1,
               color: 'white',
-              fontSize: 20,
+              fontSize: isVerySmallScreen ? fontSize.title : isSmallScreen ? 18 : 20,
             }}>
               {newsItems.length}
             </ThemedText>
             <ThemedText style={{
               ...Typography.caption,
               color: 'rgba(255,255,255,0.8)',
+              fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? 11 : Typography.caption.fontSize,
             }}>
               Новостей
             </ThemedText>
@@ -209,13 +214,14 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
             <ThemedText style={{
               ...Typography.displayH1,
               color: 'white',
-              fontSize: 20,
+              fontSize: isVerySmallScreen ? fontSize.title : isSmallScreen ? 18 : 20,
             }}>
               {eventsItems.length}
             </ThemedText>
             <ThemedText style={{
               ...Typography.caption,
               color: 'rgba(255,255,255,0.8)',
+              fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? 11 : Typography.caption.fontSize,
             }}>
               Событий
             </ThemedText>
@@ -224,13 +230,14 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
             <ThemedText style={{
               ...Typography.displayH1,
               color: 'white',
-              fontSize: 20,
+              fontSize: isVerySmallScreen ? fontSize.title : isSmallScreen ? 18 : 20,
             }}>
               1
             </ThemedText>
             <ThemedText style={{
               ...Typography.caption,
               color: 'rgba(255,255,255,0.8)',
+              fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? 11 : Typography.caption.fontSize,
             }}>
               Админов
             </ThemedText>
@@ -244,15 +251,15 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
         <ThemedText style={{ 
           ...Typography.titleH2, 
           color: colors.text, 
-          marginBottom: Spacing.m,
-          fontSize: 18,
+          marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+          fontSize: isVerySmallScreen ? fontSize.title : isSmallScreen ? 17 : 18,
         }}>
           Управление контентом
         </ThemedText>
         
         <View style={{
-          gap: Spacing.m,
-          marginBottom: Spacing.l,
+          gap: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.m,
+          marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
         }}>
           {/* Карточка управления новостями */}
           <Pressable
@@ -260,7 +267,7 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
             style={{
               backgroundColor: colors.surface,
               borderRadius: Radius.card,
-              padding: Spacing.l,
+              padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.l,
               flexDirection: 'row',
               alignItems: 'center',
               ...Shadows.card,
@@ -269,47 +276,49 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
             }}
           >
             <View style={{
-              width: 48,
-              height: 48,
-              borderRadius: 24,
+              width: isVerySmallScreen ? 40 : isSmallScreen ? 44 : 48,
+              height: isVerySmallScreen ? 40 : isSmallScreen ? 44 : 48,
+              borderRadius: isVerySmallScreen ? 20 : isSmallScreen ? 22 : 24,
               backgroundColor: isDarkMode ? `${colors.primary}25` : `${colors.primary}15`,
               justifyContent: 'center',
               alignItems: 'center',
-              marginRight: Spacing.m,
+              marginRight: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
             }}>
-              <Ionicons name="newspaper-outline" size={24} color={colors.primary} />
+              <Ionicons name="newspaper-outline" size={isVerySmallScreen ? 20 : isSmallScreen ? 22 : 24} color={colors.primary} />
             </View>
             <View style={{ flex: 1 }}>
               <ThemedText style={{ 
                 ...Typography.titleH2, 
                 color: colors.text, 
                 marginBottom: 4,
+                fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? fontSize.title : Typography.titleH2.fontSize,
               }}>
                 Управление новостями
               </ThemedText>
               <ThemedText style={{ 
                 ...Typography.body, 
                 color: colors.textSecondary,
-                fontSize: 14,
+                fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : 14,
               }}>
                 {newsItems.length} активных новостей
               </ThemedText>
             </View>
             <View style={{
               backgroundColor: colors.surfaceSecondary,
-              paddingHorizontal: Spacing.s,
-              paddingVertical: Spacing.xs,
-              borderRadius: Radius.icon,
-              marginRight: Spacing.s,
+              paddingHorizontal: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+              paddingVertical: isVerySmallScreen ? 2 : isSmallScreen ? 4 : Spacing.xs,
+              borderRadius: isVerySmallScreen ? 8 : isSmallScreen ? 10 : Radius.icon,
+              marginRight: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
             }}>
               <ThemedText style={{
                 ...Typography.caption,
                 color: colors.textSecondary,
+                fontSize: isVerySmallScreen ? 9 : isSmallScreen ? 10 : Typography.caption.fontSize,
               }}>
                 {newsItems.length}
               </ThemedText>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            <Ionicons name="chevron-forward" size={isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={colors.textSecondary} />
           </Pressable>
 
           {/* Карточка управления событиями */}
@@ -318,7 +327,7 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
             style={{
               backgroundColor: colors.surface,
               borderRadius: Radius.card,
-              padding: Spacing.l,
+              padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.l,
               flexDirection: 'row',
               alignItems: 'center',
               ...Shadows.card,
@@ -327,47 +336,49 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
             }}
           >
             <View style={{
-              width: 48,
-              height: 48,
-              borderRadius: 24,
+              width: isVerySmallScreen ? 40 : isSmallScreen ? 44 : 48,
+              height: isVerySmallScreen ? 40 : isSmallScreen ? 44 : 48,
+              borderRadius: isVerySmallScreen ? 20 : isSmallScreen ? 22 : 24,
               backgroundColor: isDarkMode ? `${colors.warning}25` : `${colors.warning}15`,
               justifyContent: 'center',
               alignItems: 'center',
-              marginRight: Spacing.m,
+              marginRight: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
             }}>
-              <Ionicons name="calendar-outline" size={24} color={colors.warning} />
+              <Ionicons name="calendar-outline" size={isVerySmallScreen ? 20 : isSmallScreen ? 22 : 24} color={colors.warning} />
             </View>
             <View style={{ flex: 1 }}>
               <ThemedText style={{ 
                 ...Typography.titleH2, 
                 color: colors.text, 
                 marginBottom: 4,
+                fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? fontSize.title : Typography.titleH2.fontSize,
               }}>
                 Управление событиями
               </ThemedText>
               <ThemedText style={{ 
                 ...Typography.body, 
                 color: colors.textSecondary,
-                fontSize: 14,
+                fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : 14,
               }}>
                 {eventsItems.length} запланированных событий
               </ThemedText>
             </View>
             <View style={{
               backgroundColor: '#FEF3C7',
-              paddingHorizontal: Spacing.s,
-              paddingVertical: Spacing.xs,
-              borderRadius: Radius.icon,
-              marginRight: Spacing.s,
+              paddingHorizontal: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+              paddingVertical: isVerySmallScreen ? 2 : isSmallScreen ? 4 : Spacing.xs,
+              borderRadius: isVerySmallScreen ? 8 : isSmallScreen ? 10 : Radius.icon,
+              marginRight: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
             }}>
               <ThemedText style={{
                 ...Typography.caption,
                 color: '#F59E0B',
+                fontSize: isVerySmallScreen ? 9 : isSmallScreen ? 10 : Typography.caption.fontSize,
               }}>
                 {eventsItems.length}
               </ThemedText>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+            <Ionicons name="chevron-forward" size={isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={Colors.textSecondary} />
           </Pressable>
 
           {/* Карточка управления расписанием */}
@@ -376,7 +387,7 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
             style={{
               backgroundColor: colors.surface,
               borderRadius: Radius.card,
-              padding: Spacing.l,
+              padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.l,
               flexDirection: 'row',
               alignItems: 'center',
               ...Shadows.card,
@@ -385,47 +396,109 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
             }}
           >
             <View style={{
-              width: 48,
-              height: 48,
-              borderRadius: 24,
+              width: isVerySmallScreen ? 40 : isSmallScreen ? 44 : 48,
+              height: isVerySmallScreen ? 40 : isSmallScreen ? 44 : 48,
+              borderRadius: isVerySmallScreen ? 20 : isSmallScreen ? 22 : 24,
               backgroundColor: isDarkMode ? `${colors.success}25` : `${colors.success}15`,
               justifyContent: 'center',
               alignItems: 'center',
-              marginRight: Spacing.m,
+              marginRight: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
             }}>
-              <Ionicons name="time-outline" size={24} color={colors.success} />
+              <Ionicons name="time-outline" size={isVerySmallScreen ? 20 : isSmallScreen ? 22 : 24} color={colors.success} />
             </View>
             <View style={{ flex: 1 }}>
               <ThemedText style={{ 
                 ...Typography.titleH2, 
                 color: colors.text, 
                 marginBottom: 4,
+                fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? fontSize.title : Typography.titleH2.fontSize,
               }}>
                 Управление расписанием
               </ThemedText>
               <ThemedText style={{ 
                 ...Typography.body, 
                 color: colors.textSecondary,
-                fontSize: 14,
+                fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : 14,
               }}>
                 Составление и редактирование
               </ThemedText>
             </View>
             <View style={{
               backgroundColor: isDarkMode ? `${colors.success}25` : `${colors.success}15`,
-              paddingHorizontal: Spacing.s,
-              paddingVertical: Spacing.xs,
-              borderRadius: Radius.icon,
-              marginRight: Spacing.s,
+              paddingHorizontal: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+              paddingVertical: isVerySmallScreen ? 2 : isSmallScreen ? 4 : Spacing.xs,
+              borderRadius: isVerySmallScreen ? 8 : isSmallScreen ? 10 : Radius.icon,
+              marginRight: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
             }}>
               <ThemedText style={{
                 ...Typography.caption,
                 color: '#10B981',
+                fontSize: isVerySmallScreen ? 9 : isSmallScreen ? 10 : Typography.caption.fontSize,
               }}>
                 ∞
               </ThemedText>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            <Ionicons name="chevron-forward" size={isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={colors.textSecondary} />
+          </Pressable>
+
+          {/* Карточка управления пользователями */}
+          <Pressable
+            onPress={() => router.push('../../admin/users' as any)}
+            style={{
+              backgroundColor: colors.surface,
+              borderRadius: Radius.card,
+              padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.l,
+              flexDirection: 'row',
+              alignItems: 'center',
+              ...Shadows.card,
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}
+          >
+            <View style={{
+              width: isVerySmallScreen ? 40 : isSmallScreen ? 44 : 48,
+              height: isVerySmallScreen ? 40 : isSmallScreen ? 44 : 48,
+              borderRadius: isVerySmallScreen ? 20 : isSmallScreen ? 22 : 24,
+              backgroundColor: isDarkMode ? `${colors.error}25` : `${colors.error}15`,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+            }}>
+              <Ionicons name="people-outline" size={isVerySmallScreen ? 20 : isSmallScreen ? 22 : 24} color={colors.error} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <ThemedText style={{ 
+                ...Typography.titleH2, 
+                color: colors.text, 
+                marginBottom: 4,
+                fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? fontSize.title : Typography.titleH2.fontSize,
+              }}>
+                Управление пользователями
+              </ThemedText>
+              <ThemedText style={{ 
+                ...Typography.body, 
+                color: colors.textSecondary,
+                fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : 14,
+              }}>
+                Добавление и редактирование
+              </ThemedText>
+            </View>
+            <View style={{
+              backgroundColor: isDarkMode ? `${colors.error}25` : `${colors.error}15`,
+              paddingHorizontal: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+              paddingVertical: isVerySmallScreen ? 2 : isSmallScreen ? 4 : Spacing.xs,
+              borderRadius: isVerySmallScreen ? 8 : isSmallScreen ? 10 : Radius.icon,
+              marginRight: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+            }}>
+              <ThemedText style={{
+                ...Typography.caption,
+                color: colors.error,
+                fontSize: isVerySmallScreen ? 9 : isSmallScreen ? 10 : Typography.caption.fontSize,
+              }}>
+                👤
+              </ThemedText>
+            </View>
+            <Ionicons name="chevron-forward" size={isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={colors.textSecondary} />
           </Pressable>
         </View>
       </Animated.View>
@@ -435,13 +508,16 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
         <ThemedText style={{ 
           ...Typography.titleH2, 
           color: colors.text, 
-          marginBottom: Spacing.m,
-          fontSize: 18,
+          marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+          fontSize: isVerySmallScreen ? fontSize.title : isSmallScreen ? 17 : 18,
         }}>
           Системная информация
         </ThemedText>
         
-        <View style={{ gap: Spacing.s, marginBottom: Spacing.l }}>
+        <View style={{ 
+          gap: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s, 
+          marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l 
+        }}>
           <Pressable
             style={{
               backgroundColor: colors.surface,
@@ -515,15 +591,17 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
       </Animated.View>
 
       {/* Выход из системы */}
-      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ marginTop: Spacing.l }}>
+      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ 
+        marginTop: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l 
+      }}>
         <Pressable
           onPress={() => {
             onLogout();
           }}
           style={({ pressed }) => ({
             backgroundColor: pressed ? '#DC2626' : '#EF4444',
-            borderRadius: 12,
-            padding: Spacing.l,
+            borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 11 : 12,
+            padding: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
@@ -532,9 +610,14 @@ function AdminProfile({ user, onLogout }: { user: any, onLogout: () => void }) {
             opacity: pressed ? 0.9 : 1,
           })}
         >
-          <Ionicons name="log-out-outline" size={20} color="white" style={{ marginRight: Spacing.s }} />
+          <Ionicons 
+            name="log-out-outline" 
+            size={isVerySmallScreen ? 18 : isSmallScreen ? 19 : 20} 
+            color="white" 
+            style={{ marginRight: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s }} 
+          />
           <ThemedText style={{ 
-            fontSize: 16,
+            fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? 15 : 16,
             color: 'white',
           }}>
             Выйти из системы
@@ -563,6 +646,7 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
   });
   const { theme, isDarkMode, setTheme } = useTheme();
   const colors = getThemeColors(isDarkMode);
+  const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
   
   const displayInfo = {
     name: `${user.first_name} ${user.last_name}`.trim() || user.username,
@@ -911,25 +995,32 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
       </Animated.View>
 
       {/* Компактная кнопка выхода */}
-      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ marginTop: Spacing.l }}>
+      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ 
+        marginTop: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l 
+      }}>
         <Pressable
           onPress={onLogout}
           style={({ pressed }) => ({
             backgroundColor: pressed ? '#DC2626' : '#EF4444',
-            borderRadius: 12,
-            padding: Spacing.m,
+            borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 11 : 12,
+            padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: Spacing.l,
+            marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
             borderWidth: 1,
             borderColor: pressed ? '#B91C1C' : '#DC2626',
             opacity: pressed ? 0.9 : 1,
           })}
         >
-          <Ionicons name="log-out-outline" size={18} color="white" style={{ marginRight: Spacing.s }} />
+          <Ionicons 
+            name="log-out-outline" 
+            size={isVerySmallScreen ? 16 : isSmallScreen ? 17 : 18} 
+            color="white" 
+            style={{ marginRight: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s }} 
+          />
           <ThemedText style={{ 
-            fontSize: 15,
+            fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? 14 : 15,
             color: 'white',
           }}>
             Выйти из аккаунта
@@ -976,7 +1067,9 @@ function StudentProfile({ user, onLogout }: { user: any, onLogout: () => void })
             </Pressable>
           </View>
 
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: Spacing.l }}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ 
+            padding: Spacing.l 
+          }}>
             {/* Общие настройки */}
             <View style={{ marginBottom: Spacing.l }}>
               <ThemedText style={{
@@ -1238,6 +1331,7 @@ export default function ProfileScreen() {
   const [isLoggingOut, setIsLoggingOut] = React.useState(false);
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
+  const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
 
     const handleLogout = async () => {
     if (isLoggingOut) return; // Предотвращаем множественные вызовы
@@ -1305,9 +1399,9 @@ export default function ProfileScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingHorizontal: Spacing.l,
-          paddingBottom: 90,
-          paddingTop: Spacing.m,
+          paddingHorizontal: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg,
+          paddingBottom: isVerySmallScreen ? 120 : isSmallScreen ? 130 : 140,
+          paddingTop: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : spacing.md,
         }}
       >
         {/* Рендерим разные интерфейсы в зависимости от роли */}
