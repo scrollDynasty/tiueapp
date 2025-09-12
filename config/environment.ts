@@ -26,7 +26,7 @@ const productionConfig: EnvironmentConfig = {
 // Определяем, находимся ли мы в режиме разработки
 // __DEV__ автоматически определяется React Native
 // Добавляем флаг для принудительного использования продакшн режима
-const forceProduction = false; // Установите true для принудительного использования ngrok
+const forceProduction = true; // Установите true для принудительного использования ngrok
 const isDevelopment = forceProduction ? false : (__DEV__ ?? true);
 
 // Экспортируем конфигурацию в зависимости от окружения

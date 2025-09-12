@@ -160,6 +160,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Base URL for absolute image URLs (fallback)
+BASE_URL = 'https://e61fbe15db44.ngrok-free.app'  # Обновляйте с текущим ngrok URL
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
