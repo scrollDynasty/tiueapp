@@ -393,11 +393,43 @@ class ApiService {
         const now = new Date();
         const filename = `evt_${now.getTime()}.jpg`;
 
-        formData.append('image', {
-          uri: imageUri,
-          type: eventData.image.type || 'image/jpeg',
-            name: filename,
-        } as any);
+        // Универсальный подход для всех платформ - создаем File объект как в createNews
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        
+        const imageFile = await new Promise<File>((resolve, reject) => {
+          img.onload = () => {
+            // Создаем canvas для правильной обработки изображения
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = img.width;
+            canvas.height = img.height;
+            
+            if (ctx) {
+              ctx.drawImage(img, 0, 0);
+              
+              // Конвертируем в blob с правильным MIME типом
+              canvas.toBlob((blob) => {
+                if (blob) {
+                  const file = new File([blob], filename, { type: 'image/jpeg' });
+                  resolve(file);
+                } else {
+                  reject(new Error('Failed to create blob'));
+                }
+              }, 'image/jpeg', 0.8);
+            } else {
+              reject(new Error('Failed to get canvas context'));
+            }
+          };
+          
+          img.onerror = () => reject(new Error('Failed to load image'));
+          img.src = imageUri;
+        });
+        
+        // Добавляем файл в FormData
+        formData.append('image', imageFile);
+        console.log('📤 createEvent(): added File object', { name: filename, type: imageFile.type, size: imageFile.size });
 
         console.log('📤 createEvent(): sending multipart request', { url });
 

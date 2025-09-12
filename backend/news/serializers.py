@@ -18,6 +18,7 @@ class NewsSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source='author.get_full_name', read_only=True)
     date = serializers.DateTimeField(source='created_at', format='%Y-%m-%d %H:%M:%S', read_only=True)
     events = EventForNewsSerializer(many=True, read_only=True)
+    # Используем стандартное поле для записи, но переопределяем to_representation для чтения
     
     class Meta:
         model = News
@@ -26,6 +27,25 @@ class NewsSerializer(serializers.ModelSerializer):
             'category', 'icon', 'is_important', 'image', 'events', 'date', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'author', 'created_at', 'updated_at', 'author_name', 'date', 'events']
+    
+    def to_representation(self, instance):
+        """Переопределяем представление для возврата полного URL изображения"""
+        data = super().to_representation(instance)
+        if instance.image:
+            request = self.context.get('request')
+            if request:
+                # Получаем полный URL
+                full_url = request.build_absolute_uri(instance.image.url)
+                # Принудительно используем HTTPS для ngrok
+                if 'ngrok' in full_url and full_url.startswith('http://'):
+                    full_url = full_url.replace('http://', 'https://', 1)
+                data['image'] = full_url
+            else:
+                # Fallback если нет request в context
+                from django.conf import settings
+                base_url = getattr(settings, 'BASE_URL', 'http://localhost:8000')
+                data['image'] = f"{base_url}{instance.image.url}"
+        return data
     
     def create(self, validated_data):
         # Автоматически устанавливаем автора как текущего пользователя
@@ -37,6 +57,7 @@ class EventSerializer(serializers.ModelSerializer):
     created_by_name = serializers.CharField(source='created_by.get_full_name', read_only=True)
     is_registered = serializers.SerializerMethodField()
     date = serializers.CharField()  # Принимаем дату как строку для кастомной обработки
+    # Используем стандартное поле для записи, но переопределяем to_representation для чтения
     
     class Meta:
         model = Event
@@ -46,6 +67,26 @@ class EventSerializer(serializers.ModelSerializer):
             'news', 'created_by', 'created_by_name', 'is_registered', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_by', 'current_participants', 'created_at', 'updated_at', 'created_by_name', 'is_registered']
+    
+    def to_representation(self, instance):
+        """Переопределяем представление для возврата полного URL изображения"""
+        data = super().to_representation(instance)
+        if instance.image:
+            request = self.context.get('request')
+            if request:
+                # Получаем полный URL
+                full_url = request.build_absolute_uri(instance.image.url)
+                # Принудительно используем HTTPS для ngrok
+                if 'ngrok' in full_url and full_url.startswith('http://'):
+                    full_url = full_url.replace('http://', 'https://', 1)
+                data['image'] = full_url
+            else:
+                # Fallback если нет request в context
+                from django.conf import settings
+                base_url = getattr(settings, 'BASE_URL', 'http://localhost:8000')
+                data['image'] = f"{base_url}{instance.image.url}"
+        return data
+    
     
     def validate_date(self, value):
         """Конвертируем дату из формата DD.MM.YYYY в YYYY-MM-DD"""

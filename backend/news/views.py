@@ -32,9 +32,25 @@ class NewsViewSet(viewsets.ModelViewSet):
         return queryset
     
     def create(self, request, *args, **kwargs):
-        """Создание новости с дополнительным логированием"""
+        """Создание новости с дополнительным логированием и обработкой файлов"""
+        print(f"NewsViewSet.create called")
+        print(f"Request data: {request.data}")
+        print(f"Request files: {request.FILES}")
         
-        serializer = self.get_serializer(data=request.data)
+        # Обрабатываем случай, когда изображение приходит не как файл
+        data = request.data.copy()
+        
+        # Если изображение не пришло как файл, но есть в data и это не корректный файл
+        if 'image' in data and not request.FILES.get('image'):
+            image_value = data.get('image')
+            print(f"Image value type: {type(image_value)}, value: {image_value}")
+            
+            # Если пришло '[object Object]' или другая строка, удаляем это поле
+            if isinstance(image_value, str) and (image_value == '[object Object]' or not image_value.startswith('data:')):
+                print("Removing invalid image field")
+                data.pop('image', None)
+        
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
@@ -47,13 +63,26 @@ class EventViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrReadOnly]
     
     def create(self, request, *args, **kwargs):
-        """Переопределяем create для лучшего логирования"""
+        """Переопределяем create для лучшего логирования и обработки файлов"""
         print(f"EventViewSet.create called")
         print(f"Request data: {request.data}")
         print(f"Request files: {request.FILES}")
         print(f"Content-Type: {request.content_type}")
         
-        serializer = self.get_serializer(data=request.data)
+        # Обрабатываем случай, когда изображение приходит не как файл
+        data = request.data.copy()
+        
+        # Если изображение не пришло как файл, но есть в data и это не корректный файл
+        if 'image' in data and not request.FILES.get('image'):
+            image_value = data.get('image')
+            print(f"Image value type: {type(image_value)}, value: {image_value}")
+            
+            # Если пришло '[object Object]' или другая строка, удаляем это поле
+            if isinstance(image_value, str) and (image_value == '[object Object]' or not image_value.startswith('data:')):
+                print("Removing invalid image field")
+                data.pop('image', None)
+        
+        serializer = self.get_serializer(data=data)
         if not serializer.is_valid():
             print(f"Serializer errors: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

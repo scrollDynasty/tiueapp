@@ -7,8 +7,9 @@ import { fetchEvents, toggleEventRegistration } from '@/store/slices/eventsSlice
 import { Event } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp, SlideInRight } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -237,52 +238,53 @@ export default function EventsScreen() {
                     elevation: isDarkMode ? 12 : 8,
                   }]}
                 >
-                  {/* Градиентный фон карточки */}
-                  <LinearGradient
-                    colors={isDarkMode 
-                      ? ['rgba(30,41,59,0.9)', 'rgba(51,65,85,0.8)', 'rgba(71,85,105,0.7)']
-                      : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)', 'rgba(241,245,249,0.7)']
-                    }
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      borderRadius: isSmallScreen ? 20 : 24,
-                      borderWidth: 1,
-                      borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
-                    }}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                  />
-                  
-                  {/* Адаптивное Event Image */}
-                  {event.image && (
-                    <View style={{ position: 'relative' }}>
-                      <Image 
-                        source={{ uri: event.image }}
-                        style={{
-                          width: '100%',
-                          height: isSmallScreen ? 160 : 200,
-                          borderTopLeftRadius: isSmallScreen ? 20 : 24,
-                          borderTopRightRadius: isSmallScreen ? 20 : 24,
-                        }}
-                        resizeMode="cover"
-                      />
-                      {/* Градиентный оверлей на изображение */}
-                      <LinearGradient
-                        colors={['transparent', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)']}
-                        style={{
-                          position: 'absolute',
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          height: 60,
-                        }}
-                      />
-                    </View>
-                  )}
+                  <Pressable onPress={() => router.push(`/events/${event.id}`)}>
+                    {/* Градиентный фон карточки */}
+                    <LinearGradient
+                      colors={isDarkMode 
+                        ? ['rgba(30,41,59,0.9)', 'rgba(51,65,85,0.8)', 'rgba(71,85,105,0.7)']
+                        : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)', 'rgba(241,245,249,0.7)']
+                      }
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        borderRadius: isSmallScreen ? 20 : 24,
+                        borderWidth: 1,
+                        borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
+                      }}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    />
+                    
+                    {/* Адаптивное Event Image */}
+                    {event.image && (
+                      <View style={{ position: 'relative' }}>
+                        <Image 
+                          source={{ uri: event.image }}
+                          style={{
+                            width: '100%',
+                            height: isSmallScreen ? 140 : 160,
+                            borderTopLeftRadius: isSmallScreen ? 20 : 24,
+                            borderTopRightRadius: isSmallScreen ? 20 : 24,
+                          }}
+                          resizeMode="cover"
+                        />
+                        {/* Градиентный оверлей на изображение */}
+                        <LinearGradient
+                          colors={['transparent', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)']}
+                          style={{
+                            position: 'absolute',
+                            bottom: 0,
+                            left: 0,
+                            right: 0,
+                            height: 50,
+                          }}
+                        />
+                      </View>
+                    )}
                   
                   <View style={{
                     padding: isSmallScreen ? spacing.md : spacing.lg,
@@ -376,8 +378,11 @@ export default function EventsScreen() {
                         </View>
                       )}
                     </View>
+                  </View>
+                  </Pressable>
 
-                    {/* Registration Button - Улучшенный дизайн */}
+                  {/* Registration Button - Улучшенный дизайн */}
+                  <View style={{ padding: isSmallScreen ? spacing.md : spacing.lg }}>
                     <TouchableOpacity
                       style={[
                         styles.registerButton,
