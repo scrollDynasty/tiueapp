@@ -53,7 +53,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'tiuebackend.cors_middleware.CorsMiddleware',  # Наш кастомный CORS middleware
     'tiuebackend.middleware.LoggingMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -89,14 +89,18 @@ WSGI_APPLICATION = 'tiuebackend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': config('DB_ENGINE', default='django.db.backends.sqlite3'),
-        'NAME': config('DB_NAME', default=str(BASE_DIR / 'db.sqlite3')),
-        'USER': config('DB_USER', default=''),
-        'PASSWORD': config('DB_PASSWORD', default=''),
-        'HOST': config('DB_HOST', default=''),
-        'PORT': config('DB_PORT', default='', cast=str),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'tiueapp_db',
+        'USER': 'scroll_db_user',
+        'PASSWORD': '1435511926Ss',
+        'HOST': 'localhost',
+        'PORT': '3306',
         'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO'",
             'charset': 'utf8mb4',
+            'use_unicode': True,
+            'autocommit': True,
+            'isolation_level': None,
         },
     }
 }
@@ -160,11 +164,33 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
 }
 
-# CORS Settings
-cors_origins = config('CORS_ALLOWED_ORIGINS', default='http://localhost:8081')
-CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',') if origin.strip()]
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = DEBUG  # Только для разработки
+# CORS Settings - теперь используем кастомный middleware
+# CORS_ALLOW_ALL_ORIGINS = True  # Разрешаем все домены
+# CORS_ALLOW_CREDENTIALS = True
+# CORS_ALLOW_ALL_HEADERS = True  # Разрешаем все заголовки
+# CORS_PREFLIGHT_MAX_AGE = 86400  # Кешируем preflight запросы
+# 
+# # Разрешенные домены (только для логгирования)
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:8081',
+#     'http://127.0.0.1:8081',
+#     'http://localhost:3000',
+#     'http://127.0.0.1:3000',
+# ]
+# 
+# # Разрешаем все методы
+# CORS_ALLOWED_METHODS = [
+#     'DELETE',
+#     'GET',
+#     'OPTIONS',
+#     'PATCH',
+#     'POST',
+#     'PUT',
+#     'HEAD',
+# ]
+# 
+# # Дополнительные настройки для уверенности
+# CORS_ALLOW_PRIVATE_NETWORK = True
 
 # Custom User Model (we'll create it)
 AUTH_USER_MODEL = 'users.CustomUser'
