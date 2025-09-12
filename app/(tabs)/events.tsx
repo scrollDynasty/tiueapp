@@ -26,7 +26,7 @@ export default function EventsScreen() {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const colors = getThemeColors(isDarkMode);
-  const { isSmallScreen, spacing } = useResponsive();
+  const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
   const dispatch = useAppDispatch();
   
   const { items: events } = useAppSelector((state) => state.events);
@@ -104,7 +104,7 @@ export default function EventsScreen() {
               marginRight: spacing.sm
             }} />
             <ThemedText style={[styles.title, { 
-              fontSize: isSmallScreen ? 24 : 28,
+              fontSize: isVerySmallScreen ? fontSize.title : isSmallScreen ? 24 : 28,
               letterSpacing: -0.5,
               color: colors.text,
             }]}>
@@ -116,9 +116,9 @@ export default function EventsScreen() {
               styles.searchButton, 
               { 
                 backgroundColor: isDarkMode ? '#374151' : '#F3F4F6',
-                width: isSmallScreen ? 40 : 44,
-                height: isSmallScreen ? 40 : 44,
-                borderRadius: isSmallScreen ? 12 : 14,
+                width: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
+                height: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
+                borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 12 : 14,
                 borderWidth: 1,
                 borderColor: isDarkMode ? '#4B5563' : '#D1D5DB',
                 alignItems: 'center',
@@ -126,20 +126,20 @@ export default function EventsScreen() {
               }
             ]}
           >
-            <Ionicons name="search" size={isSmallScreen ? 18 : 20} color={isDarkMode ? '#9CA3AF' : '#6B7280'} />
+            <Ionicons name="search" size={isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={isDarkMode ? '#9CA3AF' : '#6B7280'} />
           </TouchableOpacity>
         </Animated.View>
 
         {/* Красивый Category Filter */}
         <Animated.View 
           entering={SlideInRight.delay(200).duration(800)}
-          style={{ marginBottom: spacing.lg }}
+          style={{ marginBottom: -10 }}
         >
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false}
             style={[styles.categoryContainer, { paddingHorizontal: spacing.lg }]}
-            contentContainerStyle={[styles.categoryContent, { paddingBottom: spacing.sm }]}
+            contentContainerStyle={[styles.categoryContent, { paddingBottom: 0 }]}
           >
             {CATEGORIES.map((category, index) => (
               <Animated.View
@@ -151,11 +151,9 @@ export default function EventsScreen() {
                     styles.categoryButton,
                     {
                       backgroundColor: 'transparent',
-                      paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md,
-                      paddingVertical: isSmallScreen ? spacing.sm : spacing.md,
-                      borderRadius: isSmallScreen ? 16 : 18,
+                      borderRadius: isVerySmallScreen ? 14 : isSmallScreen ? 16 : 18,
                       marginRight: spacing.sm,
-                      marginBottom: spacing.xs,
+                      marginBottom: 0,
                       overflow: 'hidden',
                     }
                   ]}
@@ -173,9 +171,9 @@ export default function EventsScreen() {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      paddingHorizontal: isSmallScreen ? spacing.md : spacing.lg,
-                      paddingVertical: isSmallScreen ? spacing.sm : spacing.md,
-                      borderRadius: isSmallScreen ? 16 : 18,
+                      paddingHorizontal: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg,
+                      paddingVertical: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : spacing.md,
+                      borderRadius: isVerySmallScreen ? 14 : isSmallScreen ? 16 : 18,
                       borderWidth: 1,
                       borderColor: filter === category.key 
                         ? isDarkMode ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.2)'
@@ -186,7 +184,7 @@ export default function EventsScreen() {
                   >
                     <Ionicons 
                       name={category.icon as keyof typeof Ionicons.glyphMap} 
-                      size={isSmallScreen ? 16 : 18} 
+                      size={isVerySmallScreen ? 14 : isSmallScreen ? 16 : 18} 
                       color={filter === category.key 
                         ? '#ffffff' 
                         : isDarkMode ? '#E2E8F0' : '#475569'
@@ -199,7 +197,7 @@ export default function EventsScreen() {
                           color: filter === category.key 
                             ? '#ffffff' 
                             : isDarkMode ? '#E2E8F0' : '#475569',
-                          fontSize: isSmallScreen ? 14 : 15,
+                          fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? 14 : 15,
                           marginLeft: 6,
                         }
                       ]}
@@ -215,9 +213,12 @@ export default function EventsScreen() {
 
         {/* Адаптивный Events List */}
         <ScrollView 
-          style={[styles.eventsList, { paddingHorizontal: spacing.lg, marginTop: spacing.lg }]} 
+          style={[styles.eventsList, { paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : spacing.lg, marginTop: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg }]} 
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 90, paddingTop: 90 }}
+          contentContainerStyle={{ 
+            paddingBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg, 
+            paddingTop: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg 
+          }}
         >
           <Animated.View entering={FadeInDown.delay(400).duration(800)}>
             {filteredEvents.length > 0 ? (
@@ -227,7 +228,7 @@ export default function EventsScreen() {
                   entering={FadeInUp.delay(500 + index * 100).duration(600).springify()}
                   style={[styles.eventCard, {
                     backgroundColor: 'transparent',
-                    borderRadius: isSmallScreen ? 20 : 24,
+                    borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
                     marginBottom: spacing.md,
                     padding: 0,
                     overflow: 'hidden',
@@ -251,7 +252,7 @@ export default function EventsScreen() {
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        borderRadius: isSmallScreen ? 20 : 24,
+                        borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
                         borderWidth: 1,
                         borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
                       }}
@@ -266,9 +267,9 @@ export default function EventsScreen() {
                           source={{ uri: event.image }}
                           style={{
                             width: '100%',
-                            height: isSmallScreen ? 140 : 160,
-                            borderTopLeftRadius: isSmallScreen ? 20 : 24,
-                            borderTopRightRadius: isSmallScreen ? 20 : 24,
+                            height: isVerySmallScreen ? 120 : isSmallScreen ? 140 : 160,
+                            borderTopLeftRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
+                            borderTopRightRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
                           }}
                           resizeMode="cover"
                         />
@@ -287,14 +288,14 @@ export default function EventsScreen() {
                     )}
                   
                   <View style={{
-                    padding: isSmallScreen ? spacing.md : spacing.lg,
+                    padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg,
                   }}>
                     {/* Event Header */}
                     <View style={styles.eventHeader}>
                       <View style={styles.eventInfo}>
                         <ThemedText style={[styles.eventTitle, { 
                           color: colors.text,
-                          fontSize: isSmallScreen ? 16 : 18,
+                          fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? 16 : 18,
                           marginBottom: spacing.sm,
                         }]}>
                           {event.title}
@@ -305,9 +306,9 @@ export default function EventsScreen() {
                             style={[
                               styles.categoryBadge,
                               { 
-                                paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md,
-                                paddingVertical: isSmallScreen ? spacing.xs : spacing.sm,
-                                borderRadius: isSmallScreen ? 12 : 16,
+                                paddingHorizontal: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : spacing.md,
+                                paddingVertical: isVerySmallScreen ? 4 : isSmallScreen ? spacing.xs : spacing.sm,
+                                borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 12 : 16,
                                 borderWidth: 1,
                                 borderColor: `${getCategoryColor(event.category)}40`,
                               }
@@ -317,7 +318,7 @@ export default function EventsScreen() {
                               styles.categoryBadgeText,
                               { 
                                 color: getCategoryColor(event.category),
-                                fontSize: isSmallScreen ? 11 : 12,
+                                fontSize: isVerySmallScreen ? fontSize.small - 2 : isSmallScreen ? 11 : 12,
                               }
                             ]}>
                               {getCategoryLabel(event.category)}
@@ -329,13 +330,13 @@ export default function EventsScreen() {
                       <View style={styles.eventDate}>
                         <ThemedText style={[styles.dateText, { 
                           color: colors.primary,
-                          fontSize: isSmallScreen ? 12 : 14,
+                          fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? 12 : 14,
                         }]}>
                           {formatDate(event.date)}
                         </ThemedText>
                         <ThemedText style={[styles.timeText, { 
                           color: colors.textSecondary,
-                          fontSize: isSmallScreen ? 11 : 12,
+                          fontSize: isVerySmallScreen ? fontSize.small - 1 : isSmallScreen ? 11 : 12,
                         }]}>
                           {formatTime(event.time)}
                         </ThemedText>
@@ -345,8 +346,8 @@ export default function EventsScreen() {
                     {/* Event Description */}
                     <ThemedText style={[styles.eventDescription, { 
                       color: colors.textSecondary,
-                      fontSize: isSmallScreen ? 14 : 15,
-                      lineHeight: isSmallScreen ? 18 : 20,
+                      fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? 14 : 15,
+                      lineHeight: isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20,
                       marginBottom: spacing.md,
                     }]}>
                       {event.description}
@@ -355,10 +356,10 @@ export default function EventsScreen() {
                     {/* Event Details */}
                     <View style={[styles.eventDetails, { marginBottom: spacing.md }]}>
                       <View style={styles.detailRow}>
-                        <Ionicons name="location-outline" size={isSmallScreen ? 14 : 16} color={colors.textSecondary} />
+                        <Ionicons name="location-outline" size={isVerySmallScreen ? 12 : isSmallScreen ? 14 : 16} color={colors.textSecondary} />
                         <ThemedText style={[styles.detailText, { 
                           color: colors.textSecondary,
-                          fontSize: isSmallScreen ? 13 : 14,
+                          fontSize: isVerySmallScreen ? fontSize.small - 1 : isSmallScreen ? 13 : 14,
                           marginLeft: 6,
                         }]}>
                           {event.location}
@@ -367,10 +368,10 @@ export default function EventsScreen() {
                       
                       {event.maxParticipants && (
                         <View style={styles.detailRow}>
-                          <Ionicons name="people-outline" size={isSmallScreen ? 14 : 16} color={colors.textSecondary} />
+                          <Ionicons name="people-outline" size={isVerySmallScreen ? 12 : isSmallScreen ? 14 : 16} color={colors.textSecondary} />
                           <ThemedText style={[styles.detailText, { 
                             color: colors.textSecondary,
-                            fontSize: isSmallScreen ? 13 : 14,
+                            fontSize: isVerySmallScreen ? fontSize.small - 1 : isSmallScreen ? 13 : 14,
                             marginLeft: 6,
                           }]}>
                             {event.currentParticipants} / {event.maxParticipants} участников
@@ -382,14 +383,14 @@ export default function EventsScreen() {
                   </Pressable>
 
                   {/* Registration Button - Улучшенный дизайн */}
-                  <View style={{ padding: isSmallScreen ? spacing.md : spacing.lg }}>
+                  <View style={{ padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg }}>
                     <TouchableOpacity
                       style={[
                         styles.registerButton,
                         {
                           backgroundColor: 'transparent',
-                          borderRadius: isSmallScreen ? 20 : 24,
-                          marginTop: isSmallScreen ? 16 : 20,
+                          borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
+                          marginTop: isVerySmallScreen ? 12 : isSmallScreen ? 16 : 20,
                           overflow: 'hidden',
                           shadowColor: event.isRegistered ? 'transparent' : colors.primary,
                           shadowOffset: { width: 0, height: event.isRegistered ? 0 : 6 },
@@ -414,18 +415,18 @@ export default function EventsScreen() {
                           flexDirection: 'row',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          paddingVertical: isSmallScreen ? 16 : 20,
-                          paddingHorizontal: isSmallScreen ? 24 : 32,
-                          borderRadius: isSmallScreen ? 20 : 24,
+                          paddingVertical: isVerySmallScreen ? 12 : isSmallScreen ? 16 : 20,
+                          paddingHorizontal: isVerySmallScreen ? 16 : isSmallScreen ? 24 : 32,
+                          borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
                           borderWidth: event.isRegistered ? 2 : 0,
                           borderColor: event.isRegistered ? colors.primary + '60' : 'transparent',
-                          minHeight: isSmallScreen ? 52 : 60,
+                          minHeight: isVerySmallScreen ? 44 : isSmallScreen ? 52 : 60,
                         }}
                       >
                         <View style={{
-                          width: isSmallScreen ? 24 : 28,
-                          height: isSmallScreen ? 24 : 28,
-                          borderRadius: isSmallScreen ? 12 : 14,
+                          width: isVerySmallScreen ? 20 : isSmallScreen ? 24 : 28,
+                          height: isVerySmallScreen ? 20 : isSmallScreen ? 24 : 28,
+                          borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 12 : 14,
                           backgroundColor: event.isRegistered 
                             ? colors.primary + '20' 
                             : 'rgba(255,255,255,0.25)',
@@ -435,7 +436,7 @@ export default function EventsScreen() {
                         }}>
                           <Ionicons 
                             name={event.isRegistered ? "checkmark-circle" : "add-circle"} 
-                            size={isSmallScreen ? 16 : 18} 
+                            size={isVerySmallScreen ? 14 : isSmallScreen ? 16 : 18} 
                             color={event.isRegistered ? colors.primary : '#fff'} 
                           />
                         </View>
@@ -446,7 +447,7 @@ export default function EventsScreen() {
                               styles.registerButtonText,
                               {
                                 color: event.isRegistered ? colors.primary : '#fff',
-                                fontSize: isSmallScreen ? 16 : 18,
+                                fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? 16 : 18,
                                 letterSpacing: 0.5,
                                 textAlign: 'center',
                               }
@@ -570,7 +571,7 @@ const styles = StyleSheet.create({
   },
   categoryContent: {
     paddingRight: 24,
-    paddingBottom: 8,
+    paddingBottom: 0,
   },
   categoryButton: {
     flexDirection: 'row',

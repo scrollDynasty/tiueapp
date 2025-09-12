@@ -17,9 +17,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { NewsCard } from '@/components/NewsCard';
 import { ThemedText } from '@/components/ThemedText';
 import { getThemeColors } from '@/constants/Colors';
-import { Spacing, Typography } from '@/constants/DesignTokens';
+import { Typography } from '@/constants/DesignTokens';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { useResponsive } from '@/hooks/useResponsive';
 import { fetchNews } from '@/store/slices/newsSlice';
 
 const { width } = Dimensions.get('window');
@@ -29,6 +30,7 @@ export default function AllNewsScreen() {
   const { items: newsData, isLoading } = useAppSelector(state => state.news);
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
+  const { fontSize, spacing, isVerySmallScreen, isSmallScreen } = useResponsive();
   
   // Анимационные значения
   const headerOpacity = useSharedValue(1);
@@ -65,8 +67,8 @@ export default function AllNewsScreen() {
         index={index}
         onPress={() => router.push(`/news/${news.id}`)}
         style={{ 
-          marginBottom: Spacing.m,
-          marginHorizontal: Spacing.xs,
+          marginBottom: spacing.md,
+          marginHorizontal: spacing.xs,
           borderRadius: 20,
           overflow: 'hidden',
           ...Platform.select({
@@ -111,11 +113,11 @@ export default function AllNewsScreen() {
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              paddingHorizontal: Spacing.m,
-              paddingVertical: Spacing.l,
+              paddingHorizontal: spacing.md,
+              paddingVertical: spacing.lg,
               borderBottomLeftRadius: 24,
               borderBottomRightRadius: 24,
-              marginBottom: Spacing.s,
+              marginBottom: spacing.xs,
               ...Platform.select({
                 ios: {
                   shadowColor: isDarkMode ? '#000' : '#000',
@@ -135,18 +137,18 @@ export default function AllNewsScreen() {
               <Pressable
                 onPress={() => router.back()}
                 style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
+                  width: isVerySmallScreen ? 40 : 48,
+                  height: isVerySmallScreen ? 40 : 48,
+                  borderRadius: isVerySmallScreen ? 20 : 24,
                   backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginRight: Spacing.m,
+                  marginRight: spacing.md,
                   borderWidth: 1,
                   borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
                 }}
               >
-                <Ionicons name="arrow-back" size={24} color={colors.text} />
+                <Ionicons name="arrow-back" size={isVerySmallScreen ? 20 : 24} color={colors.text} />
               </Pressable>
             </Animated.View>
             
@@ -157,7 +159,7 @@ export default function AllNewsScreen() {
               <ThemedText style={{ 
                 ...Typography.displayH1, 
                 color: colors.text,
-                fontSize: 28,
+                fontSize: isVerySmallScreen ? fontSize.title : 28,
                 marginBottom: 4
               }}>
                 📰 University News
@@ -166,20 +168,21 @@ export default function AllNewsScreen() {
                 flexDirection: 'row',
                 alignItems: 'center',
                 backgroundColor: isDarkMode ? 'rgba(99,102,241,0.2)' : 'rgba(99,102,241,0.1)',
-                paddingHorizontal: Spacing.s,
+                paddingHorizontal: spacing.sm,
                 paddingVertical: 4,
                 borderRadius: 12,
                 alignSelf: 'flex-start'
               }}>
                 <Ionicons 
                   name="newspaper" 
-                  size={16} 
+                  size={isVerySmallScreen ? 14 : 16} 
                   color={isDarkMode ? '#A5B4FC' : '#6366F1'} 
                   style={{ marginRight: 6 }}
                 />
                 <ThemedText style={{ 
                   ...Typography.caption, 
                   color: isDarkMode ? '#A5B4FC' : '#6366F1',
+                  fontSize: fontSize.small,
                 }}>
                   {newsData.length} articles available
                 </ThemedText>
@@ -194,8 +197,8 @@ export default function AllNewsScreen() {
             data={newsData}
             renderItem={renderNewsItem}
             contentContainerStyle={{ 
-              padding: Spacing.m,
-              paddingBottom: Spacing.xl 
+              padding: spacing.md,
+              paddingBottom: spacing.xl 
             }}
             showsVerticalScrollIndicator={false}
             refreshing={isLoading}
@@ -208,7 +211,7 @@ export default function AllNewsScreen() {
               flex: 1, 
               justifyContent: 'center', 
               alignItems: 'center',
-              padding: Spacing.xl
+              padding: spacing.xl
             }}
           >
             {/* Красивый Empty State */}
@@ -218,17 +221,17 @@ export default function AllNewsScreen() {
                 : ['rgba(99,102,241,0.05)', 'rgba(139,92,246,0.05)']
               }
               style={{
-                width: 120,
-                height: 120,
-                borderRadius: 60,
+                width: isVerySmallScreen ? 100 : 120,
+                height: isVerySmallScreen ? 100 : 120,
+                borderRadius: isVerySmallScreen ? 50 : 60,
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: Spacing.l
+                marginBottom: spacing.lg
               }}
             >
               <Ionicons 
                 name="newspaper-outline" 
-                size={64} 
+                size={isVerySmallScreen ? 48 : 64} 
                 color={isDarkMode ? '#A5B4FC' : '#6366F1'} 
               />
             </LinearGradient>
@@ -236,7 +239,8 @@ export default function AllNewsScreen() {
             <ThemedText style={{ 
               ...Typography.titleH2, 
               color: colors.text,
-              marginBottom: Spacing.s,
+              fontSize: fontSize.title,
+              marginBottom: spacing.sm,
               textAlign: 'center',
             }}>
               📰 No News Yet
@@ -244,8 +248,9 @@ export default function AllNewsScreen() {
             <ThemedText style={{ 
               ...Typography.body, 
               color: colors.textSecondary,
+              fontSize: fontSize.body,
               textAlign: 'center',
-              lineHeight: 24,
+              lineHeight: isVerySmallScreen ? 20 : 24,
               maxWidth: width * 0.8
             }}>
               News articles will appear here when the administration publishes them. Check back soon!

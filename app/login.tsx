@@ -3,6 +3,7 @@ import { getThemeColors } from '@/constants/Colors';
 import { Colors, Spacing } from '@/constants/DesignTokens';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { useResponsive } from '@/hooks/useResponsive';
 import { clearError, loginUser } from '@/store/slices/authSlice';
 import { LoginCredentials } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,33 +11,32 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Dimensions,
-    KeyboardAvoidingView,
-    Platform,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import Animated, {
-    FadeInDown,
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
-    withTiming
+  FadeInDown,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { width, height } = Dimensions.get('window');
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function LoginScreen() {
   const { theme, setTheme } = useTheme();
   const themeColors = getThemeColors(theme === 'dark');
+  const { isSmallScreen, spacing, fontSize } = useResponsive();
   
   const [credentials, setCredentials] = useState<LoginCredentials>({
     email: '',
@@ -227,12 +227,12 @@ export default function LoginScreen() {
         >
           <Ionicons 
             name={theme === 'dark' ? "sunny-outline" : "moon-outline"} 
-            size={28} 
+            size={isSmallScreen ? 22 : 26} 
             color={theme === 'dark' ? '#FFD700' : '#6366F1'} 
             style={{
               textShadowColor: theme === 'dark' ? '#FFD700' : '#6366F1',
               textShadowOffset: { width: 0, height: 0 },
-              textShadowRadius: 12,
+              textShadowRadius: 8,
             }}
           />
         </AnimatedTouchableOpacity>
@@ -241,7 +241,9 @@ export default function LoginScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          <View style={styles.content}>
+          <View style={[styles.content, { 
+            paddingHorizontal: isSmallScreen ? spacing.md : spacing.lg 
+          }]}>
             {/* Главная форма адаптированная под тему */}
             <Animated.View style={[
               styles.formContainer, 
@@ -255,14 +257,23 @@ export default function LoginScreen() {
                   : 'rgba(0,0,0,0.08)',
               }
             ]}>
+              
               {/* Email Input */}
-              <View style={styles.inputContainer}>
-                <Text style={[styles.inputLabel, { color: themeColors.text }]}>Email</Text>
+              <View style={[styles.inputContainer, { marginBottom: isSmallScreen ? spacing.md : spacing.lg }]}>
+                <Text style={[
+                  styles.inputLabel, 
+                  { 
+                    color: themeColors.text,
+                    fontSize: isSmallScreen ? fontSize.small : 14
+                  }
+                ]}>Email</Text>
                 <View style={[
                   styles.inputWrapper, 
                   { 
                     backgroundColor: themeColors.surface,
-                    borderColor: themeColors.border 
+                    borderColor: themeColors.border,
+                    height: isSmallScreen ? 48 : 56,
+                    paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md
                   },
                   focusedInput === 'email' && {
                     borderColor: Colors.brandPrimary,
@@ -272,15 +283,16 @@ export default function LoginScreen() {
                 ]}>
                   <Ionicons 
                     name="mail-outline" 
-                    size={20} 
+                    size={isSmallScreen ? 18 : 20} 
                     color={focusedInput === 'email' ? Colors.brandPrimary : themeColors.textSecondary}
-                    style={styles.inputIcon}
+                    style={[styles.inputIcon, { marginRight: isSmallScreen ? spacing.xs : spacing.sm }]}
                   />
                   <TextInput
                     style={[styles.input, {
                       backgroundColor: 'transparent',
                       borderColor: 'transparent',
                       color: themeColors.text,
+                      fontSize: isSmallScreen ? fontSize.body : 16
                     }]}
                     placeholder="your.email@university.uz"
                     placeholderTextColor={themeColors.textSecondary}
@@ -303,13 +315,21 @@ export default function LoginScreen() {
               </View>
 
               {/* Password Input */}
-              <View style={styles.inputContainer}>
-                <Text style={[styles.inputLabel, { color: themeColors.text }]}>Пароль</Text>
+              <View style={[styles.inputContainer, { marginBottom: isSmallScreen ? spacing.md : spacing.lg }]}>
+                <Text style={[
+                  styles.inputLabel, 
+                  { 
+                    color: themeColors.text,
+                    fontSize: isSmallScreen ? fontSize.small : 14
+                  }
+                ]}>Пароль</Text>
                 <View style={[
                   styles.inputWrapper, 
                   { 
                     backgroundColor: themeColors.surface,
-                    borderColor: themeColors.border 
+                    borderColor: themeColors.border,
+                    height: isSmallScreen ? 48 : 56,
+                    paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md
                   },
                   focusedInput === 'password' && {
                     borderColor: Colors.brandPrimary,
@@ -319,16 +339,17 @@ export default function LoginScreen() {
                 ]}>
                   <Ionicons 
                     name="lock-closed-outline" 
-                    size={20} 
+                    size={isSmallScreen ? 18 : 20} 
                     color={focusedInput === 'password' ? Colors.brandPrimary : themeColors.textSecondary}
-                    style={styles.inputIcon}
+                    style={[styles.inputIcon, { marginRight: isSmallScreen ? spacing.xs : spacing.sm }]}
                   />
                   <TextInput
                     style={[styles.input, {
                       backgroundColor: 'transparent',
                       borderColor: 'transparent',
                       color: themeColors.text,
-                      paddingRight: 60, // Увеличиваем отступ справа для кнопки глазика
+                      fontSize: isSmallScreen ? fontSize.body : 16,
+                      paddingRight: isSmallScreen ? 50 : 60, // Увеличиваем отступ справа для кнопки глазика
                     }]}
                     placeholder="Введите ваш пароль"
                     placeholderTextColor={themeColors.textSecondary}
@@ -404,7 +425,14 @@ export default function LoginScreen() {
               )}
 
               {/* Login Button */}
-              <Animated.View style={[styles.loginButton, buttonAnimatedStyle]}>
+              <Animated.View style={[
+                styles.loginButton, 
+                buttonAnimatedStyle,
+                { 
+                  marginTop: isSmallScreen ? spacing.md : spacing.lg,
+                  height: isSmallScreen ? 48 : 56
+                }
+              ]}>
                 <TouchableOpacity
                   style={[styles.loginButtonTouchable, loading && styles.loginButtonDisabled]}
                   onPress={handleLogin}
@@ -419,13 +447,23 @@ export default function LoginScreen() {
                   >
                     {loading ? (
                       <View style={styles.buttonContent}>
-                        <LoadingAnimation color={Colors.surface} size={20} />
-                        <Text style={styles.buttonText}>Вход...</Text>
+                        <LoadingAnimation color={Colors.surface} size={isSmallScreen ? 16 : 20} />
+                        <Text style={[
+                          styles.buttonText,
+                          { fontSize: isSmallScreen ? fontSize.body : 16 }
+                        ]}>Вход...</Text>
                       </View>
                     ) : (
                       <View style={styles.buttonContent}>
-                        <Text style={styles.buttonText}>Войти</Text>
-                        <Ionicons name="arrow-forward" size={20} color={Colors.surface} />
+                        <Text style={[
+                          styles.buttonText,
+                          { fontSize: isSmallScreen ? fontSize.body : 16 }
+                        ]}>Войти</Text>
+                        <Ionicons 
+                          name="arrow-forward" 
+                          size={isSmallScreen ? 18 : 20} 
+                          color={Colors.surface} 
+                        />
                       </View>
                     )}
                   </LinearGradient>
@@ -456,23 +494,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.l,
     justifyContent: 'center',
     alignItems: 'center',
+    minHeight: '100%',
   },
   
   // Основная форма адаптированная под тему
   formContainer: {
     width: '100%',
-    maxWidth: 380,
+    maxWidth: 400,
     backgroundColor: 'rgba(255,255,255,0.95)',
-    borderRadius: 24,
-    padding: Spacing.xl,
-    marginTop: Spacing.xl,
+    borderRadius: 20,
+    paddingHorizontal: Spacing.l,
+    paddingVertical: Spacing.xl,
+    marginTop: Spacing.l,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 8,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.08)',
+    borderColor: 'rgba(0,0,0,0.05)',
   },
   welcomeHeader: {
     alignItems: 'center',
@@ -492,33 +532,31 @@ const styles = StyleSheet.create({
 
   // Инпуты адаптированные под тему
   inputContainer: {
-    marginBottom: Spacing.l,
+    // marginBottom динамически устанавливается в компоненте
   },
   inputLabel: {
-    fontSize: 14,
+    fontWeight: '500',
     marginBottom: Spacing.xs,
-    marginLeft: 4,
+    marginLeft: 2,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderRadius: 16,
-    paddingHorizontal: Spacing.m,
-    height: 56,
+    borderRadius: 12,
+    // height и padding динамически устанавливаются в компоненте
     position: 'relative',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
+    elevation: 1,
   },
   inputIcon: {
-    marginRight: Spacing.s,
+    // marginRight динамически устанавливается в компоненте
   },
   input: {
     flex: 1,
-    fontSize: 16,
     height: '100%',
     paddingVertical: 0,
     backgroundColor: 'transparent',
@@ -533,30 +571,28 @@ const styles = StyleSheet.create({
   },
   passwordToggle: {
     position: 'absolute',
-    right: Spacing.m,
+    right: 12,
     top: 0,
     bottom: 0,
-    width: 44,
-    height: 56, // Высота такая же как у inputWrapper
+    width: 40,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1,
   },
 
-  // Кнопка в стиле LoginScreen reference
+  // Кнопка в стиле LoginScreen reference  
   loginButton: {
-    marginTop: Spacing.l,
-    height: 56,
-    borderRadius: 16,
+    // marginTop и height динамически устанавливаются в компоненте
+    borderRadius: 12,
     shadowColor: Colors.brandPrimary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
   },
   loginButtonTouchable: {
     flex: 1,
-    borderRadius: 16,
+    borderRadius: 12,
   },
   loginButtonDisabled: {
     shadowOpacity: 0.15,
@@ -564,10 +600,10 @@ const styles = StyleSheet.create({
   },
   buttonGradient: {
     flex: 1,
-    borderRadius: 16,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: Spacing.l,
+    paddingHorizontal: Spacing.m,
   },
   buttonContent: {
     flexDirection: 'row',
@@ -582,9 +618,11 @@ const styles = StyleSheet.create({
   // Кнопка смены темы
   themeButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 20,
-    right: 20,
+    top: Platform.OS === 'ios' ? 50 : 15,
+    right: 15,
     zIndex: 100,
-    padding: 10, // Добавляем padding для области нажатия
+    padding: 12,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
 });
