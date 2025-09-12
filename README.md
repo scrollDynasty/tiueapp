@@ -3,9 +3,11 @@
 <div align="center">
 
 ![TIUE Logo](https://img.shields.io/badge/TIUE-Mobile%20App-blue?style=for-the-badge&logo=react)
-[![React Native](https://img.shields.io/badge/React%20Native-0.79.6-61DAFB?style=flat&logo=react)](https://reactnative.dev/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.79.5-61DAFB?style=flat&logo=react)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-~53.0.22-000020?style=flat&logo=expo)](https://expo.dev/)
 [![Node.js](https://img.shields.io/badge/Node.js-22.19.0-339933?style=flat&logo=nodedotjs)](https://nodejs.org/)
+[![npm](https://img.shields.io/badge/npm-11.6.0-CB3837?style=flat&logo=npm)](https://npmjs.com/)
+[![Expo CLI](https://img.shields.io/badge/Expo%20CLI-0.24.21-000020?style=flat&logo=expo)](https://expo.dev/)
 [![Django](https://img.shields.io/badge/Django-4.2.16-092E20?style=flat&logo=django)](https://djangoproject.com/)
 [![Python](https://img.shields.io/badge/Python-3.12.6-3776AB?style=flat&logo=python)](https://python.org/)
 
@@ -30,7 +32,7 @@ TIUE Mobile App is a comprehensive mobile application for students and administr
 ## 🏗️ Technology Stack
 
 ### Frontend (React Native)
-- **React Native** `0.79.6` - cross-platform mobile development
+- **React Native** `0.79.5` - cross-platform mobile development
 - **Expo** `~53.0.22` - rapid development platform
 - **TypeScript** - typed JavaScript
 - **Redux Toolkit** - application state management
@@ -54,13 +56,13 @@ Make sure you have installed:
 
 - **Node.js** (version 22.19.0 or higher) - [Download](https://nodejs.org/)
 - **npm** (version 11.6.0 or higher) - comes with Node.js
-- **Python** (version 3.12.6 or higher) - [Download](https://python.org/)
-- **MariaDB/MySQL** - database
-- **Git** - [Download](https://git-scm.com/)
-- **Expo CLI** (globally):
+- **Expo CLI** (version 0.24.21 or higher) - install globally:
   ```bash
   npm install -g @expo/cli
   ```
+- **Python** (version 3.12.6 or higher) - [Download](https://python.org/)
+- **MariaDB/MySQL** - database
+- **Git** - [Download](https://git-scm.com/)
 
 ### 📦 Installation
 
@@ -78,6 +80,8 @@ npm install
 # Or with yarn
 yarn install
 ```
+
+> **⚠️ Important Note**: This project uses specific Metro bundler configurations for compatibility. If you encounter Metro-related errors, the `package.json` includes `overrides` section that forces compatible versions of Metro packages. Do not remove the `overrides` section without testing.
 
 #### 3. Backend Setup (Django)
 ```bash
@@ -264,6 +268,37 @@ npm test
 cd backend
 python manage.py test
 ```
+
+## 🛠️ Troubleshooting
+
+### Metro Bundler Issues
+
+If you encounter errors like `Package subpath is not defined by "exports"`, this is typically a Metro version conflict. The project includes specific version overrides in `package.json`:
+
+```json
+"overrides": {
+  "metro": "0.82.5",
+  "metro-cache": "0.82.5",
+  "metro-config": "0.82.5",
+  "metro-transform-worker": "0.82.5"
+}
+```
+
+**Solution steps:**
+1. Delete `node_modules` and `package-lock.json`
+2. Run `npm install`
+3. Ensure all Metro packages are version `0.82.5`
+
+### Common Issues
+
+- **Error**: `ERR_PACKAGE_PATH_NOT_EXPORTED` 
+  - **Solution**: Follow Metro troubleshooting steps above
+  
+- **Error**: Expo CLI version conflicts
+  - **Solution**: Update to Expo CLI `0.24.21+` with `npm install -g @expo/cli@latest`
+
+- **Error**: Node.js compatibility issues
+  - **Solution**: Use Node.js `22.19.0+` and npm `11.6.0+`
 
 ## 📱 Production Build
 
