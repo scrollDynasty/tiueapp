@@ -17,11 +17,11 @@ import { router } from 'expo-router';
 import React from 'react';
 import { Dimensions, Pressable, ScrollView, View } from 'react-native';
 import Animated, {
-  FadeInDown,
-  SlideInLeft,
-  SlideInRight,
-  useAnimatedScrollHandler,
-  useSharedValue,
+    FadeInDown,
+    SlideInLeft,
+    SlideInRight,
+    useAnimatedScrollHandler,
+    useSharedValue,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -34,7 +34,7 @@ export default function HomeScreen() {
   const scrollY = useSharedValue(0);
   const [refreshing, setRefreshing] = React.useState(false);
   const [showNotifications, setShowNotifications] = React.useState(false);
-  const { horizontalPadding, cardGap, cardWidth, cardHeight, isVerySmallScreen } = useResponsive();
+  const { horizontalPadding, cardGap, cardWidth, cardHeight, isVerySmallScreen, fontSize, spacing } = useResponsive();
   const { user } = useAppSelector((state) => state.auth);
 
   const scrollHandler = useAnimatedScrollHandler({
@@ -193,8 +193,8 @@ export default function HomeScreen() {
       style={{
         backgroundColor: colors.surface,
         borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
+        padding: isVerySmallScreen ? spacing.sm : spacing.md,
+        marginBottom: spacing.sm,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.06,
@@ -207,16 +207,16 @@ export default function HomeScreen() {
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <View style={{ flex: 1 }}>
           <ThemedText style={{
-            fontSize: 14,
+            fontSize: fontSize.body,
             color: colors.text,
-            marginBottom: 4,
+            marginBottom: spacing.xs,
           }} numberOfLines={2}>
             {event.title}
           </ThemedText>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
-            <Ionicons name="calendar-outline" size={12} color={colors.textSecondary} />
+            <Ionicons name="calendar-outline" size={10} color={colors.textSecondary} />
             <ThemedText style={{
-              fontSize: 12,
+              fontSize: fontSize.small,
               color: colors.textSecondary,
               marginLeft: 4,
             }}>
@@ -224,9 +224,9 @@ export default function HomeScreen() {
             </ThemedText>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Ionicons name="location-outline" size={12} color={colors.textSecondary} />
+            <Ionicons name="location-outline" size={10} color={colors.textSecondary} />
             <ThemedText style={{
-              fontSize: 12,
+              fontSize: fontSize.small,
               color: colors.textSecondary,
               marginLeft: 4,
             }} numberOfLines={1}>
@@ -236,13 +236,13 @@ export default function HomeScreen() {
         </View>
         <View style={{
           backgroundColor: colors.backgroundSecondary,
-          paddingHorizontal: 8,
+          paddingHorizontal: spacing.xs,
           paddingVertical: 4,
           borderRadius: 6,
-          marginLeft: 8,
+          marginLeft: spacing.xs,
         }}>
           <ThemedText style={{
-            fontSize: 10,
+            fontSize: fontSize.small - 1,
             color: colors.textSecondary,
             textTransform: 'uppercase',
           }}>
@@ -412,12 +412,12 @@ export default function HomeScreen() {
 
         {/* Предстоящие события */}
         {upcomingEvents.length > 0 && (
-          <Animated.View entering={SlideInLeft.delay(400)} style={{ marginBottom: 32 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <Animated.View entering={SlideInLeft.delay(400)} style={{ marginBottom: spacing.lg }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
               <ThemedText
                 style={{
-                  fontSize: 18,
-                  lineHeight: 24,
+                  fontSize: fontSize.title,
+                  lineHeight: isVerySmallScreen ? 22 : 24,
                   color: colors.text,
                   fontFamily: 'Inter',
                 }}
@@ -427,14 +427,14 @@ export default function HomeScreen() {
               <Pressable
                 style={{
                   backgroundColor: colors.backgroundSecondary,
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
+                  paddingHorizontal: spacing.sm,
+                  paddingVertical: spacing.xs,
                   borderRadius: 20,
                 }}
                 onPress={() => router.push('/(tabs)/events')}
               >
                 <ThemedText style={{
-                  fontSize: 12,
+                  fontSize: fontSize.small,
                   color: colors.primary,
                 }}>
                   Все события
@@ -452,12 +452,12 @@ export default function HomeScreen() {
 
         {/* Важные новости */}
         {importantNews.length > 0 && (
-          <Animated.View entering={SlideInRight.delay(500)} style={{ marginBottom: 32 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <Animated.View entering={SlideInRight.delay(500)} style={{ marginBottom: spacing.lg }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
               <ThemedText
                 style={{
-                  fontSize: 18,
-                  lineHeight: 24,
+                  fontSize: fontSize.title,
+                  lineHeight: isVerySmallScreen ? 22 : 24,
                   color: isDarkMode ? colors.text : '#1E293B',
                   fontFamily: 'Inter',
                 }}
@@ -467,8 +467,8 @@ export default function HomeScreen() {
               <Pressable
                 style={{
                   backgroundColor: isDarkMode ? `${colors.warning}20` : '#FEF3C7',
-                  paddingHorizontal: 12,
-                  paddingVertical: 6,
+                  paddingHorizontal: spacing.sm,
+                  paddingVertical: spacing.xs,
                   borderRadius: 20,
                 }}
                 onPress={() => {
@@ -476,7 +476,7 @@ export default function HomeScreen() {
                 }}
               >
                 <ThemedText style={{
-                  fontSize: 12,
+                  fontSize: fontSize.small,
                   color: isDarkMode ? colors.warning : '#D97706',
                 }}>
                   Все новости
@@ -484,7 +484,7 @@ export default function HomeScreen() {
               </Pressable>
             </View>
             
-            <View style={{ gap: 12 }}>
+            <View style={{ gap: spacing.sm }}>
               {importantNews.map((news, index) => (
                 <NewsCard
                   key={news.id}
@@ -504,11 +504,11 @@ export default function HomeScreen() {
 
         {/* Секция всех новостей */}
         <Animated.View entering={SlideInRight.delay(600)}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
             <ThemedText
               style={{
-                fontSize: 18,
-                lineHeight: 24,
+                fontSize: fontSize.title,
+                lineHeight: isVerySmallScreen ? 22 : 24,
                 color: isDarkMode ? colors.text : '#1E293B',
                 fontFamily: 'Inter',
               }}
@@ -517,12 +517,12 @@ export default function HomeScreen() {
             </ThemedText>
             <View style={{
               backgroundColor: isDarkMode ? `${colors.primary}20` : '#ffffffff',
-              paddingHorizontal: 10,
-              paddingVertical: 4,
+              paddingHorizontal: spacing.sm,
+              paddingVertical: spacing.xs,
               borderRadius: 12,
             }}>
               <ThemedText style={{
-                fontSize: 11,
+                fontSize: fontSize.small - 1,
                 color: isDarkMode ? colors.primary : '#0369A1',
               }}>
                 {newsData.length} новостей
@@ -530,7 +530,7 @@ export default function HomeScreen() {
             </View>
           </View>
 
-          <View style={{ gap: 12 }}>
+          <View style={{ gap: spacing.sm }}>
             {newsData.length > 0 ? (
               newsData.slice(0, 5).map((news, index) => (
                 <NewsCard
@@ -549,7 +549,7 @@ export default function HomeScreen() {
               <View style={{
                 backgroundColor: colors.backgroundSecondary,
                 borderRadius: 16,
-                padding: 32,
+                padding: spacing.lg,
                 alignItems: 'center',
                 borderWidth: 2,
                 borderColor: colors.border,
@@ -557,25 +557,25 @@ export default function HomeScreen() {
               }}>
                 <View style={{
                   backgroundColor: colors.border,
-                  width: 60,
-                  height: 60,
-                  borderRadius: 30,
+                  width: isVerySmallScreen ? 48 : 60,
+                  height: isVerySmallScreen ? 48 : 60,
+                  borderRadius: isVerySmallScreen ? 24 : 30,
                   justifyContent: 'center',
                   alignItems: 'center',
-                  marginBottom: 16,
+                  marginBottom: spacing.md,
                 }}>
-                  <Ionicons name="newspaper-outline" size={28} color={colors.textSecondary} />
+                  <Ionicons name="newspaper-outline" size={isVerySmallScreen ? 22 : 28} color={colors.textSecondary} />
                 </View>
                 <ThemedText style={{
-                  fontSize: 16,
+                  fontSize: fontSize.body,
                   color: isDarkMode ? colors.text : '#475569',
                   textAlign: 'center',
-                  marginBottom: 8,
+                  marginBottom: spacing.xs,
                 }}>
                   Новостей пока нет
                 </ThemedText>
                 <ThemedText style={{
-                  fontSize: 14,
+                  fontSize: fontSize.small,
                   color: isDarkMode ? colors.textSecondary : '#94A3B8',
                   textAlign: 'center',
                   lineHeight: 20,
@@ -590,7 +590,7 @@ export default function HomeScreen() {
         <Animated.View 
           entering={FadeInDown.delay(700)}
           style={{
-            marginTop: 32,
+            marginTop: spacing.lg,
             backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             borderRadius: 20,
             overflow: 'hidden',
@@ -598,31 +598,31 @@ export default function HomeScreen() {
         >
           <View style={{
             backgroundColor: isDarkMode ? colors.surface : colors.primary,
-            padding: 24,
+            padding: spacing.lg,
             borderRadius: 20,
           }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md }}>
               <View style={{
                 backgroundColor: isDarkMode ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255,255,255,0.2)',
-                width: 48,
-                height: 48,
-                borderRadius: 24,
+                width: isVerySmallScreen ? 40 : 48,
+                height: isVerySmallScreen ? 40 : 48,
+                borderRadius: isVerySmallScreen ? 20 : 24,
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginRight: 16,
+                marginRight: spacing.md,
               }}>
-                <Ionicons name="bulb" size={24} color={isDarkMode ? colors.primary : "#FFFFFF"} />
+                <Ionicons name="bulb" size={isVerySmallScreen ? 20 : 24} color={isDarkMode ? colors.primary : "#FFFFFF"} />
               </View>
               <View style={{ flex: 1 }}>
                 <ThemedText style={{
-                  fontSize: 16,
+                  fontSize: fontSize.body,
                   color: isDarkMode ? colors.text : '#FFFFFF',
                   marginBottom: 4,
                 }}>
                   Совет дня
                 </ThemedText>
                 <ThemedText style={{
-                  fontSize: 12,
+                  fontSize: fontSize.small,
                   color: isDarkMode ? colors.textSecondary : '#C7D2FE',
                 }}>
                   Полезная информация для студентов
@@ -630,8 +630,8 @@ export default function HomeScreen() {
               </View>
             </View>
             <ThemedText style={{
-              fontSize: 14,
-              lineHeight: 20,
+              fontSize: fontSize.small,
+              lineHeight: isVerySmallScreen ? 18 : 20,
               color: isDarkMode ? colors.textSecondary : '#E0E7FF',
               fontStyle: 'italic',
             }}>
@@ -645,10 +645,10 @@ export default function HomeScreen() {
         <Animated.View 
           entering={FadeInDown.delay(800)}
           style={{
-            marginTop: 24,
+            marginTop: spacing.lg,
             backgroundColor: colors.surface,
             borderRadius: 16,
-            padding: 20,
+            padding: spacing.md,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: isDarkMode ? 0.15 : 0.08,
@@ -667,16 +667,16 @@ export default function HomeScreen() {
             >
               <View style={{
                 backgroundColor: isDarkMode ? `${colors.error}25` : '#FEE2E2',
-                width: 40,
-                height: 40,
-                borderRadius: 20,
+                width: isVerySmallScreen ? 36 : 40,
+                height: isVerySmallScreen ? 36 : 40,
+                borderRadius: isVerySmallScreen ? 18 : 20,
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginBottom: 8,
+                marginBottom: spacing.xs,
               }}>
-                <Ionicons name="help-circle" size={20} color={colors.error} />
+                <Ionicons name="help-circle" size={isVerySmallScreen ? 18 : 20} color={colors.error} />
               </View>
-              <ThemedText style={{ fontSize: 12, color: colors.textSecondary }}>
+              <ThemedText style={{ fontSize: fontSize.small, color: colors.textSecondary }}>
                 Помощь
               </ThemedText>
             </Pressable>
@@ -690,16 +690,16 @@ export default function HomeScreen() {
             >
               <View style={{
                 backgroundColor: isDarkMode ? `${colors.primary}25` : '#DBEAFE',
-                width: 40,
-                height: 40,
-                borderRadius: 20,
+                width: isVerySmallScreen ? 36 : 40,
+                height: isVerySmallScreen ? 36 : 40,
+                borderRadius: isVerySmallScreen ? 18 : 20,
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginBottom: 8,
+                marginBottom: spacing.xs,
               }}>
-                <Ionicons name="chatbubble" size={20} color={colors.primary} />
+                <Ionicons name="chatbubble" size={isVerySmallScreen ? 18 : 20} color={colors.primary} />
               </View>
-              <ThemedText style={{ fontSize: 12, color: isDarkMode ? colors.textSecondary : '#64748B' }}>
+              <ThemedText style={{ fontSize: fontSize.small, color: isDarkMode ? colors.textSecondary : '#64748B' }}>
                 События
               </ThemedText>
             </Pressable>
@@ -713,16 +713,16 @@ export default function HomeScreen() {
             >
               <View style={{
                 backgroundColor: isDarkMode ? `${colors.success}25` : '#D1FAE5',
-                width: 40,
-                height: 40,
-                borderRadius: 20,
+                width: isVerySmallScreen ? 36 : 40,
+                height: isVerySmallScreen ? 36 : 40,
+                borderRadius: isVerySmallScreen ? 18 : 20,
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginBottom: 8,
+                marginBottom: spacing.xs,
               }}>
-                <Ionicons name="settings" size={20} color={colors.success} />
+                <Ionicons name="settings" size={isVerySmallScreen ? 18 : 20} color={colors.success} />
               </View>
-              <ThemedText style={{ fontSize: 12, color: colors.textSecondary }}>
+              <ThemedText style={{ fontSize: fontSize.small, color: colors.textSecondary }}>
                 Настройки
               </ThemedText>
             </Pressable>

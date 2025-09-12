@@ -1,16 +1,17 @@
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useResponsive } from '@/hooks/useResponsive';
 import { formatDateYMD } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { Dimensions, Image, Platform, Pressable, TextStyle, View, ViewStyle } from 'react-native';
 import Animated, {
-  FadeIn,
-  interpolate,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming
+    FadeIn,
+    interpolate,
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming
 } from 'react-native-reanimated';
 import { Animation, Spacing } from '../constants/DesignTokens';
 import { ThemedText } from './ThemedText';
@@ -56,6 +57,13 @@ export function NewsCard({
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const pressed = useSharedValue(0);
+  const { fontSize, spacing, isSmallScreen, isVerySmallScreen } = useResponsive();
+
+  // Адаптивные размеры
+  const imageHeight = isVerySmallScreen ? 160 : isSmallScreen ? 180 : 220;
+  const cardPadding = isVerySmallScreen ? spacing.sm : spacing.md;
+  const iconSize = isVerySmallScreen ? 32 : 44;
+  const iconInnerSize = isVerySmallScreen ? 16 : 22;
 
   const handlePressIn = () => {
     'worklet';
@@ -123,7 +131,7 @@ export function NewsCard({
               source={{ uri: image }}
               style={{
                 width: '100%',
-                height: 220,
+                height: imageHeight,
                 borderTopLeftRadius: 20,
                 borderTopRightRadius: 20,
               }}
@@ -143,18 +151,18 @@ export function NewsCard({
             />
             <View style={{
               position: 'absolute',
-              top: Spacing.m,
-              right: Spacing.m,
+              top: cardPadding,
+              right: cardPadding,
               backgroundColor: 'rgba(0,0,0,0.7)',
-              paddingHorizontal: Spacing.s,
+              paddingHorizontal: spacing.xs,
               paddingVertical: 6,
               borderRadius: 12,
               flexDirection: 'row',
               alignItems: 'center'
             }}>
-              <Ionicons name="calendar-outline" size={14} color="#fff" style={{ marginRight: 4 }} />
+              <Ionicons name="calendar-outline" size={12} color="#fff" style={{ marginRight: 4 }} />
               <ThemedText style={[{ 
-                fontSize: 12, 
+                fontSize: fontSize.small, 
                 color: '#fff', 
               }, textStyles.title]}>
                 {formatDateYMD(date)}
@@ -163,27 +171,27 @@ export function NewsCard({
           </View>
         )}
         
-        <View style={{ padding: Spacing.m }}>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: Spacing.s }}>
+        <View style={{ padding: cardPadding }}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: spacing.xs }}>
             <LinearGradient
               colors={isDarkMode 
                 ? ['rgba(99,102,241,0.2)', 'rgba(139,92,246,0.2)']
                 : ['rgba(99,102,241,0.1)', 'rgba(139,92,246,0.1)']
               }
               style={{
-                width: 44,
-                height: 44,
-                borderRadius: 22,
+                width: iconSize,
+                height: iconSize,
+                borderRadius: iconSize / 2,
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginRight: Spacing.m,
+                marginRight: spacing.sm,
                 borderWidth: 1,
                 borderColor: isDarkMode ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.2)',
               }}
             >
               <Ionicons 
                 name={icon} 
-                size={22} 
+                size={iconInnerSize} 
                 color={isDarkMode ? '#A5B4FC' : '#6366F1'} 
               />
             </LinearGradient>
@@ -191,8 +199,8 @@ export function NewsCard({
             <View style={{ flex: 1 }}>
               <ThemedText
                 style={[{
-                  fontSize: 15,
-                  lineHeight: 20,
+                  fontSize: isVerySmallScreen ? fontSize.small : fontSize.body,
+                  lineHeight: isVerySmallScreen ? 18 : 20,
                   color: colors.text,
                   marginBottom: 3,
                 }, textStyles.subtitle]}
@@ -207,9 +215,9 @@ export function NewsCard({
                   alignItems: 'center',
                   marginTop: 4
                 }}>
-                  <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} style={{ marginRight: 6 }} />
+                  <Ionicons name="calendar-outline" size={12} color={colors.textSecondary} style={{ marginRight: 6 }} />
                   <ThemedText style={[{ 
-                    fontSize: 13, 
+                    fontSize: fontSize.small, 
                     color: colors.textSecondary, 
                   }, textStyles.eventTitle]}>
                     {formatDateYMD(date)}
@@ -221,10 +229,10 @@ export function NewsCard({
 
           <ThemedText
             style={{
-              fontSize: 13,
-              lineHeight: 18,
+              fontSize: fontSize.small,
+              lineHeight: isVerySmallScreen ? 16 : 18,
               color: colors.textSecondary,
-              marginBottom: events.length > 0 ? Spacing.s : 0,
+              marginBottom: events.length > 0 ? spacing.xs : 0,
             }}
             numberOfLines={3}
           >
@@ -234,32 +242,32 @@ export function NewsCard({
           {events.length > 0 && (
             <View
               style={{
-                marginTop: Spacing.s,
-                paddingTop: Spacing.m,
+                marginTop: spacing.xs,
+                paddingTop: spacing.sm,
                 borderTopWidth: 1,
                 borderTopColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
               }}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.s }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs }}>
                 <LinearGradient
                   colors={isDarkMode 
                     ? ['rgba(34,197,94,0.2)', 'rgba(16,185,129,0.2)']
                     : ['rgba(34,197,94,0.1)', 'rgba(16,185,129,0.1)']
                   }
                   style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: 12,
+                    width: 20,
+                    height: 20,
+                    borderRadius: 10,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginRight: Spacing.xs,
+                    marginRight: spacing.xs,
                   }}
                 >
-                  <Ionicons name="calendar" size={12} color={isDarkMode ? '#10B981' : '#059669'} />
+                  <Ionicons name="calendar" size={10} color={isDarkMode ? '#10B981' : '#059669'} />
                 </LinearGradient>
                 <ThemedText
                   style={[{
-                    fontSize: 14,
+                    fontSize: fontSize.small,
                     color: colors.text,
                   }, textStyles.eventLocation]}
                 >
@@ -267,7 +275,7 @@ export function NewsCard({
                 </ThemedText>
               </View>
               
-              <View style={{ gap: Spacing.xs }}>
+              <View style={{ gap: spacing.xs }}>
                 {events.slice(0, 2).map((event, eventIndex) => (
                   <Pressable
                     key={`event-${event.id}-${eventIndex}`}
@@ -275,8 +283,8 @@ export function NewsCard({
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      paddingVertical: Spacing.xs,
-                      paddingHorizontal: Spacing.s,
+                      paddingVertical: spacing.xs,
+                      paddingHorizontal: spacing.xs,
                       backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
                       borderRadius: 12,
                       borderWidth: 1,
@@ -284,16 +292,16 @@ export function NewsCard({
                     }}
                   >
                     <View style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 4,
+                      width: 6,
+                      height: 6,
+                      borderRadius: 3,
                       backgroundColor: isDarkMode ? '#10B981' : '#059669',
-                      marginRight: Spacing.s,
+                      marginRight: spacing.xs,
                     }} />
                     <ThemedText
                       style={[{
                         flex: 1,
-                        fontSize: 13,
+                        fontSize: fontSize.small,
                         color: colors.textSecondary,
                       }, textStyles.eventDate]}
                       numberOfLines={1}

@@ -20,7 +20,7 @@ export default function EventDetailScreen() {
   
   const { id } = useLocalSearchParams();
   const [imageModalVisible, setImageModalVisible] = useState(false);
-  const { isSmallScreen, spacing, fontSize } = useResponsive();
+  const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
   const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
   
   // Приводим ID к строке и ищем событие
@@ -136,7 +136,7 @@ export default function EventDetailScreen() {
                 source={{ uri: event.image }}
                 style={{
                   width: '100%',
-                  height: isSmallScreen ? 250 : 300,
+                  height: isVerySmallScreen ? 200 : isSmallScreen ? 250 : 300,
                   backgroundColor: colors.surfaceSecondary,
                 }}
                 resizeMode="cover"
@@ -152,7 +152,7 @@ export default function EventDetailScreen() {
               top: 0,
               left: 0,
               right: 0,
-              height: isSmallScreen ? 100 : 120,
+              height: isVerySmallScreen ? 80 : isSmallScreen ? 100 : 120,
             }}
           />
           
@@ -164,7 +164,7 @@ export default function EventDetailScreen() {
               bottom: 0,
               left: 0,
               right: 0,
-              height: isSmallScreen ? 60 : 80,
+              height: isVerySmallScreen ? 40 : isSmallScreen ? 60 : 80,
             }}
           />
 
@@ -182,9 +182,9 @@ export default function EventDetailScreen() {
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                paddingHorizontal: isSmallScreen ? spacing.md : Spacing.m,
-                paddingTop: Platform.OS === 'ios' ? 0 : (isSmallScreen ? spacing.sm : Spacing.s),
-                minHeight: isSmallScreen ? 56 : 64,
+                paddingHorizontal: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+                paddingTop: Platform.OS === 'ios' ? 0 : (isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s),
+                minHeight: isVerySmallScreen ? 48 : isSmallScreen ? 56 : 64,
               }}
             >
               <Pressable
@@ -192,14 +192,14 @@ export default function EventDetailScreen() {
                 style={{
                   backgroundColor: 'rgba(0,0,0,0.5)',
                   borderRadius: 20,
-                  width: isSmallScreen ? 40 : 44,
-                  height: isSmallScreen ? 40 : 44,
+                  width: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
+                  height: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
                   justifyContent: 'center',
                   alignItems: 'center',
                   backdropFilter: 'blur(10px)',
                 }}
               >
-                <Ionicons name="arrow-back" size={isSmallScreen ? 20 : 24} color="white" />
+                <Ionicons name="arrow-back" size={isVerySmallScreen ? 18 : isSmallScreen ? 20 : 24} color="white" />
               </Pressable>
             </Animated.View>
           </SafeAreaView>
@@ -212,9 +212,9 @@ export default function EventDetailScreen() {
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              paddingHorizontal: isSmallScreen ? spacing.md : Spacing.m,
-              paddingVertical: isSmallScreen ? spacing.sm : Spacing.s,
-              minHeight: isSmallScreen ? 56 : 64,
+              paddingHorizontal: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+              paddingVertical: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+              minHeight: isVerySmallScreen ? 48 : isSmallScreen ? 56 : 64,
             }}
           >
             <Pressable
@@ -222,8 +222,8 @@ export default function EventDetailScreen() {
               style={{
                 backgroundColor: colors.surface,
                 borderRadius: 20,
-                width: isSmallScreen ? 40 : 44,
-                height: isSmallScreen ? 40 : 44,
+                width: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
+                height: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
                 justifyContent: 'center',
                 alignItems: 'center',
                 shadowColor: isDarkMode ? '#000' : '#000',
@@ -233,7 +233,7 @@ export default function EventDetailScreen() {
                 elevation: 3,
               }}
             >
-              <Ionicons name="arrow-back" size={isSmallScreen ? 20 : 24} color={colors.text} />
+              <Ionicons name="arrow-back" size={isVerySmallScreen ? 18 : isSmallScreen ? 20 : 24} color={colors.text} />
             </Pressable>
           </Animated.View>
         </SafeAreaView>
@@ -242,17 +242,17 @@ export default function EventDetailScreen() {
       {/* Контент страницы */}
       <ScrollView 
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: isSmallScreen ? spacing.xl : Spacing.xl }}
+        contentContainerStyle={{ paddingBottom: isVerySmallScreen ? spacing.lg : isSmallScreen ? spacing.xl : Spacing.xl }}
         showsVerticalScrollIndicator={false}
       >
         <Animated.View 
           entering={FadeInDown.delay(200).duration(600)}
           style={{
             backgroundColor: colors.surface,
-            marginHorizontal: isSmallScreen ? spacing.md : Spacing.m,
-            marginTop: isSmallScreen ? spacing.md : Spacing.m,
-            borderRadius: isSmallScreen ? 20 : 24,
-            padding: isSmallScreen ? spacing.lg : Spacing.l,
+            marginHorizontal: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+            marginTop: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+            borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
+            padding: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
             shadowColor: isDarkMode ? '#000' : '#000',
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: isDarkMode ? 0.3 : 0.1,
@@ -264,25 +264,25 @@ export default function EventDetailScreen() {
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
-            marginBottom: isSmallScreen ? spacing.md : Spacing.m,
+            marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
           }}>
             <View style={{
               backgroundColor: getCategoryColor(event.category),
               borderRadius: 20,
-              paddingHorizontal: isSmallScreen ? 12 : 14,
-              paddingVertical: isSmallScreen ? 6 : 8,
+              paddingHorizontal: isVerySmallScreen ? 10 : isSmallScreen ? 12 : 14,
+              paddingVertical: isVerySmallScreen ? 4 : isSmallScreen ? 6 : 8,
               flexDirection: 'row',
               alignItems: 'center',
             }}>
               <Ionicons 
                 name={getCategoryIcon(event.category) as any} 
-                size={isSmallScreen ? 14 : 16} 
+                size={isVerySmallScreen ? 12 : isSmallScreen ? 14 : 16} 
                 color="white" 
-                style={{ marginRight: isSmallScreen ? 4 : 6 }}
+                style={{ marginRight: isVerySmallScreen ? 3 : isSmallScreen ? 4 : 6 }}
               />
               <ThemedText style={{
                 color: 'white',
-                fontSize: isSmallScreen ? fontSize.small : fontSize.body,
+                fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.small : fontSize.body,
                 fontWeight: '600',
               }}>
                 {getCategoryLabel(event.category)}
@@ -292,11 +292,11 @@ export default function EventDetailScreen() {
 
           {/* Заголовок */}
           <ThemedText style={{
-            fontSize: isSmallScreen ? fontSize.title : fontSize.header,
+            fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? fontSize.title : fontSize.header,
             fontWeight: 'bold',
             color: colors.text,
-            marginBottom: isSmallScreen ? spacing.md : Spacing.m,
-            lineHeight: isSmallScreen ? fontSize.title * 1.3 : fontSize.header * 1.3,
+            marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+            lineHeight: isVerySmallScreen ? fontSize.body * 1.3 : isSmallScreen ? fontSize.title * 1.3 : fontSize.header * 1.3,
           }}>
             {event.title}
           </ThemedText>
@@ -304,21 +304,21 @@ export default function EventDetailScreen() {
           {/* Информация о событии */}
           <View style={{
             backgroundColor: colors.surfaceSecondary,
-            borderRadius: isSmallScreen ? 12 : 16,
-            padding: isSmallScreen ? spacing.md : Spacing.m,
-            marginBottom: isSmallScreen ? spacing.lg : Spacing.l,
+            borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 12 : 16,
+            padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+            marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
           }}>
             {/* Дата и время */}
             <View style={{
               flexDirection: 'row',
               alignItems: 'center',
-              marginBottom: isSmallScreen ? spacing.sm : Spacing.s,
+              marginBottom: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
             }}>
-              <Ionicons name="calendar" size={isSmallScreen ? 18 : 20} color={colors.primary} />
+              <Ionicons name="calendar" size={isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={colors.primary} />
               <ThemedText style={{
-                fontSize: isSmallScreen ? fontSize.small : fontSize.body,
+                fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.small : fontSize.body,
                 color: colors.text,
-                marginLeft: isSmallScreen ? spacing.sm : Spacing.s,
+                marginLeft: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
                 fontWeight: '500',
               }}>
                 {event.date} в {event.time}
@@ -329,13 +329,13 @@ export default function EventDetailScreen() {
             <View style={{
               flexDirection: 'row',
               alignItems: 'center',
-              marginBottom: isSmallScreen ? spacing.sm : Spacing.s,
+              marginBottom: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
             }}>
-              <Ionicons name="location" size={isSmallScreen ? 18 : 20} color={colors.primary} />
+              <Ionicons name="location" size={isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={colors.primary} />
               <ThemedText style={{
-                fontSize: isSmallScreen ? fontSize.small : fontSize.body,
+                fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.small : fontSize.body,
                 color: colors.text,
-                marginLeft: isSmallScreen ? spacing.sm : Spacing.s,
+                marginLeft: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
                 fontWeight: '500',
               }}>
                 {event.location}
@@ -348,11 +348,11 @@ export default function EventDetailScreen() {
                 flexDirection: 'row',
                 alignItems: 'center',
               }}>
-                <Ionicons name="people" size={isSmallScreen ? 18 : 20} color={colors.primary} />
+                <Ionicons name="people" size={isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={colors.primary} />
                 <ThemedText style={{
-                  fontSize: isSmallScreen ? fontSize.small : fontSize.body,
+                  fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.small : fontSize.body,
                   color: colors.text,
-                  marginLeft: isSmallScreen ? spacing.sm : Spacing.s,
+                  marginLeft: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
                   fontWeight: '500',
                 }}>
                   Максимум участников: {event.maxParticipants}
@@ -363,10 +363,10 @@ export default function EventDetailScreen() {
 
           {/* Описание события */}
           <ThemedText style={{
-            fontSize: isSmallScreen ? fontSize.body : fontSize.title,
+            fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : fontSize.title,
             color: colors.text,
-            lineHeight: isSmallScreen ? fontSize.body * 1.5 : fontSize.title * 1.5,
-            marginBottom: isSmallScreen ? spacing.lg : Spacing.l,
+            lineHeight: isVerySmallScreen ? fontSize.small * 1.5 : isSmallScreen ? fontSize.body * 1.5 : fontSize.title * 1.5,
+            marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
           }}>
             {event.description}
           </ThemedText>
@@ -375,9 +375,9 @@ export default function EventDetailScreen() {
           <Pressable
             style={({ pressed }) => ({
               backgroundColor: pressed ? colors.secondary : colors.primary,
-              borderRadius: isSmallScreen ? 12 : 16,
-              paddingVertical: isSmallScreen ? spacing.md : Spacing.m,
-              paddingHorizontal: isSmallScreen ? spacing.lg : Spacing.l,
+              borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 12 : 16,
+              paddingVertical: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+              paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
@@ -393,12 +393,12 @@ export default function EventDetailScreen() {
               console.log('Регистрация на событие:', event.id);
             }}
           >
-            <Ionicons name="add-circle" size={isSmallScreen ? 20 : 24} color="white" />
+            <Ionicons name="add-circle" size={isVerySmallScreen ? 18 : isSmallScreen ? 20 : 24} color="white" />
             <ThemedText style={{
               color: 'white',
-              fontSize: isSmallScreen ? fontSize.body : fontSize.title,
+              fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : fontSize.title,
               fontWeight: '600',
-              marginLeft: isSmallScreen ? spacing.sm : Spacing.s,
+              marginLeft: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
             }}>
               Зарегистрироваться
             </ThemedText>
@@ -428,8 +428,8 @@ export default function EventDetailScreen() {
               <Image
                 source={{ uri: event.image }}
                 style={{
-                  width: viewportWidth - (isSmallScreen ? 40 : 60),
-                  height: viewportHeight - (isSmallScreen ? 120 : 150),
+                  width: viewportWidth - (isVerySmallScreen ? 30 : isSmallScreen ? 40 : 60),
+                  height: viewportHeight - (isVerySmallScreen ? 100 : isSmallScreen ? 120 : 150),
                 }}
                 resizeMode="contain"
               />
@@ -437,17 +437,17 @@ export default function EventDetailScreen() {
                 onPress={() => setImageModalVisible(false)}
                 style={{
                   position: 'absolute',
-                  top: Platform.OS === 'ios' ? 0 : (isSmallScreen ? spacing.md : Spacing.m),
-                  right: isSmallScreen ? spacing.md : Spacing.m,
+                  top: Platform.OS === 'ios' ? 0 : (isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m),
+                  right: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
                   backgroundColor: 'rgba(0,0,0,0.5)',
                   borderRadius: 20,
-                  width: isSmallScreen ? 40 : 44,
-                  height: isSmallScreen ? 40 : 44,
+                  width: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
+                  height: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}
               >
-                <Ionicons name="close" size={isSmallScreen ? 20 : 24} color="white" />
+                <Ionicons name="close" size={isVerySmallScreen ? 18 : isSmallScreen ? 20 : 24} color="white" />
               </Pressable>
             </SafeAreaView>
           </View>
