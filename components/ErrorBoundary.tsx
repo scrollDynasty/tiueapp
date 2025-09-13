@@ -1,7 +1,7 @@
-import React, { Component, ReactNode } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import React, { Component, ReactNode } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 interface Props {
   children: ReactNode;

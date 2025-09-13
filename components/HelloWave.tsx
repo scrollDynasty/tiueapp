@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, {
+  cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withSequence,
   withTiming,
-  cancelAnimation, // Добавляем для правильной очистки
 } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/ThemedText';

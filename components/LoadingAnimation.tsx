@@ -1,14 +1,14 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
-  useSharedValue,
+  cancelAnimation,
+  interpolate,
   useAnimatedStyle,
-  withTiming,
+  useSharedValue,
+  withDelay,
   withRepeat,
   withSequence,
-  withDelay,
-  interpolate,
-  cancelAnimation, // Добавляем импорт для правильной очистки
+  withTiming,
 } from 'react-native-reanimated';
 
 interface LoadingAnimationProps {
