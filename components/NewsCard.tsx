@@ -7,11 +7,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { Dimensions, Image, Platform, Pressable, TextStyle, View, ViewStyle } from 'react-native';
 import Animated, {
-    FadeIn,
-    interpolate,
-    useAnimatedStyle,
-    useSharedValue,
-    withTiming
+  FadeIn,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming
 } from 'react-native-reanimated';
 import { Animation, Spacing } from '../constants/DesignTokens';
 import { ThemedText } from './ThemedText';
@@ -136,6 +136,11 @@ export function NewsCard({
                 borderTopRightRadius: 20,
               }}
               resizeMode="cover"
+              onLoad={() => console.log('🖼️ News image loaded successfully:', image)}
+              onError={(error) => console.error('❌ News image load error:', error, 'URL:', image)}
+              onLoadStart={() => console.log('🔄 News image load started:', image)}
+              onLoadEnd={() => console.log('🏁 News image load ended:', image)}
+              crossOrigin="anonymous"
             />
             <LinearGradient
               colors={['transparent', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.6)']}

@@ -32,15 +32,22 @@ export default function EventsScreen() {
   const { items: events } = useAppSelector((state) => state.events);
   const [filter, setFilter] = useState('all');
 
+  // Мемоизированная функция для изменения фильтра
+  const handleFilterChange = React.useCallback((categoryKey: string) => {
+    setFilter(categoryKey);
+  }, []);
+
   // Загружаем события при открытии страницы
   React.useEffect(() => {
     dispatch(fetchEvents());
   }, [dispatch]);
   
-  const filteredEvents = events.filter((event: Event) => {
-    if (filter === 'all') return true;
-    return event.category === filter;
-  });
+  const filteredEvents = React.useMemo(() => {
+    return events.filter((event: Event) => {
+      if (filter === 'all') return true;
+      return event.category === filter;
+    });
+  }, [events, filter]);
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -157,7 +164,7 @@ export default function EventsScreen() {
                       overflow: 'hidden',
                     }
                   ]}
-                  onPress={() => setFilter(category.key)}
+                  onPress={() => handleFilterChange(category.key)}
                 >
                   <LinearGradient
                     colors={filter === category.key 
@@ -271,7 +278,12 @@ export default function EventsScreen() {
                             borderTopLeftRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
                             borderTopRightRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
                           }}
+                          onLoad={() => console.log('🖼️ Image loaded successfully:', event.image)}
+                          onError={(error) => console.error('❌ Image load error:', error, 'URL:', event.image)}
+                          onLoadStart={() => console.log('🔄 Image load started:', event.image)}
+                          onLoadEnd={() => console.log('🏁 Image load ended:', event.image)}
                           resizeMode="cover"
+                          crossOrigin="anonymous"
                         />
                         {/* Градиентный оверлей на изображение */}
                         <LinearGradient

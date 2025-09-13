@@ -12,8 +12,8 @@ const developmentConfig: EnvironmentConfig = {
 };
 
 const productionConfig: EnvironmentConfig = {
-  API_BASE_URL: 'https://e61fbe15db44.ngrok-free.app/api',
-  WS_BASE_URL: 'wss://e61fbe15db44.ngrok-free.app/ws',  
+  API_BASE_URL: 'https://b86c78591036.ngrok-free.app/api',
+  WS_BASE_URL: 'wss://b86c78591036.ngrok-free.app/ws',
   DEBUG: false,
 };
 
