@@ -9,10 +9,10 @@ import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { useResponsive } from '@/hooks/useResponsive';
 import { authApi } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 import React from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, TextInput, View, ToastAndroid, Platform } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -33,13 +33,85 @@ interface UserProfile {
   department?: string;
 }
 
+// Интерфейс для API запросов с отменой
+interface CancellableRequest {
+  cancel: () => void;
+}
+
+// Функция для показа toast уведомлений
+const showToast = (message: string) => {
+  if (Platform.OS === 'android') {
+    ToastAndroid.show(message, ToastAndroid.SHORT);
+  } else {
+    // Для iOS можно использовать библиотеку toast или fallback на Alert
+    Alert.alert('Уведомление', message);
+  }
+};
+
+// Функция для санитизации входных данных
+const sanitizeInput = (input: string): string => {
+  return input
+    .replace(/[<>]/g, '') // Убираем HTML теги
+    .replace(/javascript:/gi, '') // Убираем javascript: URLs
+    .replace(/on\w+=/gi, '') // Убираем event handlers
+    .trim();
+};
+
+// Debounce hook
+const useDebounce = (value: string, delay: number) => {
+  const [debouncedValue, setDebouncedValue] = React.useState(value);
+
+  React.useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
+// Rate limiting hook
+const useRateLimit = (limit: number = 5, window: number = 60000) => {
+  const requestTimestamps = React.useRef<number[]>([]);
+
+  const canMakeRequest = React.useCallback(() => {
+    const now = Date.now();
+    const windowStart = now - window;
+    
+    // Удаляем старые запросы
+    requestTimestamps.current = requestTimestamps.current.filter(
+      timestamp => timestamp > windowStart
+    );
+
+    if (requestTimestamps.current.length >= limit) {
+      return false;
+    }
+
+    requestTimestamps.current.push(now);
+    return true;
+  }, [limit, window]);
+
+  return { canMakeRequest };
+};
+
 export default function UsersManagementScreen() {
   const { theme } = useTheme();
   const themeColors = getThemeColors(theme === 'dark');
   const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
+  const { canMakeRequest } = useRateLimit();
   
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  
+  // Ref для отслеживания монтирования компонента
+  const isMountedRef = React.useRef(true);
+  
+  // Ref для хранения активных запросов
+  const activeRequestsRef = React.useRef<Set<CancellableRequest>>(new Set());
   
   // Состояние для создания пользователя
   const [firstName, setFirstName] = React.useState('');
@@ -72,13 +144,63 @@ export default function UsersManagementScreen() {
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [userToDelete, setUserToDelete] = React.useState<UserProfile | null>(null);
 
-  // Функции управления ошибками и API
+  // Debounced search query
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  // Функция для безопасного получения токена
+  const getSecureToken = React.useCallback(async (): Promise<string | null> => {
+    try {
+      return await SecureStore.getItemAsync('authToken');
+    } catch (error) {
+      console.error('Error getting secure token:', error);
+      // Fallback на AsyncStorage если SecureStore недоступен
+      try {
+        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+        return await AsyncStorage.getItem('authToken');
+      } catch (fallbackError) {
+        console.error('Error getting fallback token:', fallbackError);
+        return null;
+      }
+    }
+  }, []);
+
+  // Функции управления ошибками и API с retry логикой
   const handleApiError = React.useCallback((error: any, operation: string) => {
     console.error(`${operation} error:`, error);
     const message = error?.response?.data?.message || 
                     error?.message || 
                     `Произошла ошибка при ${operation.toLowerCase()}`;
-    Alert.alert('Ошибка', message);
+    showToast(`Ошибка: ${message}`);
+  }, []);
+
+  // Функция для выполнения API запроса с retry
+  const executeWithRetry = React.useCallback(async (
+    apiCall: () => Promise<any>,
+    maxRetries: number = 3,
+    delay: number = 1000
+  ): Promise<any> => {
+    let lastError: Error;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        if (!isMountedRef.current) {
+          throw new Error('Component unmounted');
+        }
+        return await apiCall();
+      } catch (error) {
+        lastError = error as Error;
+        console.error(`Attempt ${attempt} failed:`, error);
+        
+        if (attempt === maxRetries) {
+          break;
+        }
+        
+        // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, delay * attempt));
+      }
+    }
+    
+    throw lastError!;
   }, []);
 
   // Responsive helper function
@@ -97,30 +219,49 @@ export default function UsersManagementScreen() {
     borderRadius: getResponsiveValue(8, 10, Radius.icon),
   }), [getResponsiveValue, spacing, fontSize]);
 
-  // Загружаем пользователей при загрузке компонента с memory leak protection
+  // Cleanup функция для отмены всех активных запросов
+  const cancelAllRequests = React.useCallback(() => {
+    activeRequestsRef.current.forEach(request => {
+      try {
+        request.cancel();
+      } catch (error) {
+        console.error('Error cancelling request:', error);
+      }
+    });
+    activeRequestsRef.current.clear();
+  }, []);
+
+  // Главный useEffect с proper cleanup
   React.useEffect(() => {
-    let isMounted = true;
+    isMountedRef.current = true;
     
     const loadUsers = async () => {
-      if (!isMounted) return;
+      if (!isMountedRef.current) return;
       setIsLoadingUsers(true);
+      
       try {
-        const token = await AsyncStorage.getItem('authToken');
-        const response = await authApi.getUsers();
+        const token = await getSecureToken();
+        if (!token || !isMountedRef.current) {
+          throw new Error('No auth token');
+        }
+
+        const response = await executeWithRetry(async () => {
+          return await authApi.getUsers();
+        });
         
-        if (isMounted && response.success && response.data) {
+        if (isMountedRef.current && response.success && response.data) {
           const usersData = Array.isArray(response.data) ? response.data : [];
           setUsers(usersData);
-        } else if (isMounted) {
+        } else if (isMountedRef.current) {
           setUsers([]);
         }
       } catch (error) {
-        if (isMounted) {
+        if (isMountedRef.current) {
           setUsers([]);
           console.error('Load users error:', error);
         }
       } finally {
-        if (isMounted) {
+        if (isMountedRef.current) {
           setIsLoadingUsers(false);
         }
       }
@@ -129,50 +270,79 @@ export default function UsersManagementScreen() {
     loadUsers();
     
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
+      cancelAllRequests();
+      
+      // Очистка всех состояний
+      setUsers([]);
+      setEditingUser(null);
+      setResetPasswordUser(null);
+      setUserToDelete(null);
+      setSearchQuery('');
+      setFilterRole('all');
+      setShowCreateForm(false);
+      setShowPasswordReset(false);
+      setShowDeleteConfirm(false);
+      clearForm();
     };
-  }, []);
+  }, [getSecureToken, executeWithRetry, cancelAllRequests]);
 
-  // Функция для повторной загрузки пользователей
+  // Функция для повторной загрузки пользователей с rate limiting
   const loadUsers = React.useCallback(async () => {
+    if (!canMakeRequest()) {
+      showToast('Слишком много запросов. Попробуйте позже.');
+      return;
+    }
+
+    if (!isMountedRef.current) return;
+    
     setIsLoadingUsers(true);
     try {
-      const token = await AsyncStorage.getItem('authToken');
-      const response = await authApi.getUsers();
+      const token = await getSecureToken();
+      if (!token || !isMountedRef.current) {
+        throw new Error('No auth token');
+      }
+
+      const response = await executeWithRetry(async () => {
+        return await authApi.getUsers();
+      });
       
-      if (response.success && response.data) {
+      if (isMountedRef.current && response.success && response.data) {
         const usersData = Array.isArray(response.data) ? response.data : [];
         setUsers(usersData);
-      } else {
+      } else if (isMountedRef.current) {
         setUsers([]);
       }
     } catch (error) {
-      setUsers([]);
-      handleApiError(error, 'загрузке пользователей');
+      if (isMountedRef.current) {
+        setUsers([]);
+        handleApiError(error, 'загрузке пользователей');
+      }
     } finally {
-      setIsLoadingUsers(false);
+      if (isMountedRef.current) {
+        setIsLoadingUsers(false);
+      }
     }
-  }, [handleApiError]);
+  }, [canMakeRequest, getSecureToken, executeWithRetry, handleApiError]);
 
-  // Фильтрация пользователей
+  // Фильтрация пользователей с использованием debouncedSearchQuery
   const filteredUsers = React.useMemo(() => {
-    // Убеждаемся, что users - это массив
     if (!Array.isArray(users)) {
       return [];
     }
     
     return users.filter(user => {
       const matchesSearch = 
-        user.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase());
+        user.first_name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        user.last_name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        user.username.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
       
       const matchesRole = filterRole === 'all' || user.role === filterRole;
       
       return matchesSearch && matchesRole;
     });
-  }, [users, searchQuery, filterRole]);
+  }, [users, debouncedSearchQuery, filterRole]);
 
   // Проверяем права доступа
   if (!user || user.role !== 'admin') {
@@ -224,51 +394,86 @@ export default function UsersManagementScreen() {
     }
   }, [editingUser]);
 
-  // Функция валидации формы
+  // Функция валидации формы с улучшенной безопасностью
   const validateForm = React.useCallback(() => {
+    // Санитизируем входные данные
+    const sanitizedFirstName = sanitizeInput(firstName);
+    const sanitizedLastName = sanitizeInput(lastName);
+    const sanitizedUsername = sanitizeInput(username);
+    const sanitizedEmail = sanitizeInput(email);
+
     // Базовая валидация
-    if (!firstName.trim() || !lastName.trim() || !username.trim() || !email.trim()) {
-      Alert.alert('Ошибка', 'Заполните все обязательные поля');
+    if (!sanitizedFirstName || !sanitizedLastName || !sanitizedUsername || !sanitizedEmail) {
+      showToast('Заполните все обязательные поля');
       return false;
     }
 
     // Валидация пароля для новых пользователей
     if (!editingUser && !password.trim()) {
-      Alert.alert('Ошибка', 'Введите пароль для нового пользователя');
+      showToast('Введите пароль для нового пользователя');
       return false;
     }
 
     if (!editingUser && password.trim().length < 6) {
-      Alert.alert('Ошибка', 'Пароль должен содержать минимум 6 символов');
+      showToast('Пароль должен содержать минимум 6 символов');
       return false;
     }
 
-    // Email валидация
+    // Улучшенная валидация email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
-      Alert.alert('Ошибка', 'Введите корректный email адрес');
+    if (!emailRegex.test(sanitizedEmail)) {
+      showToast('Введите корректный email адрес');
+      return false;
+    }
+
+    // Проверка на потенциально опасные символы
+    const dangerousPattern = /[<>\"']/;
+    if (dangerousPattern.test(firstName) || dangerousPattern.test(lastName) || 
+        dangerousPattern.test(username) || dangerousPattern.test(email)) {
+      showToast('Поля содержат недопустимые символы');
       return false;
     }
 
     // Валидация для студентов
-    if (role === 'student' && !faculty.trim()) {
-      Alert.alert('Ошибка', 'Укажите факультет для студента');
+    if (role === 'student' && !sanitizeInput(faculty).trim()) {
+      showToast('Укажите факультет для студента');
       return false;
     }
 
     if (role === 'student' && course && (isNaN(parseInt(course)) || parseInt(course) < 1 || parseInt(course) > 6)) {
-      Alert.alert('Ошибка', 'Курс должен быть от 1 до 6');
+      showToast('Курс должен быть от 1 до 6');
       return false;
     }
 
     // Валидация для преподавателей
-    if (role === 'professor' && !department.trim()) {
-      Alert.alert('Ошибка', 'Укажите кафедру для преподавателя');
+    if (role === 'professor' && !sanitizeInput(department).trim()) {
+      showToast('Укажите кафедру для преподавателя');
       return false;
     }
 
     return true;
   }, [firstName, lastName, username, email, password, role, faculty, course, department, editingUser]);
+
+  // Обработчики с useCallback для предотвращения лишних re-renders
+  const handleFirstNameChange = React.useCallback((text: string) => {
+    setFirstName(sanitizeInput(text));
+  }, []);
+
+  const handleLastNameChange = React.useCallback((text: string) => {
+    setLastName(sanitizeInput(text));
+  }, []);
+
+  const handleUsernameChange = React.useCallback((text: string) => {
+    setUsername(sanitizeInput(text.toLowerCase()));
+  }, []);
+
+  const handleEmailChange = React.useCallback((text: string) => {
+    setEmail(sanitizeInput(text.toLowerCase()));
+  }, []);
+
+  const handleSearchChange = React.useCallback((text: string) => {
+    setSearchQuery(sanitizeInput(text));
+  }, []);
 
   // Функция для рендеринга полей в зависимости от роли
   const renderRoleSpecificFields = React.useCallback(() => {
@@ -296,7 +501,7 @@ export default function UsersManagementScreen() {
             </ThemedText>
             <TextInput
               value={faculty}
-              onChangeText={setFaculty}
+              onChangeText={(text) => setFaculty(sanitizeInput(text))}
               placeholder="Введите факультет"
               style={inputStyle}
               placeholderTextColor={Colors.textSecondary}
@@ -319,7 +524,7 @@ export default function UsersManagementScreen() {
               </ThemedText>
               <TextInput
                 value={course}
-                onChangeText={setCourse}
+                onChangeText={(text) => setCourse(text.replace(/[^1-6]/g, ''))}
                 placeholder="1-6"
                 keyboardType="numeric"
                 maxLength={1}
@@ -339,7 +544,7 @@ export default function UsersManagementScreen() {
               </ThemedText>
               <TextInput
                 value={group}
-                onChangeText={setGroup}
+                onChangeText={(text) => setGroup(sanitizeInput(text))}
                 placeholder="Введите группу"
                 style={inputStyle}
                 placeholderTextColor={Colors.textSecondary}
@@ -363,7 +568,7 @@ export default function UsersManagementScreen() {
           </ThemedText>
           <TextInput
             value={department}
-            onChangeText={setDepartment}
+            onChangeText={(text) => setDepartment(sanitizeInput(text))}
             placeholder="Введите кафедру"
             style={inputStyle}
             placeholderTextColor={Colors.textSecondary}
@@ -386,12 +591,18 @@ export default function UsersManagementScreen() {
     setShowPasswordReset(true);
   }, [users]);
 
-  // Функция подтверждения сброса пароля
+  // Функция подтверждения сброса пароля (ИСПРАВЛЕНА - НЕ ПОКАЗЫВАЕТ ПАРОЛЬ)
   const confirmPasswordReset = React.useCallback(async (newPassword: string) => {
-    if (!resetPasswordUser) return;
+    if (!resetPasswordUser || !canMakeRequest()) {
+      if (!canMakeRequest()) {
+        showToast('Слишком много запросов. Попробуйте позже.');
+      }
+      return;
+    }
+    
+    if (!isMountedRef.current) return;
     
     try {
-      
       // Отправляем полные данные пользователя с новым паролем
       const updateData = {
         first_name: resetPasswordUser.first_name,
@@ -403,11 +614,13 @@ export default function UsersManagementScreen() {
         password: newPassword.trim()
       };
       
+      const response = await executeWithRetry(async () => {
+        return await authApi.updateUser(resetPasswordUser.id, updateData as any);
+      });
       
-      const response = await authApi.updateUser(resetPasswordUser.id, updateData as any);
-      
-      if (response.success) {
-        alert(`✅ УСПЕШНО!\n\nПароль пользователя ${resetPasswordUser.username} изменен на: ${newPassword.trim()}\n\nТеперь можно войти с:\nEmail: ${resetPasswordUser.email}\nПароль: ${newPassword.trim()}`);
+      if (response.success && isMountedRef.current) {
+        // БЕЗОПАСНОЕ уведомление без показа пароля
+        showToast(`Пароль пользователя ${resetPasswordUser.username} успешно изменен`);
         
         // Обновляем список пользователей
         await loadUsers();
@@ -417,15 +630,17 @@ export default function UsersManagementScreen() {
         setResetPasswordUser(null);
       } else {
         console.error('Password reset failed:', response);
-        alert(`❌ ОШИБКА!\n\n${response.error || 'Не удалось изменить пароль'}\n\nResponse: ${JSON.stringify(response)}`);
+        showToast(response.error || 'Не удалось изменить пароль');
         throw new Error(response.error || 'Password reset failed');
       }
     } catch (error) {
       console.error('Error resetting password:', error);
-      alert(`❌ ОШИБКА!\n\nНе удалось изменить пароль: ${error}`);
+      if (isMountedRef.current) {
+        showToast('Не удалось изменить пароль');
+      }
       throw error;
     }
-  }, [resetPasswordUser]);
+  }, [resetPasswordUser, canMakeRequest, executeWithRetry, loadUsers]);
 
   // Функция закрытия модального окна сброса пароля
   const handleClosePasswordReset = React.useCallback(() => {
@@ -434,39 +649,47 @@ export default function UsersManagementScreen() {
   }, []);
 
   const handleCreateUser = React.useCallback(async () => {
-    if (!validateForm()) return;
+    if (!validateForm() || !canMakeRequest()) {
+      if (!canMakeRequest()) {
+        showToast('Слишком много запросов. Попробуйте позже.');
+      }
+      return;
+    }
 
+    if (!isMountedRef.current) return;
+    
     setIsLoading(true);
     
     try {
       const userData: Partial<UserProfile> = {
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        username: username.trim(),
-        email: email.trim(),
+        first_name: sanitizeInput(firstName),
+        last_name: sanitizeInput(lastName),
+        username: sanitizeInput(username),
+        email: sanitizeInput(email),
         role: role,
         is_active: true,
-        faculty: role === 'student' ? faculty.trim() : undefined,
+        faculty: role === 'student' ? sanitizeInput(faculty) : undefined,
         course: role === 'student' && course ? parseInt(course) : undefined,
-        group: role === 'student' ? group.trim() : undefined,
-        department: role === 'professor' ? department.trim() : undefined,
+        group: role === 'student' ? sanitizeInput(group) : undefined,
+        department: role === 'professor' ? sanitizeInput(department) : undefined,
       };
-
 
       if (editingUser) {
         // Обновление существующего пользователя
-        const response = await authApi.updateUser(editingUser.id, userData);
+        const response = await executeWithRetry(async () => {
+          return await authApi.updateUser(editingUser.id, userData);
+        });
         
-        if (response.success && response.data) {
+        if (response.success && response.data && isMountedRef.current) {
           setUsers(prev => prev.map(u => 
             u.id === editingUser.id 
               ? response.data as UserProfile
               : u
           ));
-          Alert.alert('Успешно', 'Пользователь обновлен');
+          showToast('Пользователь обновлен');
         } else {
           console.error('Update failed:', response);
-          Alert.alert('Ошибка', response.error || 'Не удалось обновить пользователя');
+          showToast(response.error || 'Не удалось обновить пользователя');
           return;
         }
       } else {
@@ -476,16 +699,18 @@ export default function UsersManagementScreen() {
           password: password.trim(),
         };
         
-        const response = await authApi.createUser(userDataWithPassword);
+        const response = await executeWithRetry(async () => {
+          return await authApi.createUser(userDataWithPassword);
+        });
         
-        if (response.success && response.data) {
+        if (response.success && response.data && isMountedRef.current) {
           setUsers(prev => [...prev, response.data as UserProfile]);
-          Alert.alert('Успешно', 'Пользователь создан');
+          showToast('Пользователь создан');
           // Перезагружаем список пользователей для синхронизации
           loadUsers();
         } else {
           console.error('Create failed:', response);
-          Alert.alert('Ошибка', response.error || 'Не удалось создать пользователя');
+          showToast(response.error || 'Не удалось создать пользователя');
           return;
         }
       }
@@ -493,13 +718,17 @@ export default function UsersManagementScreen() {
       clearForm();
       setShowCreateForm(false);
     } catch (error) {
-      handleApiError(error, editingUser ? 'обновлении пользователя' : 'создании пользователя');
+      if (isMountedRef.current) {
+        handleApiError(error, editingUser ? 'обновлении пользователя' : 'создании пользователя');
+      }
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
     }
-  }, [validateForm, firstName, lastName, username, email, role, faculty, course, group, department, password, editingUser, clearForm, handleApiError, loadUsers]);
+  }, [validateForm, canMakeRequest, firstName, lastName, username, email, role, faculty, course, group, department, password, editingUser, clearForm, executeWithRetry, handleApiError, loadUsers]);
 
-  const handleEditUser = (user: UserProfile) => {
+  const handleEditUser = React.useCallback((user: UserProfile) => {
     setEditingUser(user);
     setFirstName(user.first_name);
     setLastName(user.last_name);
@@ -512,68 +741,104 @@ export default function UsersManagementScreen() {
     setDepartment(user.department || '');
     setPassword(''); // Не показываем пароль при редактировании
     setShowCreateForm(true);
-  };
+  }, []);
 
-  const handleToggleUserStatus = async (userId: string) => {
+  const handleToggleUserStatus = React.useCallback(async (userId: string) => {
+    if (!canMakeRequest()) {
+      showToast('Слишком много запросов. Попробуйте позже.');
+      return;
+    }
+
     const user = users.find(u => u.id === userId);
-    if (!user) return;
+    if (!user || !isMountedRef.current) return;
 
     try {
-      const response = await authApi.updateUser(userId, { 
-        is_active: !user.is_active 
+      const response = await executeWithRetry(async () => {
+        return await authApi.updateUser(userId, { 
+          is_active: !user.is_active 
+        });
       });
-      if (response.success && response.data) {
+
+      if (response.success && response.data && isMountedRef.current) {
         setUsers(prev => prev.map(u => 
           u.id === userId 
             ? response.data as UserProfile
             : u
         ));
-        Alert.alert('Успешно', `Пользователь ${user.is_active ? 'деактивирован' : 'активирован'}`);
+        showToast(`Пользователь ${user.is_active ? 'деактивирован' : 'активирован'}`);
       } else {
-        Alert.alert('Ошибка', response.error || 'Не удалось изменить статус пользователя');
+        showToast(response.error || 'Не удалось изменить статус пользователя');
       }
     } catch (error) {
       console.error('Error toggling user status:', error);
-      Alert.alert('Ошибка', 'Не удалось изменить статус пользователя');
+      if (isMountedRef.current) {
+        showToast('Не удалось изменить статус пользователя');
+      }
     }
-  };
+  }, [canMakeRequest, users, executeWithRetry]);
 
-  const handleDeleteUser = (userId: string) => {
+  const handleDeleteUser = React.useCallback((userId: string) => {
     const user = users.find(u => u.id === userId);
     if (user) {
       setUserToDelete(user);
       setShowDeleteConfirm(true);
     }
-  };
+  }, [users]);
 
-  const confirmDeleteUser = async () => {
-    if (!userToDelete) return;
+  const confirmDeleteUser = React.useCallback(async () => {
+    if (!userToDelete || !canMakeRequest()) {
+      if (!canMakeRequest()) {
+        showToast('Слишком много запросов. Попробуйте позже.');
+      }
+      return;
+    }
+
+    if (!isMountedRef.current) return;
     
     try {
-      const response = await authApi.deleteUser(userToDelete.id);
+      const response = await executeWithRetry(async () => {
+        return await authApi.deleteUser(userToDelete.id);
+      });
       
       // Закрываем модальное окно в любом случае
       setShowDeleteConfirm(false);
       setUserToDelete(null);
       
       // Проверяем успешность удаления
-      if (response.success !== false) { // Считаем успешным, если нет явного false
+      if (response.success !== false && isMountedRef.current) {
         // Перезагружаем список пользователей с сервера
         await loadUsers();
         // Показываем уведомление об успешном удалении
-        Alert.alert('Успешно', 'Пользователь удален');
+        showToast('Пользователь удален');
       } else {
         console.error('Delete failed:', response.error || response.message);
-        Alert.alert('Ошибка', response.message || 'Не удалось удалить пользователя');
+        showToast(response.message || 'Не удалось удалить пользователя');
       }
     } catch (error) {
       console.error('Error deleting user:', error);
       // Закрываем модальное окно даже при ошибке
       setShowDeleteConfirm(false);
       setUserToDelete(null);
-      Alert.alert('Ошибка', 'Произошла ошибка при удалении пользователя');
+      if (isMountedRef.current) {
+        showToast('Произошла ошибка при удалении пользователя');
+      }
     }
-  };
+  }, [userToDelete, canMakeRequest, executeWithRetry, loadUsers]);
+
+  const handleToggleCreateForm = React.useCallback(() => {
+    setShowCreateForm(!showCreateForm);
+    if (showCreateForm) {
+      clearForm();
+    }
+  }, [showCreateForm, clearForm]);
+
+  const handleRoleChange = React.useCallback((newRole: 'student' | 'professor' | 'admin') => {
+    setRole(newRole);
+  }, []);
+
+  const handleFilterRoleChange = React.useCallback((newFilter: 'all' | 'student' | 'professor' | 'admin') => {
+    setFilterRole(newFilter);
+  }, []);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
@@ -639,12 +904,7 @@ export default function UsersManagementScreen() {
 
               {/* Компактная кнопка добавления */}
               <Pressable
-                onPress={() => {
-                  setShowCreateForm(!showCreateForm);
-                  if (showCreateForm) {
-                    clearForm();
-                  }
-                }}
+                onPress={handleToggleCreateForm}
                 style={{
                   width: isVerySmallScreen ? 44 : isSmallScreen ? 46 : 48,
                   height: isVerySmallScreen ? 44 : isSmallScreen ? 46 : 48,
@@ -744,7 +1004,7 @@ export default function UsersManagementScreen() {
                 </ThemedText>
                 <TextInput
                   value={firstName}
-                  onChangeText={setFirstName}
+                  onChangeText={handleFirstNameChange}
                   placeholder="Введите имя"
                   style={{
                     backgroundColor: Colors.surfaceSubtle,
@@ -770,7 +1030,7 @@ export default function UsersManagementScreen() {
                 </ThemedText>
                 <TextInput
                   value={lastName}
-                  onChangeText={setLastName}
+                  onChangeText={handleLastNameChange}
                   placeholder="Введите фамилию"
                   style={{
                     backgroundColor: Colors.surfaceSubtle,
@@ -800,7 +1060,7 @@ export default function UsersManagementScreen() {
               </ThemedText>
               <TextInput
                 value={username}
-                onChangeText={setUsername}
+                onChangeText={handleUsernameChange}
                 placeholder="Введите имя пользователя"
                 autoCapitalize="none"
                 style={{
@@ -830,7 +1090,7 @@ export default function UsersManagementScreen() {
               </ThemedText>
               <TextInput
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={handleEmailChange}
                 placeholder="Введите email"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -850,7 +1110,12 @@ export default function UsersManagementScreen() {
             {/* Пароль - только для новых пользователей */}
             {!editingUser && (
               <View style={{ marginBottom: Spacing.m }}>
-                <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
+                <ThemedText style={{ 
+                  ...Typography.body, 
+                  color: Colors.textSecondary, 
+                  marginBottom: Spacing.s,
+                  fontSize: responsiveStyles.fontSize
+                }}>
                   Пароль *
                 </ThemedText>
                 <TextInput
@@ -876,7 +1141,12 @@ export default function UsersManagementScreen() {
 
             {/* Роль */}
             <View style={{ marginBottom: Spacing.l }}>
-              <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
+              <ThemedText style={{ 
+                ...Typography.body, 
+                color: Colors.textSecondary, 
+                marginBottom: Spacing.s,
+                fontSize: responsiveStyles.fontSize
+              }}>
                 Роль пользователя
               </ThemedText>
               <View style={{
@@ -892,7 +1162,7 @@ export default function UsersManagementScreen() {
                 {(['student', 'professor', 'admin'] as const).map((r) => (
                   <Pressable
                     key={r}
-                    onPress={() => setRole(r)}
+                    onPress={() => handleRoleChange(r)}
                     style={{
                       backgroundColor: role === r ? Colors.brandPrimary : Colors.surface,
                       paddingHorizontal: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
@@ -942,7 +1212,10 @@ export default function UsersManagementScreen() {
                 ...Typography.body, 
                 color: isLoading ? Colors.textSecondary : Colors.surface, 
               }}>
-                {isLoading ? 'Создаем...' : 'Создать пользователя'}
+                {isLoading 
+                  ? (editingUser ? 'Обновляем...' : 'Создаем...') 
+                  : (editingUser ? 'Обновить пользователя' : 'Создать пользователя')
+                }
               </ThemedText>
             </Pressable>
           </View>
@@ -963,7 +1236,7 @@ export default function UsersManagementScreen() {
             <Ionicons name="search" size={20} color={Colors.textSecondary} style={{ marginRight: Spacing.s }} />
             <TextInput
               value={searchQuery}
-              onChangeText={setSearchQuery}
+              onChangeText={handleSearchChange}
               placeholder="Поиск пользователей..."
               style={{
                 flex: 1,
@@ -988,10 +1261,10 @@ export default function UsersManagementScreen() {
             style={{ marginBottom: Spacing.l }}
             contentContainerStyle={{ paddingHorizontal: 2 }}
           >
-            {['all', 'student', 'professor', 'admin'].map((filter) => (
+            {(['all', 'student', 'professor', 'admin'] as const).map((filter) => (
               <Pressable
                 key={filter}
-                onPress={() => setFilterRole(filter as any)}
+                onPress={() => handleFilterRoleChange(filter)}
                 style={{
                   backgroundColor: filterRole === filter ? Colors.brandPrimary : Colors.surface,
                   paddingHorizontal: Spacing.l,
@@ -1157,4 +1430,3 @@ export default function UsersManagementScreen() {
     </SafeAreaView>
   );
 }
-

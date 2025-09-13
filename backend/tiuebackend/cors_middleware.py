@@ -43,7 +43,7 @@ class CorsMiddleware:
             'http://127.0.0.1:3000',
             'http://localhost:8081',
             'http://127.0.0.1:8081',
-            'https://b86c78591036.ngrok-free.app',  # Ваш текущий ngrok домен
+            'https://7b59f5e60f74.ngrok-free.app',  # Ваш текущий ngrok домен
         ]
         
         # Проверяем ngrok домены (они могут меняться)

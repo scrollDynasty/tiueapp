@@ -26,7 +26,7 @@ export default function EventsScreen() {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const colors = getThemeColors(isDarkMode);
-  const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
+  const { isSmallScreen, spacing, fontSize, isVerySmallScreen, isExtraSmallScreen } = useResponsive();
   const dispatch = useAppDispatch();
   
   const { items: events } = useAppSelector((state) => state.events);
@@ -153,7 +153,7 @@ export default function EventsScreen() {
               marginRight: spacing.sm
             }} />
             <ThemedText style={[styles.title, { 
-              fontSize: isVerySmallScreen ? fontSize.title : isSmallScreen ? 24 : 28,
+              fontSize: isExtraSmallScreen ? fontSize.title - 2 : isVerySmallScreen ? fontSize.title : isSmallScreen ? 24 : 28,
               letterSpacing: -0.5,
               color: colors.text,
             }]}>
@@ -165,9 +165,9 @@ export default function EventsScreen() {
               styles.searchButton, 
               { 
                 backgroundColor: isDarkMode ? '#374151' : '#F3F4F6',
-                width: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
-                height: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
-                borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 12 : 14,
+                width: isExtraSmallScreen ? 32 : isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
+                height: isExtraSmallScreen ? 32 : isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
+                borderRadius: isExtraSmallScreen ? 8 : isVerySmallScreen ? 10 : isSmallScreen ? 12 : 14,
                 borderWidth: 1,
                 borderColor: isDarkMode ? '#4B5563' : '#D1D5DB',
                 alignItems: 'center',
@@ -175,7 +175,7 @@ export default function EventsScreen() {
               }
             ]}
           >
-            <Ionicons name="search" size={isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={isDarkMode ? '#9CA3AF' : '#6B7280'} />
+            <Ionicons name="search" size={isExtraSmallScreen ? 14 : isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={isDarkMode ? '#9CA3AF' : '#6B7280'} />
           </TouchableOpacity>
         </Animated.View>
 
@@ -289,7 +289,11 @@ export default function EventsScreen() {
                     shadowOpacity: isDarkMode ? 0.4 : 0.12,
                     shadowRadius: 20,
                     elevation: isDarkMode ? 12 : 8,
-                    minHeight: isVerySmallScreen ? 380 : isSmallScreen ? 420 : 460,
+                    // Исправлена минимальная высота для лучшей адаптивности
+                    minHeight: isExtraSmallScreen ? 280 : isVerySmallScreen ? 300 : isSmallScreen ? 350 : 420,
+                    // Добавлены защитные стили
+                    maxWidth: '100%',
+                    width: '100%',
                   }]}
                 >
                   <Pressable onPress={() => handleEventPress(event.id)} style={{ flex: 1 }}>
@@ -324,9 +328,9 @@ export default function EventsScreen() {
                               source={{ uri: event.image }}
                               style={{
                                 width: '100%',
-                                height: isVerySmallScreen ? 120 : isSmallScreen ? 140 : 160,
-                                borderTopLeftRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
-                                borderTopRightRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
+                                height: isExtraSmallScreen ? 80 : isVerySmallScreen ? 100 : isSmallScreen ? 120 : 140,
+                                borderTopLeftRadius: isExtraSmallScreen ? 14 : isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
+                                borderTopRightRadius: isExtraSmallScreen ? 14 : isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
                               }}
                               resizeMode="cover"
                             />
@@ -346,6 +350,10 @@ export default function EventsScreen() {
                       
                         <View style={{
                           padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg,
+                          // Защитные стили для контейнера
+                          width: '100%',
+                          maxWidth: '100%',
+                          overflow: 'hidden',
                         }}>
                           {/* Event Header */}
                           <View style={styles.eventHeader}>
@@ -439,92 +447,67 @@ export default function EventsScreen() {
                         </View>
                       </View>
 
-                      {/* Registration Button - Улучшенный дизайн */}
-                      <View style={{ padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg }}>
+                      {/* Registration Button - Упрощенный и надежный дизайн */}
+                      <View style={{ 
+                        padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg,
+                        paddingTop: 0,
+                      }}>
                         <TouchableOpacity
                           style={[
                             styles.registerButton,
                             {
-                              backgroundColor: 'transparent',
-                              borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
-                              marginTop: isVerySmallScreen ? 12 : isSmallScreen ? 16 : 20,
-                              overflow: 'hidden',
+                              backgroundColor: event.isRegistered 
+                                ? 'transparent'
+                                : colors.primary,
+                              borderRadius: isExtraSmallScreen ? 10 : isVerySmallScreen ? 12 : isSmallScreen ? 16 : 20,
+                              borderWidth: event.isRegistered ? 2 : 0,
+                              borderColor: event.isRegistered ? colors.primary : 'transparent',
+                              paddingVertical: isExtraSmallScreen ? 10 : isVerySmallScreen ? 12 : isSmallScreen ? 14 : 16,
+                              paddingHorizontal: isExtraSmallScreen ? 12 : isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
                               shadowColor: event.isRegistered ? 'transparent' : colors.primary,
-                              shadowOffset: { width: 0, height: event.isRegistered ? 0 : 6 },
-                              shadowOpacity: event.isRegistered ? 0 : 0.25,
-                              shadowRadius: event.isRegistered ? 0 : 12,
-                              elevation: event.isRegistered ? 0 : 6,
+                              shadowOffset: { width: 0, height: event.isRegistered ? 0 : 4 },
+                              shadowOpacity: event.isRegistered ? 0 : 0.3,
+                              shadowRadius: event.isRegistered ? 0 : 8,
+                              elevation: event.isRegistered ? 0 : 4,
+                              // Защитные стили для предотвращения overflow
+                              alignSelf: 'stretch',
+                              width: '100%',
+                              maxWidth: '100%',
+                              overflow: 'hidden',
                             }
                           ]}
                           onPress={() => handleToggleRegistration(event.id)}
                           activeOpacity={0.8}
                         >
-                          <LinearGradient
-                            colors={event.isRegistered 
-                              ? isDarkMode 
-                                ? ['rgba(30,41,59,0.9)', 'rgba(51,65,85,0.7)']
-                                : ['rgba(255,255,255,0.95)', 'rgba(248,250,252,0.9)']
-                              : [colors.primary, colors.primary + 'E6', colors.primary + 'CC']
-                            }
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={{
-                              flexDirection: 'row',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              paddingVertical: isVerySmallScreen ? 12 : isSmallScreen ? 16 : 20,
-                              paddingHorizontal: isVerySmallScreen ? 16 : isSmallScreen ? 24 : 32,
-                              borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
-                              borderWidth: event.isRegistered ? 2 : 0,
-                              borderColor: event.isRegistered ? colors.primary + '60' : 'transparent',
-                              minHeight: isVerySmallScreen ? 44 : isSmallScreen ? 52 : 60,
-                            }}
-                          >
-                            <View style={{
-                              width: isVerySmallScreen ? 20 : isSmallScreen ? 24 : 28,
-                              height: isVerySmallScreen ? 20 : isSmallScreen ? 24 : 28,
-                              borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 12 : 14,
-                              backgroundColor: event.isRegistered 
-                                ? colors.primary + '20' 
-                                : 'rgba(255,255,255,0.25)',
-                              justifyContent: 'center',
-                              alignItems: 'center',
-                              marginRight: 12,
-                            }}>
-                              <Ionicons 
-                                name={event.isRegistered ? "checkmark-circle" : "add-circle"} 
-                                size={isVerySmallScreen ? 14 : isSmallScreen ? 16 : 18} 
-                                color={event.isRegistered ? colors.primary : '#fff'} 
-                              />
-                            </View>
-                            
-                            <View style={{ flex: 1, alignItems: 'center' }}>
-                              <ThemedText
-                                style={[
-                                  styles.registerButtonText,
-                                  {
-                                    color: event.isRegistered ? colors.primary : '#fff',
-                                    fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? 16 : 18,
-                                    letterSpacing: 0.5,
-                                    textAlign: 'center',
-                                  }
-                                ]}
-                              >
-                                {event.isRegistered ? 'Вы записаны' : 'Записаться'}
-                              </ThemedText>
-                            </View>
-                            
-                            {!event.isRegistered && (
-                              <View style={{
-                                position: 'absolute',
-                                right: isSmallScreen ? 16 : 20,
-                                width: isSmallScreen ? 6 : 8,
-                                height: isSmallScreen ? 6 : 8,
-                                borderRadius: isSmallScreen ? 3 : 4,
-                                backgroundColor: 'rgba(255,255,255,0.8)',
-                              }} />
-                            )}
-                          </LinearGradient>
+                          <View style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '100%',
+                          }}>
+                            <Ionicons 
+                              name={event.isRegistered ? "checkmark-circle" : "add-circle"} 
+                              size={isExtraSmallScreen ? 14 : isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} 
+                              color={event.isRegistered ? colors.primary : '#fff'}
+                              style={{ marginRight: 8 }}
+                            />
+                            <ThemedText
+                              style={[
+                                styles.registerButtonText,
+                                {
+                                  color: event.isRegistered ? colors.primary : '#fff',
+                                  fontSize: isExtraSmallScreen ? fontSize.body - 1 : isVerySmallScreen ? fontSize.body : isSmallScreen ? 15 : 16,
+                                  fontWeight: '600',
+                                  textAlign: 'center',
+                                  flex: 1,
+                                }
+                              ]}
+                              numberOfLines={1}
+                              ellipsizeMode="tail"
+                            >
+                              {event.isRegistered ? 'Вы записаны' : 'Записаться'}
+                            </ThemedText>
+                          </View>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -693,12 +676,17 @@ const styles = StyleSheet.create({
   registerButton: {
     width: '100%',
     alignSelf: 'stretch',
-    borderRadius: 20,
+    borderRadius: 16,
     overflow: 'hidden',
+    // Защитные стили для кнопки
+    maxWidth: '100%',
+    minHeight: 40, // Уменьшена минимальная высота для экстремально маленьких экранов
   },
   registerButtonText: {
     textAlign: 'center',
-    flex: 1,
     fontWeight: '600',
+    // Защитные стили для текста
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
 });
