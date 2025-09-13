@@ -278,10 +278,6 @@ export default function EventsScreen() {
                             borderTopLeftRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
                             borderTopRightRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
                           }}
-                          onLoad={() => console.log('🖼️ Image loaded successfully:', event.image)}
-                          onError={(error) => console.error('❌ Image load error:', error, 'URL:', event.image)}
-                          onLoadStart={() => console.log('🔄 Image load started:', event.image)}
-                          onLoadEnd={() => console.log('🏁 Image load ended:', event.image)}
                           resizeMode="cover"
                           crossOrigin="anonymous"
                         />

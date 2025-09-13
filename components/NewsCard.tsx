@@ -136,10 +136,6 @@ export function NewsCard({
                 borderTopRightRadius: 20,
               }}
               resizeMode="cover"
-              onLoad={() => console.log('🖼️ News image loaded successfully:', image)}
-              onError={(error) => console.error('❌ News image load error:', error, 'URL:', image)}
-              onLoadStart={() => console.log('🔄 News image load started:', image)}
-              onLoadEnd={() => console.log('🏁 News image load ended:', image)}
               crossOrigin="anonymous"
             />
             <LinearGradient
