@@ -126,7 +126,7 @@ export default function NewsManagementScreen() {
 
     try {
       // Сначала пытаемся сохранить через API
-      const result = await dispatch(createNews(newNewsData)).unwrap();
+      await dispatch(createNews(newNewsData)).unwrap();
       
       // Перезагружаем список новостей
       dispatch(fetchNews());

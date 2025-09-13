@@ -44,8 +44,10 @@ export default function LoginScreen() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
-  const [emailFocused, setEmailFocused] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
+
+  const toggleShowPassword = React.useCallback(() => {
+    setShowPassword(prev => !prev);
+  }, []);
   const [showErrorMessage, setShowErrorMessage] = useState(false);
   
   const dispatch = useAppDispatch();
@@ -99,7 +101,7 @@ export default function LoginScreen() {
     } else {
       setShowErrorMessage(false);
     }
-  }, [error]);
+  }, [error, dispatch]);
 
   // Фиксируем стили автозаполнения при смене темы
   useEffect(() => {
@@ -371,7 +373,7 @@ export default function LoginScreen() {
                     textContentType="password"
                   />
                   <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
+                    onPress={toggleShowPassword}
                     style={styles.passwordToggle}
                     activeOpacity={0.7}
                   >

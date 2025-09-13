@@ -94,7 +94,7 @@ export function NotificationModal({
       opacity.value = withTiming(0, { duration: 150 });
       scale.value = withTiming(0.95, { duration: 150 });
     }
-  }, [isVisible]);
+  }, [isVisible, opacity, scale]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,

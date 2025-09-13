@@ -40,11 +40,7 @@ export function AnimatedHeader({
     });
   };
 
-  const bellAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: bellScale.value }],
-    };
-  });
+
 
   return (
     <LinearGradient

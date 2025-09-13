@@ -171,3 +171,19 @@ export interface Achievement {
   earnedDate: string;
   category: 'academic' | 'social' | 'sport' | 'volunteer';
 }
+
+export interface UserProfile {
+  id: string;
+  first_name: string;
+  last_name: string;
+  username: string;
+  email: string;
+  role: 'student' | 'professor' | 'admin';
+  is_active: boolean;
+  created_at: string;
+  last_login?: string;
+  faculty?: string;
+  course?: number;
+  group?: string;
+  department?: string;
+}

@@ -62,7 +62,7 @@ export function LoadingAnimation({ size = 40, color = '#2563EB' }: LoadingAnimat
       cancelAnimation(progress2);
       cancelAnimation(progress3);
     };
-  }, []);
+  }, [progress1, progress2, progress3]);
 
   const animatedStyle1 = useAnimatedStyle(() => {
     const scale = interpolate(progress1.value, [0, 1], [0.3, 1]);

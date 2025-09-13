@@ -2,7 +2,7 @@ import React from 'react';
 import { Dimensions, Platform, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const { height: screenHeight } = Dimensions.get('window');
+
 
 interface ImmersiveContainerProps {
   children: React.ReactNode;

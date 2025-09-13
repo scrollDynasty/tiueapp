@@ -30,7 +30,7 @@ export default function AllNewsScreen() {
   const { items: newsData, isLoading } = useAppSelector(state => state.news);
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
-  const { fontSize, spacing, isVerySmallScreen, isSmallScreen } = useResponsive();
+  const { fontSize, spacing, isVerySmallScreen } = useResponsive();
   
   // Анимационные значения
   const headerOpacity = useSharedValue(1);
@@ -44,7 +44,7 @@ export default function AllNewsScreen() {
       damping: 15,
       stiffness: 150
     });
-  }, [dispatch]);
+  }, [dispatch, headerScale]);
 
   // Стили для анимированного хедера
   const animatedHeaderStyle = useAnimatedStyle(() => ({

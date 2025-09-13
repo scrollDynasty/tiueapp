@@ -14,7 +14,7 @@ export default function ExploreScreen() {
   const colors = getThemeColors(isDarkMode);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [focusedInput, setFocusedInput] = React.useState<string | null>(null);
-  const { horizontalPadding, cardGap, cardWidth, cardHeight, isSmallScreen, fontSize, spacing, isVerySmallScreen } = useResponsive();
+  const { horizontalPadding, isSmallScreen, fontSize, spacing, isVerySmallScreen } = useResponsive();
 
   const categories = [
     { 

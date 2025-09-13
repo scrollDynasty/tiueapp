@@ -36,14 +36,14 @@ class CorsMiddleware:
         """Добавляем CORS заголовки к ответу"""
         # Получаем origin из запроса
         origin = request.META.get('HTTP_ORIGIN')
-        
+
         # Список разрешенных доменов
         allowed_origins = [
             'http://localhost:3000',
             'http://127.0.0.1:3000',
             'http://localhost:8081',
             'http://127.0.0.1:8081',
-            'https://7b59f5e60f74.ngrok-free.app',  # Ваш текущий ngrok домен
+            'https://70d07b3756cb.ngrok-free.app',  # Ваш текущий ngrok домен
         ]
         
         # Проверяем ngrok домены (они могут меняться)

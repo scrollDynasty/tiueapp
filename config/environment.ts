@@ -12,8 +12,8 @@ const developmentConfig: EnvironmentConfig = {
 };
 
 const productionConfig: EnvironmentConfig = {
-  API_BASE_URL: 'https://7b59f5e60f74.ngrok-free.app/api',
-  WS_BASE_URL: 'wss://7b59f5e60f74.ngrok-free.app/ws',
+  API_BASE_URL: 'https://70d07b3756cb.ngrok-free.app/api',
+  WS_BASE_URL: 'wss://70d07b3756cb.ngrok-free.app/ws',
   DEBUG: false,
 };
 
@@ -40,6 +40,12 @@ export const getApiBaseUrl = (): string => {
   const apiUrl = config.API_BASE_URL;
   console.log(`🔧 Using API URL: ${apiUrl} (${isDevelopment ? 'DEV' : 'PROD'} mode)`);
   return apiUrl;
+};
+
+// Утилитарная функция для получения базового URL для медиафайлов
+export const getMediaBaseUrl = (): string => {
+  // Убираем '/api' из конца URL, чтобы получить базовый адрес сервера
+  return config.API_BASE_URL.replace(/\/api$/, '');
 };
 
 // Утилитарная функция для получения WebSocket URL
