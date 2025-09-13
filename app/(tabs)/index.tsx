@@ -15,13 +15,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { Dimensions, Pressable, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, {
-    FadeInDown,
-    SlideInLeft,
-    SlideInRight,
-    useAnimatedScrollHandler,
-    useSharedValue,
+  FadeInDown,
+  SlideInLeft,
+  SlideInRight,
+  useAnimatedScrollHandler,
+  useSharedValue,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -35,7 +35,7 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = React.useState(false);
   const [showNotifications, setShowNotifications] = React.useState(false);
   const { horizontalPadding, cardGap, cardWidth, cardHeight, isVerySmallScreen, fontSize, spacing } = useResponsive();
-  const { user } = useAppSelector((state) => state.auth);
+  const { user } = useAppSelector(state => state.auth);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -60,14 +60,15 @@ export default function HomeScreen() {
           dispatch(fetchEvents()).unwrap()
         ]);
       }
-    } catch (error) {
+    } catch {
+      // handle error
     }
     setRefreshing(false);
   }, [dispatch, user]);
 
   // Получаем новости и события из Redux store
-  const { items: newsData, isLoading: newsLoading } = useAppSelector((state) => state.news);
-  const { items: eventsData, isLoading: eventsLoading } = useAppSelector((state) => state.events);
+  const { items: newsData } = useAppSelector((state) => state.news);
+  const { items: eventsData } = useAppSelector((state) => state.events);
 
   // Получаем ближайшие события (следующие 3)
   const upcomingEvents = React.useMemo(() => {
@@ -87,27 +88,25 @@ export default function HomeScreen() {
   const statsData = React.useMemo(() => {
     const role = user?.role;
     
-    // Количество курсов в зависимости от роли
     let coursesCount = '0';
     if (role === 'student') {
-      coursesCount = '8'; // Обычная нагрузка студента
+      coursesCount = '8';
     } else if (role === 'professor') {
-      coursesCount = '5'; // Преподаватель ведет несколько курсов
+      coursesCount = '5';
     } else if (role === 'admin') {
-      coursesCount = '12'; // Общее количество курсов в университете
+      coursesCount = '12';
     }
     
-    // Средний балл или показатель успеваемости
     let gradeValue = '0';
     let gradeTitle = 'Баллы';
     if (role === 'student') {
-      gradeValue = '4.2'; // Средний балл студента
+      gradeValue = '4.2';
       gradeTitle = 'Средний балл';
     } else if (role === 'professor') {
-      gradeValue = '4.8'; // Средний балл по курсам преподавателя
+      gradeValue = '4.8';
       gradeTitle = 'Ср. балл курсов';
     } else if (role === 'admin') {
-      gradeValue = newsData.length.toString(); // Количество новостей для админа
+      gradeValue = newsData.length.toString();
       gradeTitle = 'Новости';
     }
     
@@ -118,8 +117,6 @@ export default function HomeScreen() {
       gradeTitle: gradeTitle
     };
   }, [user?.role, newsData.length, eventsData.length]);
-
-  const screenWidth = Dimensions.get('window').width;
 
   // Компонент статистического виджета
   const StatWidget = ({ icon, title, value, color }: {
@@ -255,7 +252,6 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Градиентный фон */}
       <LinearGradient
         colors={isDarkMode 
           ? ['#0F172A', '#1E293B', '#334155']
@@ -267,7 +263,6 @@ export default function HomeScreen() {
       />
       
       <SafeAreaView style={{ flex: 1 }}>
-        {/* Верхняя панель */}
         <AnimatedHeader 
           userName={user?.first_name || user?.username || 'Пользователь'}
           notificationCount={0}
@@ -275,7 +270,6 @@ export default function HomeScreen() {
           onNotificationPress={() => setShowNotifications(prev => !prev)}
         />
 
-      {/* Dropdown уведомлений */}
       {showNotifications && (
         <NotificationModal
           isVisible={showNotifications}
@@ -297,8 +291,6 @@ export default function HomeScreen() {
         }}
       >
 
-
-        {/* Статистические виджеты */}
         <View style={{
           flexDirection: 'row',
           marginBottom: 24,
@@ -324,7 +316,6 @@ export default function HomeScreen() {
           />
         </View>
 
-        {/* Сетка карточек 2x2 */}
         <Animated.View
           entering={FadeInDown.delay(300)}
           style={{
@@ -351,7 +342,6 @@ export default function HomeScreen() {
             }}
           >
             {user?.role === 'admin' ? (
-              // Карточки для администратора
               <>
                 <ActionCard
                   title="ПОЛЬЗОВАТЕЛИ"
@@ -379,7 +369,6 @@ export default function HomeScreen() {
                 />
               </>
             ) : (
-              // Карточки для студентов и преподавателей
               <>
                 <ActionCard
                   title="КУРСЫ"
@@ -410,7 +399,6 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
 
-        {/* Предстоящие события */}
         {upcomingEvents.length > 0 && (
           <Animated.View entering={SlideInLeft.delay(400)} style={{ marginBottom: spacing.lg }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
@@ -450,7 +438,6 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
-        {/* Важные новости */}
         {importantNews.length > 0 && (
           <Animated.View entering={SlideInRight.delay(500)} style={{ marginBottom: spacing.lg }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
@@ -502,7 +489,6 @@ export default function HomeScreen() {
           </Animated.View>
         )}
 
-        {/* Секция всех новостей */}
         <Animated.View entering={SlideInRight.delay(600)}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
             <ThemedText
@@ -586,62 +572,58 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
 
-        {/* Дополнительная информационная карточка */}
         <Animated.View 
           entering={FadeInDown.delay(700)}
           style={{
             marginTop: spacing.lg,
-            backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             borderRadius: 20,
             overflow: 'hidden',
           }}
         >
-          <View style={{
-            backgroundColor: isDarkMode ? colors.surface : colors.primary,
-            padding: spacing.lg,
-            borderRadius: 20,
-          }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md }}>
-              <View style={{
-                backgroundColor: isDarkMode ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255,255,255,0.2)',
-                width: isVerySmallScreen ? 40 : 48,
-                height: isVerySmallScreen ? 40 : 48,
-                borderRadius: isVerySmallScreen ? 20 : 24,
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginRight: spacing.md,
-              }}>
-                <Ionicons name="bulb" size={isVerySmallScreen ? 20 : 24} color={isDarkMode ? colors.primary : "#FFFFFF"} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <ThemedText style={{
-                  fontSize: fontSize.body,
-                  color: isDarkMode ? colors.text : '#FFFFFF',
-                  marginBottom: 4,
-                }}>
-                  Совет дня
-                </ThemedText>
-                <ThemedText style={{
-                  fontSize: fontSize.small,
-                  color: isDarkMode ? colors.textSecondary : '#C7D2FE',
-                }}>
-                  Полезная информация для студентов
-                </ThemedText>
-              </View>
-            </View>
-            <ThemedText style={{
-              fontSize: fontSize.small,
-              lineHeight: isVerySmallScreen ? 18 : 20,
-              color: isDarkMode ? colors.textSecondary : '#E0E7FF',
-              fontStyle: 'italic',
+          <LinearGradient
+            colors={isDarkMode ? ['#3B0764', '#2B6CB0'] : ['#667eea', '#764ba2']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{ borderRadius: 20 }}
+          >
+            <View style={{
+              backgroundColor: 'transparent',
+              padding: spacing.lg,
+              borderRadius: 20,
             }}>
-              "Успех — это способность идти от неудачи к неудаче, не теряя энтузиазма." 
-              {'\n\n'}Не забывайте проверять расписание и готовиться к предстоящим занятиям!
-            </ThemedText>
-          </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md }}>
+                <View style={{
+                  backgroundColor: isDarkMode ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255,255,255,0.12)',
+                  width: isVerySmallScreen ? 40 : 48,
+                  height: isVerySmallScreen ? 40 : 48,
+                  borderRadius: isVerySmallScreen ? 20 : 24,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginRight: spacing.md,
+                }}>
+                  <Ionicons name="bulb" size={isVerySmallScreen ? 20 : 24} color={isDarkMode ? colors.primary : "#FFFFFF"} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText style={{
+                    fontSize: fontSize.body,
+                    color: isDarkMode ? colors.text : '#FFFFFF',
+                    marginBottom: 4,
+                  }}>
+                    Совет дня
+                  </ThemedText>
+                  <ThemedText style={{
+                    fontSize: fontSize.small,
+                    color: isDarkMode ? colors.textSecondary : '#C7D2FE',
+                  }}>
+                    Полезная информация для студентов
+                  </ThemedText>
+                </View>
+              </View>
+              <ThemedText style={[styles.quoteText, { color: isDarkMode ? colors.text : '#FFFFFF' }]}>&quot;Стремитесь не к успеху, а к ценностям, которые он дает.&quot;</ThemedText>
+            </View>
+          </LinearGradient>
         </Animated.View>
 
-        {/* Финальная карточка с контактной информацией */}
         <Animated.View 
           entering={FadeInDown.delay(800)}
           style={{
@@ -660,8 +642,6 @@ export default function HomeScreen() {
             <Pressable 
               style={{ alignItems: 'center' }}
               onPress={() => {
-                // Можно открыть модальное окно с помощью или перейти на страницу поддержки
-                // Пример: показать alert с информацией о поддержке
                 alert('Помощь\n\nДля получения помощи обратитесь к администратору или в службу поддержки университета.\n\nТелефон: +7 (xxx) xxx-xx-xx\nEmail: support@university.edu');
               }}
             >
@@ -684,7 +664,6 @@ export default function HomeScreen() {
             <Pressable 
               style={{ alignItems: 'center' }}
               onPress={() => {
-                // Переходим на страницу чатов (events.tsx содержит чаты)
                 router.push('/(tabs)/events');
               }}
             >
@@ -707,7 +686,6 @@ export default function HomeScreen() {
             <Pressable 
               style={{ alignItems: 'center' }}
               onPress={() => {
-                // Переход на страницу настроек/профиля
                 router.push('/(tabs)/profile');
               }}
             >
@@ -733,3 +711,13 @@ export default function HomeScreen() {
     </View>
   );
 }
+
+// Local styles
+const styles = StyleSheet.create({
+  quoteText: {
+    fontSize: 16,
+    lineHeight: 22,
+    opacity: 0.95,
+    marginTop: 4,
+  },
+});

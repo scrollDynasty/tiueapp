@@ -126,6 +126,8 @@ export const PasswordResetModal = React.memo(({
   );
 });
 
+PasswordResetModal.displayName = 'PasswordResetModal';
+
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,

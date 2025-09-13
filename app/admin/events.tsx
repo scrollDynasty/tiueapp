@@ -9,6 +9,7 @@ import { formatDateYMD } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getMediaBaseUrl } from '@/config/environment';
 import { router } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
@@ -29,7 +30,6 @@ export default function EventsManagementScreen() {
   
   const { theme } = useTheme();
   const themeColors = getThemeColors(theme === 'dark');
-  const isDarkMode = theme === 'dark';
   
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);

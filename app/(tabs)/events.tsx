@@ -9,9 +9,86 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp, SlideInRight } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+// Cross-platform Image with retry and improved error logging
+function ImageWithRetry({ uri, style, resizeMode }: { uri?: string; style?: any; resizeMode?: any }) {
+  const [attempt, setAttempt] = React.useState(0);
+  const [failed, setFailed] = React.useState(false);
+
+  const reload = () => {
+    setFailed(false);
+    setAttempt((s) => s + 1);
+  };
+
+  if (!uri) return null;
+
+  if (Platform.OS === 'web') {
+    // Extract numeric width/height from style (if provided) to render attributes and avoid layout shift
+    let widthAttr: number | undefined;
+    let heightAttr: number | undefined;
+    if (style && typeof style === 'object') {
+      const h = style.height;
+      const w = style.width;
+      if (typeof h === 'number') heightAttr = Math.round(h as number);
+      if (typeof w === 'number') widthAttr = Math.round(w as number);
+    }
+
+    // eslint-disable-next-line jsx-a11y/alt-text
+    return (
+      <div>
+        <img
+          src={uri}
+          key={`${uri}:${attempt}`}
+          style={style}
+          loading="eager"
+          fetchPriority="high"
+          decoding="async"
+          {...(widthAttr ? { width: widthAttr } : {})}
+          {...(heightAttr ? { height: heightAttr } : {})}
+          onLoad={() => console.log('[IMG:web] loaded:', uri)}
+          onError={(e) => {
+            console.error('[IMG:web] failed to load:', uri, e);
+            setFailed(true);
+          }}
+        />
+        {failed && (
+          <TouchableOpacity onPress={reload} style={{ marginTop: 6 }}>
+            <Text style={{ color: '#ff5252', fontWeight: '600' }}>Попробовать ещё раз</Text>
+          </TouchableOpacity>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Image
+        key={`${uri}:${attempt}`}
+        source={{ uri }}
+        style={style}
+        resizeMode={resizeMode}
+        onLoad={() => console.log('[IMG] loaded:', uri)}
+        onError={(err) => {
+          // err.nativeEvent may contain useful info — stringify it for clarity
+          try {
+            console.error('[IMG] failed to load:', uri, JSON.stringify(err.nativeEvent));
+          } catch (e) {
+            console.error('[IMG] failed to load (no nativeEvent):', uri, err);
+          }
+          setFailed(true);
+        }}
+      />
+      {failed && (
+        <TouchableOpacity onPress={reload} style={{ marginTop: 6 }}>
+          <Text style={{ color: '#ff5252', fontWeight: '600' }}>Попробовать ещё раз</Text>
+        </TouchableOpacity>
+      )}
+    </>
+  );
+}
 
 const CATEGORIES = [
   { key: 'all', label: 'Все', icon: 'grid-outline' },
@@ -71,6 +148,20 @@ export default function EventsScreen() {
       isCancelled = true;
     };
   }, [dispatch]);
+
+  // Диагностический лог: выводим URL изображений при обновлении списка событий
+  React.useEffect(() => {
+    if (events && events.length > 0) {
+      console.log('[EVENTS] Loaded events count:', events.length);
+      events.forEach((ev: Event) => {
+        try {
+          console.log('[EVENTS] image URL ->', ev.image);
+        } catch (err) {
+          console.warn('[EVENTS] error logging event image', err);
+        }
+      });
+    }
+  }, [events]);
   
   const filteredEvents = React.useMemo(() => {
     return events.filter((event: Event) => {
@@ -324,16 +415,25 @@ export default function EventsScreen() {
                         {/* Адаптивное Event Image */}
                         {event.image && (
                           <View style={{ position: 'relative' }}>
-                            <Image 
-                              source={{ uri: event.image }}
-                              style={{
-                                width: '100%',
-                                height: isExtraSmallScreen ? 80 : isVerySmallScreen ? 100 : isSmallScreen ? 120 : 140,
-                                borderTopLeftRadius: isExtraSmallScreen ? 14 : isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
-                                borderTopRightRadius: isExtraSmallScreen ? 14 : isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
-                              }}
-                              resizeMode="cover"
-                            />
+                            {/* Image (no debug UI) */}
+                            <Pressable
+                              onPress={() => router.push(`/events/${event.id}`)}
+                              style={{ width: '100%' }}
+                              hitSlop={8}
+                            >
+                              <ImageWithRetry
+                                uri={event.image}
+                                style={{
+                                  width: '100%',
+                                  height: isExtraSmallScreen ? 80 : isVerySmallScreen ? 100 : isSmallScreen ? 120 : 140,
+                                  borderTopLeftRadius: isExtraSmallScreen ? 14 : isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
+                                  borderTopRightRadius: isExtraSmallScreen ? 14 : isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
+                                  // prevent stretching on web
+                                  objectFit: Platform.OS === 'web' ? 'cover' : undefined,
+                                }}
+                                resizeMode="cover"
+                              />
+                            </Pressable>
                             {/* Градиентный оверлей на изображение */}
                             <LinearGradient
                               colors={['transparent', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)']}

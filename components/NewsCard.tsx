@@ -5,7 +5,7 @@ import { formatDateYMD } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Dimensions, Image, Platform, Pressable, TextStyle, View, ViewStyle } from 'react-native';
+import { Image, Platform, Pressable, TextStyle, View, ViewStyle } from 'react-native';
 import Animated, {
   FadeIn,
   interpolate,
@@ -15,8 +15,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Animation, Spacing } from '../constants/DesignTokens';
 import { ThemedText } from './ThemedText';
-
-const { width } = Dimensions.get('window');
 
 interface Event {
   id: number;
@@ -42,24 +40,23 @@ interface NewsCardProps {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export function NewsCard({ 
-  title, 
-  subtitle, 
-  date, 
+const NewsCardComponent = ({
+  title,
+  subtitle,
+  date,
   image,
   events = [],
-  icon = 'notifications-outline', 
+  icon = 'newspaper-outline',
+  index = 0,
   onPress,
   onEventPress,
   style,
-  index = 0 
-}: NewsCardProps) {
+}: NewsCardProps) => {
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const pressed = useSharedValue(0);
   const { fontSize, spacing, isSmallScreen, isVerySmallScreen } = useResponsive();
 
-  // Адаптивные размеры
   const imageHeight = isVerySmallScreen ? 160 : isSmallScreen ? 180 : 220;
   const cardPadding = isVerySmallScreen ? spacing.sm : spacing.md;
   const iconSize = isVerySmallScreen ? 32 : 44;
@@ -87,7 +84,7 @@ export function NewsCard({
 
   return (
     <AnimatedPressable
-      entering={FadeIn.delay(index * 100).springify()}
+      entering={FadeIn.delay((index ?? 0) * 100).springify()}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
@@ -136,7 +133,6 @@ export function NewsCard({
                 borderTopRightRadius: 20,
               }}
               resizeMode="cover"
-              crossOrigin="anonymous"
             />
             <LinearGradient
               colors={['transparent', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.6)']}
@@ -146,8 +142,6 @@ export function NewsCard({
                 left: 0,
                 right: 0,
                 height: 80,
-                borderTopLeftRadius: 20,
-                borderTopRightRadius: 20,
               }}
             />
             <View style={{
@@ -240,7 +234,7 @@ export function NewsCard({
             {subtitle}
           </ThemedText>
 
-          {events.length > 0 && (
+          {events && events.length > 0 && (
             <View
               style={{
                 marginTop: spacing.xs,
@@ -335,16 +329,12 @@ export function NewsCard({
 
 // Стили с правильными типами
 const textStyles = {
-  title: {
-  } as TextStyle,
-  subtitle: {
-  } as TextStyle,
-  eventTitle: {
-  } as TextStyle,
-  eventLocation: {
-  } as TextStyle,
-  eventDate: {
-  } as TextStyle,
-  moreEvents: {
-  } as TextStyle,
+  title: {} as TextStyle,
+  subtitle: {} as TextStyle,
+  eventTitle: {} as TextStyle,
+  eventLocation: {} as TextStyle,
+  eventDate: {} as TextStyle,
+  moreEvents: {} as TextStyle,
 };
+
+export const NewsCard = React.memo(NewsCardComponent);

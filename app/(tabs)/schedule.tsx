@@ -236,7 +236,7 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
 export default function ScheduleScreen() {
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
-  const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
+  const { isSmallScreen, spacing, isVerySmallScreen } = useResponsive();
   const [selectedDay, setSelectedDay] = React.useState<string>('Понедельник');
   const { user } = useAppSelector((state) => state.auth);
 

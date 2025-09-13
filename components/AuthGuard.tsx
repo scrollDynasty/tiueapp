@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { checkAuthStatus } from '@/store/slices/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useSegments } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 interface AuthGuardProps {
@@ -21,25 +21,9 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   const currentRoute = segments[0]; // Получаем первый сегмент маршрута
   const isPublicRoute = publicRoutes.includes(currentRoute);
 
-  useEffect(() => {
-    console.log('[AUTH_GUARD] useEffect triggered, route:', currentRoute, 'isAuthenticated:', isAuthenticated, 'isInitializing:', isInitializing);
-    
-    // Запускаем только один раз при первой загрузке
-    if (!isInitializing) return;
-    
-    // Если это публичный маршрут, не проверяем аутентификацию
-    if (isPublicRoute) {
-      console.log('[AUTH_GUARD] Public route detected, skipping auth check');
-      setIsInitializing(false);
-      return;
-    }
-    
-    initializeAuth();
-  }, []); // Убираем зависимости, чтобы запускался только один раз
-
-  const initializeAuth = async () => {
+  const initializeAuth = useCallback(async () => {
     console.log('[AUTH_GUARD] 🚀 Starting initialization...');
-    
+
     try {
       // Если пользователь уже аутентифицирован в Redux, не проверяем AsyncStorage
       if (isAuthenticated) {
@@ -47,16 +31,16 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         setIsInitializing(false);
         return;
       }
-      
+
       console.log('[AUTH_GUARD] 📱 Getting token from AsyncStorage...');
       const token = await AsyncStorage.getItem('authToken');
       console.log('[AUTH_GUARD] Checking stored token:', token ? `${token.substring(0, 10)}...` : 'No token');
-      
+
       if (token) {
         // Проверяем валидность токена
         console.log('[AUTH_GUARD] 🔍 Checking auth status...');
         const result = await dispatch(checkAuthStatus());
-        
+
         // Если проверка провалилась, очищаем токен и перенаправляем
         if (checkAuthStatus.rejected.match(result)) {
           console.log('[AUTH_GUARD] ❌ Auth check failed, clearing token and redirecting to login');
@@ -79,7 +63,23 @@ export default function AuthGuard({ children }: AuthGuardProps) {
       console.log('[AUTH_GUARD] 🏁 Initialization finished, setting isInitializing to false');
       setIsInitializing(false);
     }
-  };
+  }, [dispatch, isAuthenticated]);
+
+  useEffect(() => {
+    console.log('[AUTH_GUARD] useEffect triggered, route:', currentRoute, 'isAuthenticated:', isAuthenticated, 'isInitializing:', isInitializing);
+
+    // Запускаем только один раз при первой загрузке
+    if (!isInitializing) return;
+
+    // Если это публичный маршрут, не проверяем аутентификацию
+    if (isPublicRoute) {
+      console.log('[AUTH_GUARD] Public route detected, skipping auth check');
+      setIsInitializing(false);
+      return;
+    }
+
+    initializeAuth();
+  }, [isInitializing, isPublicRoute, initializeAuth, currentRoute, isAuthenticated]);
 
   useEffect(() => {
     if (!isInitializing && !loading && !isAuthenticated && !isPublicRoute) {
