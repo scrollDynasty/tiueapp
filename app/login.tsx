@@ -68,11 +68,15 @@ export default function LoginScreen() {
     formOpacity.value = withTiming(1, { duration: 800 });
 
     // Мерцающий эффект для кнопки темы (привлекает внимание)
-    setTimeout(() => {
+    const glowTimer = setTimeout(() => {
       themeButtonGlow.value = withTiming(1.2, { duration: 1000 }, () => {
         themeButtonGlow.value = withTiming(1, { duration: 1000 });
       });
     }, 1000);
+
+    return () => {
+      clearTimeout(glowTimer);
+    };
   }, []);
 
   useEffect(() => {

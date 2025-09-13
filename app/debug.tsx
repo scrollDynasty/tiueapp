@@ -11,10 +11,13 @@ export default function DebugScreen() {
       const token = await AsyncStorage.getItem('authToken');
       const userStr = await AsyncStorage.getItem('userInfo');
       
-      console.log('[DEBUG] Stored token:', token);
-      console.log('[DEBUG] Stored user:', userStr);
+      // SECURITY: Never log full tokens in production
+      if (__DEV__) {
+        console.log('[DEBUG] Token exists:', !!token);
+        console.log('[DEBUG] User data exists:', !!userStr);
+      }
       
-      setTokenInfo(`Token: ${token ? token.substring(0, 20) + '...' : 'null'}\nUser: ${userStr ? 'exists' : 'null'}`);
+      setTokenInfo(`Token: ${token ? 'exists (' + token.substring(0, 8) + '...)' : 'null'}\nUser: ${userStr ? 'exists' : 'null'}`);
     } catch (error) {
       console.error('[DEBUG] Error checking storage:', error);
       setTokenInfo('Error checking storage');

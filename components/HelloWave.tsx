@@ -14,10 +14,15 @@ export function HelloWave() {
   const rotationAnimation = useSharedValue(0);
 
   useEffect(() => {
-    rotationAnimation.value = withRepeat(
+    const animation = rotationAnimation.value = withRepeat(
       withSequence(withTiming(25, { duration: 150 }), withTiming(0, { duration: 150 })),
       4 // Run the animation 4 times
     );
+
+    return () => {
+      // Cancel animation on unmount
+      rotationAnimation.value = 0;
+    };
   }, [rotationAnimation]);
 
   const animatedStyle = useAnimatedStyle(() => ({
