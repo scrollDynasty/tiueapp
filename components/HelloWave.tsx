@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated, {
+  cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -14,14 +15,14 @@ export function HelloWave() {
   const rotationAnimation = useSharedValue(0);
 
   useEffect(() => {
-    const animation = rotationAnimation.value = withRepeat(
+    rotationAnimation.value = withRepeat(
       withSequence(withTiming(25, { duration: 150 }), withTiming(0, { duration: 150 })),
       4 // Run the animation 4 times
     );
 
     return () => {
-      // Cancel animation on unmount
-      rotationAnimation.value = 0;
+      // Правильная отмена анимации при размонтировании
+      cancelAnimation(rotationAnimation);
     };
   }, [rotationAnimation]);
 

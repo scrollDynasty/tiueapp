@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
+  cancelAnimation,
   interpolate,
   useAnimatedStyle,
   useSharedValue,
@@ -56,10 +57,10 @@ export function LoadingAnimation({ size = 40, color = '#2563EB' }: LoadingAnimat
     );
 
     return () => {
-      // Stop animations on unmount
-      progress1.value = 0;
-      progress2.value = 0;
-      progress3.value = 0;
+      // Правильная остановка анимаций при размонтировании
+      cancelAnimation(progress1);
+      cancelAnimation(progress2);
+      cancelAnimation(progress3);
     };
   }, []);
 

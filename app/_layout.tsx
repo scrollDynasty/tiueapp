@@ -10,6 +10,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 
 import AuthGuard from '@/components/AuthGuard';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useImmersiveMode } from '@/hooks/useSystemBars';
@@ -45,32 +46,41 @@ export default function RootLayout() {
   }
 
   return (
-    <Provider store={store}>
-      <ThemeProvider>
-        <SafeAreaProvider>
-          <View style={styles.container}>
-            <StatusBar 
-              style="light" 
-              translucent={true}
-              backgroundColor="transparent"
-              hidden={Platform.OS === 'android'}
-            />
-            <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-              <AuthGuard>
-                <Stack>
-                  <Stack.Screen name="login" options={{ headerShown: false }} />
-                  <Stack.Screen name="debug" options={{ headerShown: false }} />
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen name="news" options={{ headerShown: false }} />
-                  <Stack.Screen name="events" options={{ headerShown: false }} />
-                  <Stack.Screen name="+not-found" />
-                </Stack>
-              </AuthGuard>
-            </NavigationThemeProvider>
-          </View>
-        </SafeAreaProvider>
-      </ThemeProvider>
-    </Provider>
+    <ErrorBoundary>
+      <Provider store={store}>
+        <ThemeProvider>
+          <SafeAreaProvider>
+            <View style={styles.container}>
+              <StatusBar 
+                style="light" 
+                translucent={true}
+                backgroundColor="transparent"
+                hidden={Platform.OS === 'android'}
+              />
+              <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                <ErrorBoundary onError={(error, errorInfo) => {
+                  // В продакшене можно отправить в систему мониторинга
+                  if (__DEV__) {
+                    console.error('🚨 App Error:', error);
+                  }
+                }}>
+                  <AuthGuard>
+                    <Stack>
+                      <Stack.Screen name="login" options={{ headerShown: false }} />
+                      <Stack.Screen name="debug" options={{ headerShown: false }} />
+                      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                      <Stack.Screen name="news" options={{ headerShown: false }} />
+                      <Stack.Screen name="events" options={{ headerShown: false }} />
+                      <Stack.Screen name="+not-found" />
+                    </Stack>
+                  </AuthGuard>
+                </ErrorBoundary>
+              </NavigationThemeProvider>
+            </View>
+          </SafeAreaProvider>
+        </ThemeProvider>
+      </Provider>
+    </ErrorBoundary>
   );
 }
 
