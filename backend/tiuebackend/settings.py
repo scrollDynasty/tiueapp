@@ -35,7 +35,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '0.0.0.0',
-    'b86c78591036.ngrok-free.app',  # Ваш текущий ngrok домен
+    '7b59f5e60f74.ngrok-free.app',  # Ваш текущий ngrok домен
     '*.ngrok-free.app',  # На случай если домен изменится
     '*.ngrok.io',  # Старый формат ngrok
 ]
@@ -161,7 +161,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Base URL for absolute image URLs (fallback)
-BASE_URL = 'https://b86c78591036.ngrok-free.app'  # Обновляйте с текущим ngrok URL
+BASE_URL = config('BASE_URL', default='https://7b59f5e60f74.ngrok-free.app')  # Обновляйте с текущим ngrok URL
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
