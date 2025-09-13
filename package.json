@@ -32,6 +32,7 @@
     "expo-navigation-bar": "~5.0.8",
     "expo-notifications": "~0.32.11",
     "expo-router": "~6.0.3",
+    "expo-secure-store": "^15.0.7",
     "expo-splash-screen": "~31.0.10",
     "expo-status-bar": "~3.0.8",
     "expo-symbols": "~1.0.7",
@@ -55,15 +56,16 @@
     "react-native-vector-icons": "^10.3.0",
     "react-native-web": "^0.21.0",
     "react-native-webview": "13.15.0",
-    "react-redux": "^9.2.0"
+    "react-redux": "^9.2.0",
+    "tslib": "^2.8.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@react-native-community/cli-platform-android": "^20.0.2",
     "@types/react": "~19.1.10",
     "eslint": "^9.25.0",
-    "eslint-config-expo": "~9.2.0",
-    "typescript": "~5.8.3"
+    "eslint-config-expo": "~10.0.0",
+    "typescript": "~5.9.2"
   },
   "overrides": {
     "metro": "0.82.5",
