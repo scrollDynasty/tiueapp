@@ -227,20 +227,25 @@ export default function ExploreScreen() {
             </View>
 
             <View style={{
-              flexDirection: 'row',
+              flexDirection: isVerySmallScreen ? 'column' : 'row',
               flexWrap: 'wrap',
-              justifyContent: 'space-between',
+              justifyContent: isVerySmallScreen ? 'flex-start' : 'space-between',
               gap: spacing.md,
             }}>
               {categories.map((category, index) => (
                 <Animated.View
                   key={category.title}
                   entering={FadeInUp.delay(500 + index * 100).duration(600).springify()}
+                  style={{
+                    width: isVerySmallScreen 
+                      ? '100%' 
+                      : (Dimensions.get('window').width - (isSmallScreen ? 40 : 48) - (isSmallScreen ? spacing.md : spacing.md)) / 2,
+                  }}
                 >
                   <TouchableOpacity
                     style={{
-                      width: (Dimensions.get('window').width - (isVerySmallScreen ? 32 : isSmallScreen ? 40 : 48) - (isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.md)) / 2,
-                      minHeight: isVerySmallScreen ? 140 : isSmallScreen ? 150 : 160,
+                      width: '100%',
+                      minHeight: isVerySmallScreen ? 120 : isSmallScreen ? 150 : 160,
                       backgroundColor: 'transparent',
                       borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20,
                       padding: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : spacing.lg,
@@ -281,7 +286,12 @@ export default function ExploreScreen() {
                     />
                     
                     {/* Контейнер содержимого */}
-                    <View style={{ flex: 1, justifyContent: 'space-between' }}>
+                    <View style={{ 
+                      flex: 1, 
+                      flexDirection: isVerySmallScreen ? 'row' : 'column',
+                      justifyContent: isVerySmallScreen ? 'flex-start' : 'space-between',
+                      alignItems: isVerySmallScreen ? 'center' : 'stretch'
+                    }}>
                       {/* Иконка с градиентным фоном */}
                       <LinearGradient
                         colors={[category.color + '20', category.color + '10']}
@@ -291,7 +301,8 @@ export default function ExploreScreen() {
                           borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 17 : 18,
                           alignItems: 'center',
                           justifyContent: 'center',
-                          marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.md,
+                          marginBottom: isVerySmallScreen ? 0 : (isSmallScreen ? spacing.md : spacing.md),
+                          marginRight: isVerySmallScreen ? spacing.md : 0,
                           borderWidth: 1,
                           borderColor: category.color + '30',
                         }}
