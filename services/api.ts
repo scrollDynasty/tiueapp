@@ -121,11 +121,15 @@ class ApiService {
       console.log('🔍 Processed result:', JSON.stringify(result, null, 2));
 
       if (result.success && result.data) {
-        console.log('💾 Saving token to storage:', result.data.token ? `${result.data.token.substring(0, 10)}...` : 'No token');
-        console.log('🔍 Full token being saved:', result.data.token);
+        if (__DEV__) {
+          console.log('💾 Saving token to storage:', result.data.token ? `${result.data.token.substring(0, 10)}...` : 'No token');
+          // SECURITY: Never log full tokens, even in dev
+        }
         
         // ПОЛНАЯ очистка AsyncStorage перед сохранением нового токена
-        console.log('🧹 Completely clearing AsyncStorage...');
+        if (__DEV__) {
+          console.log('🧹 Completely clearing AsyncStorage...');
+        }
         await AsyncStorage.clear();
         await new Promise(resolve => setTimeout(resolve, 100)); // Даем время на очистку
         
@@ -133,19 +137,21 @@ class ApiService {
         
         // Проверяем, что токен действительно сохранился
         const savedToken = await AsyncStorage.getItem('authToken');
-        console.log('✅ Token saved successfully:', savedToken ? `${savedToken.substring(0, 10)}...` : 'Failed to save');
-        console.log('🔍 Full saved token:', savedToken);
+        if (__DEV__) {
+          console.log('✅ Token saved successfully:', savedToken ? `${savedToken.substring(0, 10)}...` : 'Failed to save');
+        }
         
         // Двойная проверка - убеждаемся что токен правильный
         if (savedToken !== result.data.token) {
-          console.error('❌ Token mismatch! Expected:', result.data.token.substring(0, 10), 'Got:', savedToken?.substring(0, 10));
-          console.error('❌ Full expected token:', result.data.token);
-          console.error('❌ Full saved token:', savedToken);
+          if (__DEV__) {
+            console.error('❌ Token mismatch! Expected:', result.data.token.substring(0, 10), 'Got:', savedToken?.substring(0, 10));
+          }
           // Пробуем сохранить еще раз
           await AsyncStorage.setItem('authToken', result.data.token);
           const retryToken = await AsyncStorage.getItem('authToken');
-          console.log('🔄 Retry save result:', retryToken ? `${retryToken.substring(0, 10)}...` : 'Still failed');
-          console.log('🔄 Full retry token:', retryToken);
+          if (__DEV__) {
+            console.log('🔄 Retry save result:', retryToken ? `${retryToken.substring(0, 10)}...` : 'Still failed');
+          }
         }
       }
 

@@ -52,7 +52,8 @@ export default function AllNewsScreen() {
     transform: [{ scale: headerScale.value }]
   }));
 
-  const renderNewsItem = ({ item: news, index }: { item: any; index: number }) => (
+  // Мемоизированный рендер элемента новости для предотвращения ненужных ре-рендеров
+  const renderNewsItem = React.useCallback(({ item: news, index }: { item: any; index: number }) => (
     <Animated.View
       entering={FadeInUp.delay(index * 100).springify()}
     >
@@ -85,7 +86,7 @@ export default function AllNewsScreen() {
         }}
       />
     </Animated.View>
-  );
+  ), [spacing, isDarkMode]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -196,6 +197,7 @@ export default function AllNewsScreen() {
           <FlatList
             data={newsData}
             renderItem={renderNewsItem}
+            keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={{ 
               padding: spacing.md,
               paddingBottom: spacing.xl 
@@ -203,6 +205,10 @@ export default function AllNewsScreen() {
             showsVerticalScrollIndicator={false}
             refreshing={isLoading}
             onRefresh={() => dispatch(fetchNews())}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            initialNumToRender={5}
+            windowSize={10}
           />
         ) : (
           <Animated.View 

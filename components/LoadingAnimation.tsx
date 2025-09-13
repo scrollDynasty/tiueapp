@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
-    interpolate,
-    useAnimatedStyle,
-    useSharedValue,
-    withDelay,
-    withRepeat,
-    withSequence,
-    withTiming,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
 } from 'react-native-reanimated';
 
 interface LoadingAnimationProps {
@@ -54,6 +54,13 @@ export function LoadingAnimation({ size = 40, color = '#2563EB' }: LoadingAnimat
         false
       )
     );
+
+    return () => {
+      // Stop animations on unmount
+      progress1.value = 0;
+      progress2.value = 0;
+      progress3.value = 0;
+    };
   }, []);
 
   const animatedStyle1 = useAnimatedStyle(() => {

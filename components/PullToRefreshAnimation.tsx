@@ -39,6 +39,12 @@ export function PullToRefreshAnimation({ progress, refreshing }: PullToRefreshAn
       rotation.value = withTiming(0, { duration: 300 });
       scale.value = withTiming(1, { duration: 300 });
     }
+
+    return () => {
+      // Stop animations on unmount
+      rotation.value = 0;
+      scale.value = 1;
+    };
   }, [refreshing, rotation, scale]);
 
   const animatedStyle = useAnimatedStyle(() => {
