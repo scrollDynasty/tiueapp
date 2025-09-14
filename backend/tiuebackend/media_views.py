@@ -19,12 +19,15 @@ class CORSMediaView(View):
         """Обслуживает медиа файлы с CORS заголовками"""
         try:
             # Полный путь к файлу
-            file_path = os.path.join(settings.MEDIA_ROOT, path)
-            
-            # Безопасно нормализуем путь и проверяем, что файл находится в MEDIA_ROOT
+            # Reject absolute paths from user input
+            if os.path.isabs(path):
+                raise Http404("Файл не найден")
+            # Безопасное формирование полного пути с нормализацией ".."
+            file_path = os.path.normpath(os.path.join(settings.MEDIA_ROOT, path))
             # Use realpath to resolve symlinks for robust security
             media_root_realpath = os.path.realpath(settings.MEDIA_ROOT)
             file_path_realpath = os.path.realpath(file_path)
+            # Проверяем, что файл реально находится внутри MEDIA_ROOT
             if not os.path.exists(file_path_realpath) or os.path.commonpath([file_path_realpath, media_root_realpath]) != media_root_realpath:
                 raise Http404("Файл не найден")
             
