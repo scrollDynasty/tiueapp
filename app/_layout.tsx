@@ -1,5 +1,5 @@
 import { store } from '@/store';
-import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -57,25 +57,26 @@ export default function RootLayout() {
                 backgroundColor="transparent"
                 hidden={Platform.OS === 'android'}
               />
-              <NavigationThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-                <ErrorBoundary onError={(error, errorInfo) => {
-                  // В продакшене можно отправить в систему мониторинга
-                  if (__DEV__) {
-                    console.error('🚨 App Error:', error);
-                  }
-                }}>
-                  <AuthGuard>
-                    <Stack>
-                      <Stack.Screen name="login" options={{ headerShown: false }} />
-                      <Stack.Screen name="debug" options={{ headerShown: false }} />
-                      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                      <Stack.Screen name="news" options={{ headerShown: false }} />
-                      <Stack.Screen name="events" options={{ headerShown: false }} />
-                      <Stack.Screen name="+not-found" />
-                    </Stack>
-                  </AuthGuard>
-                </ErrorBoundary>
-              </NavigationThemeProvider>
+              <ErrorBoundary onError={(error, errorInfo) => {
+                // В продакшене можно отправить в систему мониторинга
+                if (__DEV__) {
+                  console.error('🚨 App Error:', error);
+                }
+              }}>
+                <AuthGuard>
+                  <Stack screenOptions={{
+                    headerShown: false,
+                    ...(colorScheme === 'dark' ? DarkTheme : DefaultTheme),
+                  }}>
+                    <Stack.Screen name="login" options={{ headerShown: false }} />
+                    <Stack.Screen name="debug" options={{ headerShown: false }} />
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                    <Stack.Screen name="news" options={{ headerShown: false }} />
+                    <Stack.Screen name="events" options={{ headerShown: false }} />
+                    <Stack.Screen name="+not-found" />
+                  </Stack>
+                </AuthGuard>
+              </ErrorBoundary>
             </View>
           </SafeAreaProvider>
         </ThemeProvider>
