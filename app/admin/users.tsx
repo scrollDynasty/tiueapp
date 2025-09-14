@@ -23,14 +23,32 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Утилиты и хуки, специфичные для этого компонента
+const repeatReplace = (input: string, pattern: RegExp, replacement: string = ''): string => {
+  let previous;
+  do {
+    previous = input;
+    input = input.replace(pattern, replacement);
+  } while (input !== previous);
+  return input;
+};
+
 const sanitizeInput = (input: string): string => {
-  return input
-    .replace(/[<>]/g, '')
-    .replace(/javascript:/gi, '')
-    .replace(/data:/gi, '')
-    .replace(/vbscript:/gi, '')
-    .replace(/on\w+=/gi, '')
-    .trim();
+  return repeatReplace(
+    repeatReplace(
+      repeatReplace(
+        repeatReplace(
+          repeatReplace(
+            repeatReplace(input, /[<>]/g),
+            /javascript:/gi
+          ),
+          /data:/gi
+        ),
+        /vbscript:/gi
+      ),
+      /on\w+=/gi
+    ),
+    /\s{2,}/g, ' ' // Optional: squeeze repeated spaces created during removal
+  ).trim();
 };
 
 const useDebounce = (value: string, delay: number) => {
