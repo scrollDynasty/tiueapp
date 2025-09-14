@@ -39,7 +39,8 @@ class ApiService {
         ...options.headers,
       };
       
-      console.log(`🌐 Making request to: ${url}`);
+      // Avoid logging URLs with sensitive identifiers
+      // console.log(`🌐 Making request to: ${url}`); // REMOVED: may contain sensitive info (userId etc.)
       console.log(`📋 Headers:`, JSON.stringify(finalHeaders, null, 2));
       
       const response = await fetch(url, {
