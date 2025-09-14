@@ -13,7 +13,9 @@ class UserListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     
     def list(self, request, *args, **kwargs):
-        logger.info(f"User list requested by: {request.user}")
+        username = getattr(request.user, "username", str(request.user))
+        sanitized_username = str(username).replace('\n', '').replace('\r', '')
+        logger.info(f"User list requested by: {sanitized_username}")
         queryset = self.get_queryset()
         logger.info(f"Found {queryset.count()} users in database")
         serializer = self.get_serializer(queryset, many=True)
