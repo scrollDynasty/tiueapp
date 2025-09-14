@@ -22,18 +22,19 @@ class CORSMediaView(View):
             file_path = os.path.join(settings.MEDIA_ROOT, path)
             
             # Безопасно нормализуем путь и проверяем, что файл находится в MEDIA_ROOT
-            media_root_abspath = os.path.abspath(settings.MEDIA_ROOT)
-            file_path_abspath = os.path.abspath(file_path)
-            if not os.path.exists(file_path_abspath) or os.path.commonpath([file_path_abspath, media_root_abspath]) != media_root_abspath:
+            # Use realpath to resolve symlinks for robust security
+            media_root_realpath = os.path.realpath(settings.MEDIA_ROOT)
+            file_path_realpath = os.path.realpath(file_path)
+            if not os.path.exists(file_path_realpath) or os.path.commonpath([file_path_realpath, media_root_realpath]) != media_root_realpath:
                 raise Http404("Файл не найден")
             
             # Определяем MIME тип
-            content_type, _ = mimetypes.guess_type(file_path_abspath)
+            content_type, _ = mimetypes.guess_type(file_path_realpath)
             if not content_type:
                 content_type = 'application/octet-stream'
             
             # Читаем файл
-            with open(file_path_abspath, 'rb') as f:
+            with open(file_path_realpath, 'rb') as f:
                 file_content = f.read()
             
             # Создаем ответ
@@ -49,7 +50,7 @@ class CORSMediaView(View):
             response['Cache-Control'] = 'public, max-age=3600'
             
             # Добавляем content disposition для корректного отображения
-            filename = os.path.basename(file_path_abspath)
+            filename = os.path.basename(file_path_realpath)
             response['Content-Disposition'] = f'inline; filename="{filename}"'
             
             return response
