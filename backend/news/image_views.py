@@ -24,24 +24,27 @@ class ImageProxyView(View):
             raise Http404("Invalid category")
         
         # Построим путь к файлу
-        file_path = os.path.join(settings.MEDIA_ROOT, category, filename)
-        
-        # Проверяем существование файла
-        if not os.path.exists(file_path):
-            raise Http404("Image not found")
+        # Построим и нормализуем путь к файлу
+        file_path = os.path.normpath(os.path.join(settings.MEDIA_ROOT, category, filename))
+        abs_file_path = os.path.abspath(file_path)
         
         # Проверяем безопасность пути (предотвращаем path traversal)
-        if not file_path.startswith(settings.MEDIA_ROOT):
+        media_root_abs = os.path.abspath(settings.MEDIA_ROOT)
+        if not abs_file_path.startswith(media_root_abs + os.sep):
             raise Http404("Invalid path")
         
+        # Проверяем существование файла
+        if not os.path.exists(abs_file_path):
+            raise Http404("Image not found")
+        
         # Определяем MIME тип
-        content_type, _ = mimetypes.guess_type(file_path)
+        content_type, _ = mimetypes.guess_type(abs_file_path)
         if not content_type:
             content_type = 'application/octet-stream'
         
         try:
             # Читаем файл и возвращаем как HTTP ответ
-            with open(file_path, 'rb') as f:
+            with open(abs_file_path, 'rb') as f:
                 response = HttpResponse(f.read(), content_type=content_type)
                 
                 # Добавляем CORS заголовки
