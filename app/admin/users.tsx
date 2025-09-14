@@ -24,7 +24,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Утилиты и хуки, специфичные для этого компонента
 const sanitizeInput = (input: string): string => {
-  return input.replace(/[<>]/g, '').replace(/javascript:/gi, '').replace(/on\w+=/gi, '').trim();
+  return input
+    .replace(/[<>]/g, '')
+    .replace(/javascript:/gi, '')
+    .replace(/data:/gi, '')
+    .replace(/vbscript:/gi, '')
+    .replace(/on\w+=/gi, '')
+    .trim();
 };
 
 const useDebounce = (value: string, delay: number) => {
