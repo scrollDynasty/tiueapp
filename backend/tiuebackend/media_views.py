@@ -28,8 +28,11 @@ class CORSMediaView(View):
             media_root_realpath = os.path.realpath(settings.MEDIA_ROOT)
             file_path_realpath = os.path.realpath(file_path)
             # Проверяем, что файл реально находится внутри MEDIA_ROOT
-            # Гарантируем, что путь безусловно внутри MEDIA_ROOT с учетом разделителя
-            if not os.path.exists(file_path_realpath) or not file_path_realpath.startswith(media_root_realpath.rstrip(os.sep) + os.sep):
+            # Используем os.path.commonpath для надежной проверки
+            if (
+                not os.path.exists(file_path_realpath) or
+                os.path.commonpath([file_path_realpath, media_root_realpath]) != media_root_realpath
+            ):
                 raise Http404("Файл не найден")
             
             # Определяем MIME тип
