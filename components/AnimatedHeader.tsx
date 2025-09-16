@@ -5,9 +5,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { Image, Pressable, View } from 'react-native';
 import {
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring
+  useSharedValue,
+  withSpring
 } from 'react-native-reanimated';
 import { Animation, Spacing } from '../constants/DesignTokens';
 import { useResponsive } from '../hooks/useResponsive';
@@ -87,38 +86,39 @@ export function AnimatedHeader({
               borderLeftColor: 'transparent',
             }}
           >
-            {/* Заголовок "Добро пожаловать" */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isVerySmallScreen ? 4 : 6 }}>
-              <Ionicons 
-                name="sunny" 
-                size={isVerySmallScreen ? 14 : 16} 
-                color={colors.primary} 
-                style={{ marginRight: isVerySmallScreen ? 4 : 6 }}
-              />
+            {/* Красивый заголовок TIUE */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isVerySmallScreen ? 6 : 8 }}>
+              <View style={{
+                backgroundColor: colors.primary + '20',
+                width: isVerySmallScreen ? 32 : 36,
+                height: isVerySmallScreen ? 32 : 36,
+                borderRadius: isVerySmallScreen ? 16 : 18,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginRight: isVerySmallScreen ? 8 : 12,
+                shadowColor: colors.primary,
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+                elevation: 3,
+              }}>
+                <Ionicons 
+                  name="school" 
+                  size={isVerySmallScreen ? 16 : 18} 
+                  color={colors.primary} 
+                />
+              </View>
               <ThemedText
                 style={{
-                  fontSize: isVerySmallScreen ? 12 : 14,
-                  color: colors.textSecondary,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
+                  fontSize: isVerySmallScreen ? 28 : 36,
+                  fontWeight: '800',
+                  color: colors.text,
+                  letterSpacing: isVerySmallScreen ? 3 : 4,
                 }}
               >
-                Добро пожаловать
+                TIUE
               </ThemedText>
             </View>
-            
-            {/* Имя пользователя */}
-            <ThemedText
-              style={{
-                fontSize: isVerySmallScreen ? 18 : 22,
-                color: colors.text,
-                letterSpacing: -0.3,
-                lineHeight: isVerySmallScreen ? 22 : 26,
-              }}
-            >
-              {userName}
-              <ThemedText style={{ fontSize: isVerySmallScreen ? 18 : 22 }}> 👋</ThemedText>
-            </ThemedText>
           </View>
         </View>
 

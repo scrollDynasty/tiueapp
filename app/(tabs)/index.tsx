@@ -4,6 +4,7 @@ import { CustomRefreshControl } from '@/components/CustomRefreshControl';
 import { NewsCard } from '@/components/NewsCard';
 import { NotificationModal } from '@/components/NotificationModal';
 import { ThemedText } from '@/components/ThemedText';
+import { CircularChart, CourseProgressCard, EventsCard } from '@/components/dashboard';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
@@ -14,14 +15,14 @@ import { formatDateYMD } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, {
   FadeInDown,
-  SlideInLeft,
   SlideInRight,
   useAnimatedScrollHandler,
-  useSharedValue,
+  useSharedValue
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -34,9 +35,22 @@ export default function HomeScreen() {
   const scrollY = useSharedValue(0);
   const [refreshing, setRefreshing] = React.useState(false);
   const [showNotifications, setShowNotifications] = React.useState(false);
-  const { horizontalPadding, cardGap, cardWidth, cardHeight, isVerySmallScreen, fontSize, spacing } = useResponsive();
+  const { 
+    horizontalPadding, 
+    cardGap, 
+    cardWidth, 
+    cardHeight, 
+    isVerySmallScreen, 
+    isExtraSmallScreen,
+    isSmallScreen,
+    isMediumScreen,
+    isLargeScreen,
+    fontSize, 
+    spacing, 
+    width 
+  } = useResponsive();
   const { user } = useAppSelector(state => state.auth);
-
+  
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y;
@@ -128,58 +142,79 @@ export default function HomeScreen() {
     <Animated.View 
       entering={FadeInDown.delay(200)}
       style={{
-        backgroundColor: isDarkMode ? colors.surfaceSecondary : colors.surface,
-        borderRadius: 16,
-        padding: isVerySmallScreen ? 12 : 16,
-        flex: 1,
-        marginHorizontal: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: isDarkMode ? 0.2 : 0.08,
-        shadowRadius: 12,
-        elevation: 6,
-        borderLeftWidth: 4,
-        borderLeftColor: color,
-        borderWidth: isDarkMode ? 1 : 0,
-        borderColor: isDarkMode ? colors.border : 'transparent',
+        backgroundColor: colors.surface,
+        borderRadius: 20,
+        padding: isExtraSmallScreen ? 12 : isVerySmallScreen ? 14 : 20,
+        flex: isExtraSmallScreen ? undefined : 1,
+        marginHorizontal: isExtraSmallScreen ? 0 : 4,
+        marginBottom: isExtraSmallScreen ? spacing.sm : 0,
+        shadowColor: color,
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.15,
+        shadowRadius: 16,
+        elevation: 8,
+        borderWidth: 1,
+        borderColor: color + '20',
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
+      {/* Декоративный градиент */}
+      <LinearGradient
+        colors={[color + '10', 'transparent']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+        }}
+      />
+      
       <View style={{ 
-        flexDirection: isVerySmallScreen ? 'column' : 'row', 
-        alignItems: 'center', 
-        marginBottom: isVerySmallScreen ? 6 : 8,
-        justifyContent: 'center'
+      alignItems: 'center',
+        justifyContent: 'center',
       }}>
         <View style={{
-          backgroundColor: isDarkMode ? `${color}25` : `${color}15`,
-          width: isVerySmallScreen ? 28 : 32,
-          height: isVerySmallScreen ? 28 : 32,
-          borderRadius: 8,
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginRight: isVerySmallScreen ? 0 : 8,
-          marginBottom: isVerySmallScreen ? 4 : 0,
+          backgroundColor: color + '20',
+          width: isExtraSmallScreen ? 36 : isVerySmallScreen ? 40 : 48,
+          height: isExtraSmallScreen ? 36 : isVerySmallScreen ? 40 : 48,
+          borderRadius: isExtraSmallScreen ? 18 : isVerySmallScreen ? 20 : 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+          marginBottom: 12,
+          shadowColor: color,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 4,
         }}>
-          <Ionicons name={icon} size={isVerySmallScreen ? 16 : 18} color={color} />
+          <Ionicons name={icon} size={isExtraSmallScreen ? 18 : isVerySmallScreen ? 20 : 24} color={color} />
         </View>
-        {!isVerySmallScreen && (
-          <ThemedText style={{
-            fontSize: 12,
-            color: colors.textSecondary,
-            textTransform: 'uppercase',
-            letterSpacing: 0.5,
-          }}>
-            {title}
-          </ThemedText>
-        )}
+        
+        <ThemedText style={{
+          fontSize: isExtraSmallScreen ? 20 : isVerySmallScreen ? 22 : 28,
+          fontWeight: '700',
+          color: colors.text,
+          textAlign: 'center',
+          marginBottom: 4,
+        }}>
+          {value}
+        </ThemedText>
+        
+        <ThemedText style={{
+          fontSize: isExtraSmallScreen ? 10 : 12,
+          color: colors.textSecondary,
+          textAlign: 'center',
+          fontWeight: '500',
+          textTransform: 'uppercase',
+          letterSpacing: isExtraSmallScreen ? 0.5 : 1,
+        }}>
+          {title}
+        </ThemedText>
       </View>
-      <ThemedText style={{
-        fontSize: isVerySmallScreen ? 20 : 24,
-        color: colors.text,
-        textAlign: 'center',
-      }}>
-        {value}
-      </ThemedText>
     </Animated.View>
   );
 
@@ -254,8 +289,8 @@ export default function HomeScreen() {
     <View style={{ flex: 1 }}>
       <LinearGradient
         colors={isDarkMode 
-          ? ['#0F172A', '#1E293B', '#334155']
-          : ['#FAFAFA', '#F8FAFC', '#EEF2F7']
+          ? ['#1E3A8A', '#2563EB', '#3B82F6']
+          : ['#EFF6FF', '#DBEAFE', '#BFDBFE']
         }
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -287,58 +322,97 @@ export default function HomeScreen() {
         }
         contentContainerStyle={{
           paddingHorizontal: horizontalPadding,
-          paddingBottom: 90,
+          paddingBottom: isExtraSmallScreen ? 80 : isVerySmallScreen ? 85 : 90,
         }}
       >
 
-        <View style={{
-          flexDirection: 'row',
-          marginBottom: 24,
-          gap: 8,
-        }}>
-          <StatWidget 
-            icon="book-outline" 
-            title="Курсы" 
-            value={statsData.courses} 
-            color={colors.primary} 
-          />
-          <StatWidget 
-            icon="calendar-outline" 
-            title="События" 
-            value={statsData.events} 
-            color={colors.success} 
-          />
-          <StatWidget 
-            icon="trophy-outline" 
-            title={statsData.gradeTitle} 
-            value={statsData.grade} 
-            color={colors.warning} 
-          />
-        </View>
+        {/* Красивая статистика */}
+        <Animated.View 
+          entering={FadeInDown.delay(300)}
+          style={{
+            marginBottom: spacing.lg,
+          }}
+        >
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: spacing.md,
+            paddingHorizontal: isExtraSmallScreen ? 4 : 0,
+          }}>
+            <View style={{
+              width: isExtraSmallScreen ? 28 : isVerySmallScreen ? 30 : 32,
+              height: isExtraSmallScreen ? 28 : isVerySmallScreen ? 30 : 32,
+              borderRadius: isExtraSmallScreen ? 14 : isVerySmallScreen ? 15 : 16,
+              backgroundColor: colors.primary + '20',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: isExtraSmallScreen ? 8 : 12,
+            }}>
+              <Ionicons name="analytics" size={isExtraSmallScreen ? 14 : 16} color={colors.primary} />
+            </View>
+            <ThemedText style={{
+              fontSize: fontSize.title,
+              fontWeight: '600',
+              color: colors.text,
+            }}>
+              📊 Статистика
+            </ThemedText>
+          </View>
+          
+          <View style={{
+            flexDirection: isExtraSmallScreen ? 'column' : 'row',
+            gap: isExtraSmallScreen ? spacing.sm : spacing.xs,
+            ...(isExtraSmallScreen && {
+              alignItems: 'stretch',
+            }),
+          }}>
+            <StatWidget 
+              icon="book-outline" 
+              title="Курсы" 
+              value={statsData.courses} 
+              color="#3B82F6" 
+            />
+            <StatWidget 
+              icon="calendar-outline" 
+              title="События" 
+              value={statsData.events} 
+              color="#10B981" 
+            />
+            <StatWidget 
+              icon="trophy-outline" 
+              title={statsData.gradeTitle} 
+              value={statsData.grade} 
+              color="#F59E0B" 
+            />
+          </View>
+        </Animated.View>
 
         <Animated.View
           entering={FadeInDown.delay(300)}
           style={{
-            marginBottom: 32,
+            marginBottom: spacing.xl,
           }}
         >
           <ThemedText
             style={{
-              fontSize: 18,
-              lineHeight: 24,
+              fontSize: fontSize.title,
+              lineHeight: isExtraSmallScreen ? 20 : 24,
               color: colors.text,
-              marginBottom: 16,
+              marginBottom: spacing.md,
               fontFamily: 'Inter',
             }}
           >
-            🚀 Быстрые действия
+            🎨 Быстрые действия
           </ThemedText>
           <View
             style={{
               flexDirection: 'row',
               flexWrap: 'wrap',
-              justifyContent: 'space-between',
+              justifyContent: isExtraSmallScreen ? 'center' : 'space-between',
               gap: cardGap,
+              ...(isExtraSmallScreen && {
+                alignItems: 'center',
+              }),
             }}
           >
             {user?.role === 'admin' ? (
@@ -347,25 +421,37 @@ export default function HomeScreen() {
                   title="ПОЛЬЗОВАТЕЛИ"
                   icon="people-outline"
                   onPress={() => router.push('/admin/users')}
-                  style={{ width: cardWidth, height: cardHeight }}
+                  style={{ 
+                    width: isExtraSmallScreen ? Math.min(cardWidth * 1.2, width - horizontalPadding * 2) : cardWidth, 
+                    height: cardHeight 
+                  }}
                 />
                 <ActionCard
                   title="НОВОСТИ"
                   icon="newspaper-outline"
                   onPress={() => router.push('/admin/news')}
-                  style={{ width: cardWidth, height: cardHeight }}
+                  style={{ 
+                    width: isExtraSmallScreen ? Math.min(cardWidth * 1.2, width - horizontalPadding * 2) : cardWidth, 
+                    height: cardHeight 
+                  }}
                 />
                 <ActionCard
                   title="СОБЫТИЯ"
                   icon="calendar-outline"
                   onPress={() => router.push('/admin/events')}
-                  style={{ width: cardWidth, height: cardHeight }}
+                  style={{ 
+                    width: isExtraSmallScreen ? Math.min(cardWidth * 1.2, width - horizontalPadding * 2) : cardWidth, 
+                    height: cardHeight 
+                  }}
                 />
                 <ActionCard
                   title="АНАЛИТИКА"
                   icon="analytics-outline"
                   onPress={() => router.push('/(tabs)/profile')}
-                  style={{ width: cardWidth, height: cardHeight }}
+                  style={{ 
+                    width: isExtraSmallScreen ? Math.min(cardWidth * 1.2, width - horizontalPadding * 2) : cardWidth, 
+                    height: cardHeight 
+                  }}
                 />
               </>
             ) : (
@@ -374,120 +460,273 @@ export default function HomeScreen() {
                   title="КУРСЫ"
                   icon="book-outline"
                   onPress={() => router.push('/(tabs)/explore')}
-                  style={{ width: cardWidth, height: cardHeight }}
+                  style={{ 
+                    width: isExtraSmallScreen ? Math.min(cardWidth * 1.2, width - horizontalPadding * 2) : cardWidth, 
+                    height: cardHeight 
+                  }}
                 />
                 <ActionCard
                   title="РАСПИСАНИЕ"
                   icon="time-outline"
                   onPress={() => router.push('/(tabs)/schedule')}
-                  style={{ width: cardWidth, height: cardHeight }}
+                  style={{ 
+                    width: isExtraSmallScreen ? Math.min(cardWidth * 1.2, width - horizontalPadding * 2) : cardWidth, 
+                    height: cardHeight 
+                  }}
                 />
                 <ActionCard
                   title="ЗАДАНИЯ"
                   icon="list-outline"
                   onPress={() => router.push('/(tabs)/explore')}
-                  style={{ width: cardWidth, height: cardHeight }}
+                  style={{ 
+                    width: isExtraSmallScreen ? Math.min(cardWidth * 1.2, width - horizontalPadding * 2) : cardWidth, 
+                    height: cardHeight 
+                  }}
                 />
                 <ActionCard
                   title="ОЦЕНКИ"
                   icon="analytics-outline"
                   onPress={() => router.push('/(tabs)/profile')}
-                  style={{ width: cardWidth, height: cardHeight }}
+                  style={{ 
+                    width: isExtraSmallScreen ? Math.min(cardWidth * 1.2, width - horizontalPadding * 2) : cardWidth, 
+                    height: cardHeight 
+                  }}
                 />
               </>
             )}
           </View>
         </Animated.View>
 
-        {upcomingEvents.length > 0 && (
-          <Animated.View entering={SlideInLeft.delay(400)} style={{ marginBottom: spacing.lg }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
-              <ThemedText
-                style={{
-                  fontSize: fontSize.title,
-                  lineHeight: isVerySmallScreen ? 22 : 24,
-                  color: colors.text,
-                  fontFamily: 'Inter',
-                }}
-              >
-                📅 Предстоящие события
-              </ThemedText>
-              <Pressable
-                style={{
-                  backgroundColor: colors.backgroundSecondary,
-                  paddingHorizontal: spacing.sm,
-                  paddingVertical: spacing.xs,
-                  borderRadius: 20,
-                }}
-                onPress={() => router.push('/(tabs)/events')}
-              >
-                <ThemedText style={{
-                  fontSize: fontSize.small,
-                  color: colors.primary,
-                }}>
-                  Все события
-                </ThemedText>
-              </Pressable>
-            </View>
-            
-            <View>
-              {upcomingEvents.map((event, index) => (
-                <QuickEventCard key={event.id} event={event} index={index} />
-              ))}
-            </View>
-          </Animated.View>
-        )}
+        {/* Компонент событий */}
+        <EventsCard 
+          events={eventsData.map(event => ({
+            id: event.id,
+            title: event.title,
+            date: event.date,
+            image: event.image || null,
+            location: event.location,
+            time: event.time
+          }))}
+          onEventPress={(eventId: string | number) => router.push(`/events/${eventId}` as any)}
+        />
 
-        {importantNews.length > 0 && (
-          <Animated.View entering={SlideInRight.delay(500)} style={{ marginBottom: spacing.lg }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
-              <ThemedText
-                style={{
-                  fontSize: fontSize.title,
-                  lineHeight: isVerySmallScreen ? 22 : 24,
-                  color: isDarkMode ? colors.text : '#1E293B',
-                  fontFamily: 'Inter',
-                }}
-              >
-                ⚡ Важные новости
+        {/* Красивые диаграммы успеваемости */}
+        <Animated.View
+          entering={FadeInDown.delay(500)}
+          style={{
+            marginBottom: 32,
+          }}
+        >
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: spacing.md,
+          }}>
+            <View style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: '#10B981' + '20',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: 12,
+            }}>
+              <Ionicons name="trending-up" size={16} color="#10B981" />
+            </View>
+            <ThemedText style={{
+              fontSize: 18,
+              fontWeight: '600',
+              color: colors.text,
+            }}>
+              📈 Академическая успеваемость
+            </ThemedText>
+          </View>
+          
+          <View style={{
+            flexDirection: 'row',
+            gap: 16,
+          }}>
+            <View style={{ flex: 1 }}>
+              <CircularChart
+                value={parseFloat(statsData.grade) || 3.8}
+                maxValue={user?.role === 'student' ? 5 : 5}
+                title="Средний балл"
+                subtitle="GPA"
+                color="#3B82F6"
+                icon="trophy"
+                size={140}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <CircularChart
+                value={85}
+                maxValue={100}
+                title="Посещаемость"
+                subtitle="За семестр"
+                color="#10B981"
+                icon="checkmark-circle"
+                size={140}
+              />
+            </View>
+          </View>
+        </Animated.View>
+
+        {/* Красивый компонент курсов */}
+        <CourseProgressCard 
+          courses={[
+            { id: 1, name: 'Компьютерные науки', progress: 0.75, instructor: 'Профессор Иванов', nextClass: 'Завтра в 14:00' },
+            { id: 2, name: 'Математика', progress: 0.6, instructor: 'Профессор Петров', nextClass: 'Среда в 10:00' },
+            { id: 3, name: 'История', progress: 0.9, instructor: 'Профессор Сидоров', nextClass: 'Пятница в 16:00' },
+            { id: 4, name: 'Физика', progress: 0.45, instructor: 'Профессор Козлов', nextClass: 'Понедельник в 12:00' },
+          ]}
+          onCoursePress={(courseId: number) => console.log('Course pressed:', courseId)}
+        />
+
+        {/* Секция новостей с новым дизайном */}
+        <Animated.View 
+          entering={FadeInDown.delay(600)}
+          style={{
+            marginBottom: 32,
+          }}
+        >
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: spacing.md,
+          }}>
+            <View style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: '#3B82F6' + '20',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: 12,
+            }}>
+              <Ionicons name="newspaper" size={16} color="#3B82F6" />
+            </View>
+            <ThemedText style={{
+              fontSize: 18,
+              fontWeight: '600',
+              color: colors.text,
+            }}>
+              📰 Последние новости
+            </ThemedText>
+            <View style={{ flex: 1 }} />
+            <View style={{
+              backgroundColor: '#3B82F6' + '15',
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderRadius: 12,
+            }}>
+              <ThemedText style={{
+                fontSize: 12,
+                fontWeight: '600',
+                color: '#3B82F6',
+              }}>
+                {newsData.length} новостей
               </ThemedText>
-              <Pressable
-                style={{
-                  backgroundColor: isDarkMode ? `${colors.warning}20` : '#FEF3C7',
-                  paddingHorizontal: spacing.sm,
-                  paddingVertical: spacing.xs,
-                  borderRadius: 20,
-                }}
-                onPress={() => {
-                  router.push('/news');
-                }}
-              >
-                <ThemedText style={{
-                  fontSize: fontSize.small,
-                  color: isDarkMode ? colors.warning : '#D97706',
-                }}>
-                  Все новости
-                </ThemedText>
-              </Pressable>
             </View>
-            
-            <View style={{ gap: spacing.sm }}>
-              {importantNews.map((news, index) => (
-                <NewsCard
+          </View>
+          
+          <View style={{ gap: spacing.sm }}>
+            {newsData.length > 0 ? (
+              newsData.slice(0, 3).map((news, index) => (
+                <TouchableOpacity
                   key={news.id}
-                  title={news.title}
-                  subtitle={news.subtitle}
-                  date={news.date}
-                  image={news.image}
-                  events={news.events || []}
-                  icon={news.icon}
-                  index={index}
-                  onPress={() => router.push(`/news/${news.id}`)}
+                  style={{
+                    backgroundColor: colors.surface,
+                    borderRadius: 16,
+                    padding: 16,
+                    marginBottom: 12,
+                    shadowColor: '#3B82F6',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                    elevation: 6,
+                    borderWidth: 1,
+                    borderColor: '#3B82F6' + '10',
+                  }}
+                  onPress={() => router.push(`/news/${news.id}` as any)}
+                >
+                  <View style={{ flexDirection: 'row' }}>
+                    {news.image && (
+                      <View style={{
+                        width: 60,
+                        height: 60,
+                        borderRadius: 12,
+                        backgroundColor: '#3B82F6' + '20',
+                        marginRight: 12,
+                        overflow: 'hidden',
+                      }}>
+                        <Image 
+                          source={{ uri: news.image }}
+                          style={{ width: '100%', height: '100%' }}
+                          resizeMode="cover"
+                        />
+                      </View>
+                    )}
+                    <View style={{ flex: 1 }}>
+                      <ThemedText style={{
+                        fontSize: 16,
+                        fontWeight: '600',
+                        color: colors.text,
+                        marginBottom: 4,
+                      }} numberOfLines={2}>
+                        {news.title}
+                      </ThemedText>
+                      <ThemedText style={{
+                        fontSize: 14,
+                        color: colors.textSecondary,
+                        marginBottom: 8,
+                      }} numberOfLines={2}>
+                        {news.subtitle || news.content?.substring(0, 100) + '...' || ''}
+                      </ThemedText>
+                      <ThemedText style={{
+                        fontSize: 12,
+                        color: '#3B82F6',
+                        fontWeight: '500',
+                      }}>
+                        📅 {formatDateYMD(news.date)}
+                      </ThemedText>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={{
+                backgroundColor: colors.surface,
+                borderRadius: 16,
+                padding: 32,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}>
+                <Ionicons 
+                  name="newspaper-outline" 
+                  size={48} 
+                  color={colors.textSecondary} 
+                  style={{ marginBottom: 16 }}
                 />
-              ))}
-            </View>
-          </Animated.View>
-        )}
+                <ThemedText style={{
+                  fontSize: 16,
+                  fontWeight: '600',
+                  color: colors.text,
+                  marginBottom: 8,
+                }}>
+                  Новостей пока нет
+                </ThemedText>
+                <ThemedText style={{
+                  fontSize: 14,
+                  color: colors.textSecondary,
+                  textAlign: 'center',
+                }}>
+                  Скоро здесь появятся последние новости университета
+                </ThemedText>
+              </View>
+            )}
+          </View>
+        </Animated.View>
 
         <Animated.View entering={SlideInRight.delay(600)}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
@@ -707,7 +946,7 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
       </AnimatedScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
     </View>
   );
 }
