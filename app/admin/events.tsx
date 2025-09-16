@@ -6,10 +6,10 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { createEvent, deleteEvent, fetchEvents } from '@/store/slices/eventsSlice';
 import { formatDateYMD } from '@/utils/date';
+import { getImageUrl } from '@/utils/imageUtils';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
-import { getMediaBaseUrl } from '@/config/environment';
 import { router } from 'expo-router';
 import React from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
@@ -818,7 +818,7 @@ export default function EventsManagementScreen() {
                     {item.image && (
                       <View style={{ position: 'relative' }}>
                         <Image
-                          source={{ uri: item.image }}
+                          source={{ uri: getImageUrl(item.image) || undefined }}
                           style={{
                             width: '100%',
                             height: 160,
