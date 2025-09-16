@@ -5,35 +5,38 @@ export function useResponsive() {
   const { width, height } = useWindowDimensions();
   
   const responsiveValues = useMemo(() => {
-    // Простые и надёжные breakpoints
-    const isSmall = width < 360;      // Маленькие устройства
-    const isMedium = width >= 360 && width < 414; // Средние устройства  
-    const isLarge = width >= 414;     // Большие устройства
+    // Более точные breakpoints для мобильных устройств
+    const isExtraSmall = width < 320;    // Очень маленькие устройства (iPhone SE, старые Android)
+    const isSmall = width < 375;         // Маленькие устройства  
+    const isMedium = width >= 375 && width < 414; // Средние устройства (iPhone 12, 13)
+    const isLarge = width >= 414;        // Большие устройства (iPhone Plus, Pro Max)
     
-    // Базовые размеры
-    const padding = isSmall ? 12 : isMedium ? 16 : 20;
-    const gap = isSmall ? 8 : 12;
+    // Адаптивные базовые размеры
+    const padding = isExtraSmall ? 8 : isSmall ? 12 : isMedium ? 16 : 20;
+    const gap = isExtraSmall ? 6 : isSmall ? 8 : 10;
     
-    // Размеры карточек для сетки 2x2 (уменьшены для лучшей адаптации)
+    // Более точные размеры карточек для сетки 2x2
     const cardWidth = (width - (padding * 2) - gap) / 2;
-    const cardHeight = isSmall ? 100 : isMedium ? 120 : 140;
+    const cardHeight = isExtraSmall ? 90 : isSmall ? 105 : isMedium ? 125 : 140;
     
-    // Адаптивная типографика (уменьшены размеры)
+    // Улучшенная адаптивная типографика
     const typography = {
-      xs: isSmall ? 9 : 10,
-      sm: isSmall ? 11 : 12, 
-      md: isSmall ? 13 : 14,
-      lg: isSmall ? 15 : isMedium ? 16 : 18,
-      xl: isSmall ? 18 : isMedium ? 20 : 24,
+      xs: isExtraSmall ? 8 : isSmall ? 9 : 10,
+      sm: isExtraSmall ? 10 : isSmall ? 11 : 12, 
+      md: isExtraSmall ? 12 : isSmall ? 13 : 14,
+      lg: isExtraSmall ? 14 : isSmall ? 15 : isMedium ? 16 : 18,
+      xl: isExtraSmall ? 16 : isSmall ? 18 : isMedium ? 20 : 24,
+      xxl: isExtraSmall ? 20 : isSmall ? 22 : isMedium ? 24 : 28,
     };
 
-    // Адаптивные отступы
+    // Более детальные адаптивные отступы
     const spacing = {
-      xs: isSmall ? 4 : 6,
-      sm: isSmall ? 8 : 12,
-      md: isSmall ? 12 : 16,
-      lg: isSmall ? 16 : 24,
-      xl: isSmall ? 24 : 32,
+      xs: isExtraSmall ? 2 : isSmall ? 4 : 6,
+      sm: isExtraSmall ? 6 : isSmall ? 8 : 10,
+      md: isExtraSmall ? 10 : isSmall ? 12 : 16,
+      lg: isExtraSmall ? 14 : isSmall ? 16 : 20,
+      xl: isExtraSmall ? 20 : isSmall ? 24 : 28,
+      xxl: isExtraSmall ? 28 : isSmall ? 32 : 36,
     };
 
     // Радиусы скругления
@@ -48,6 +51,7 @@ export function useResponsive() {
       // Screen info
       width,
       height,
+      isExtraSmall,
       isSmall,
       isMedium, 
       isLarge,
@@ -72,12 +76,13 @@ export function useResponsive() {
       cardGap: gap,
       isVerySmallScreen: isSmall,
       isSmallScreen: isSmall,
-      isExtraSmallScreen: isSmall,
+      isExtraSmallScreen: isExtraSmall,
       fontSize: {
         small: typography.sm,
         body: typography.md,
         title: typography.lg,
         header: typography.xl,
+        large: typography.xxl,
       },
     };
   }, [width, height]);

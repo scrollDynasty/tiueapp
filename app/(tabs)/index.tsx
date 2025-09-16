@@ -143,9 +143,9 @@ export default function HomeScreen() {
       style={{
         backgroundColor: colors.surface,
         borderRadius: 20,
-        padding: isExtraSmallScreen ? 12 : isVerySmallScreen ? 14 : 20,
+        padding: isExtraSmallScreen ? 10 : isVerySmallScreen ? 12 : 16,
         flex: isExtraSmallScreen ? undefined : 1,
-        marginHorizontal: isExtraSmallScreen ? 0 : 4,
+        marginHorizontal: isExtraSmallScreen ? 0 : isVerySmallScreen ? 2 : 4,
         marginBottom: isExtraSmallScreen ? spacing.sm : 0,
         shadowColor: color,
         shadowOffset: { width: 0, height: 8 },
@@ -178,9 +178,9 @@ export default function HomeScreen() {
       }}>
         <View style={{
           backgroundColor: color + '20',
-          width: isExtraSmallScreen ? 36 : isVerySmallScreen ? 40 : 48,
-          height: isExtraSmallScreen ? 36 : isVerySmallScreen ? 40 : 48,
-          borderRadius: isExtraSmallScreen ? 18 : isVerySmallScreen ? 20 : 24,
+          width: isExtraSmallScreen ? 32 : isVerySmallScreen ? 36 : 44,
+          height: isExtraSmallScreen ? 32 : isVerySmallScreen ? 36 : 44,
+          borderRadius: isExtraSmallScreen ? 16 : isVerySmallScreen ? 18 : 22,
       justifyContent: 'center',
       alignItems: 'center',
           marginBottom: 12,
@@ -190,26 +190,26 @@ export default function HomeScreen() {
           shadowRadius: 8,
           elevation: 4,
         }}>
-          <Ionicons name={icon} size={isExtraSmallScreen ? 18 : isVerySmallScreen ? 20 : 24} color={color} />
+          <Ionicons name={icon} size={isExtraSmallScreen ? 16 : isVerySmallScreen ? 18 : 22} color={color} />
         </View>
         
         <ThemedText style={{
-          fontSize: isExtraSmallScreen ? 20 : isVerySmallScreen ? 22 : 28,
+          fontSize: isExtraSmallScreen ? 18 : isVerySmallScreen ? 20 : 24,
           fontWeight: '700',
           color: colors.text,
           textAlign: 'center',
-          marginBottom: 4,
+          marginBottom: isExtraSmallScreen ? 2 : 4,
         }}>
           {value}
         </ThemedText>
         
         <ThemedText style={{
-          fontSize: isExtraSmallScreen ? 10 : 12,
+          fontSize: isExtraSmallScreen ? 9 : isVerySmallScreen ? 10 : 12,
           color: colors.textSecondary,
           textAlign: 'center',
           fontWeight: '500',
           textTransform: 'uppercase',
-          letterSpacing: isExtraSmallScreen ? 0.5 : 1,
+          letterSpacing: isExtraSmallScreen ? 0.3 : 0.8,
         }}>
           {title}
         </ThemedText>
@@ -407,11 +407,8 @@ export default function HomeScreen() {
             style={{
               flexDirection: 'row',
               flexWrap: 'wrap',
-              justifyContent: isExtraSmallScreen ? 'center' : 'space-between',
+              justifyContent: 'space-between',
               gap: cardGap,
-              ...(isExtraSmallScreen && {
-                alignItems: 'center',
-              }),
             }}
           >
             {user?.role === 'admin' ? (
@@ -421,8 +418,9 @@ export default function HomeScreen() {
                   icon="people-outline"
                   onPress={() => router.push('/admin/users')}
                   style={{ 
-                    width: isExtraSmallScreen ? Math.min(cardWidth * 1.2, width - horizontalPadding * 2) : cardWidth, 
-                    height: cardHeight 
+                    width: (width - horizontalPadding * 2) / 2 - cardGap / 2, 
+                    height: cardHeight,
+                    marginBottom: cardGap,
                   }}
                 />
                 <ActionCard
@@ -430,8 +428,9 @@ export default function HomeScreen() {
                   icon="newspaper-outline"
                   onPress={() => router.push('/admin/news')}
                   style={{ 
-                    width: isExtraSmallScreen ? Math.min(cardWidth * 1.2, width - horizontalPadding * 2) : cardWidth, 
-                    height: cardHeight 
+                    width: (width - horizontalPadding * 2) / 2 - cardGap / 2, 
+                    height: cardHeight,
+                    marginBottom: cardGap,
                   }}
                 />
                 <ActionCard
@@ -439,8 +438,9 @@ export default function HomeScreen() {
                   icon="calendar-outline"
                   onPress={() => router.push('/admin/events')}
                   style={{ 
-                    width: isExtraSmallScreen ? Math.min(cardWidth * 1.2, width - horizontalPadding * 2) : cardWidth, 
-                    height: cardHeight 
+                    width: (width - horizontalPadding * 2) / 2 - cardGap / 2, 
+                    height: cardHeight,
+                    marginBottom: cardGap,
                   }}
                 />
                 <ActionCard
@@ -448,8 +448,9 @@ export default function HomeScreen() {
                   icon="analytics-outline"
                   onPress={() => router.push('/(tabs)/profile')}
                   style={{ 
-                    width: isExtraSmallScreen ? Math.min(cardWidth * 1.2, width - horizontalPadding * 2) : cardWidth, 
-                    height: cardHeight 
+                    width: (width - horizontalPadding * 2) / 2 - cardGap / 2, 
+                    height: cardHeight,
+                    marginBottom: cardGap,
                   }}
                 />
               </>
@@ -460,8 +461,9 @@ export default function HomeScreen() {
                   icon="book-outline"
                   onPress={() => router.push('/(tabs)/explore')}
                   style={{ 
-                    width: isExtraSmallScreen ? Math.min(cardWidth * 1.2, width - horizontalPadding * 2) : cardWidth, 
-                    height: cardHeight 
+                    width: (width - horizontalPadding * 2) / 2 - cardGap / 2, 
+                    height: cardHeight,
+                    marginBottom: cardGap,
                   }}
                 />
                 <ActionCard
@@ -469,8 +471,9 @@ export default function HomeScreen() {
                   icon="time-outline"
                   onPress={() => router.push('/(tabs)/schedule')}
                   style={{ 
-                    width: isExtraSmallScreen ? Math.min(cardWidth * 1.2, width - horizontalPadding * 2) : cardWidth, 
-                    height: cardHeight 
+                    width: (width - horizontalPadding * 2) / 2 - cardGap / 2, 
+                    height: cardHeight,
+                    marginBottom: cardGap,
                   }}
                 />
                 <ActionCard
@@ -478,8 +481,9 @@ export default function HomeScreen() {
                   icon="list-outline"
                   onPress={() => router.push('/(tabs)/explore')}
                   style={{ 
-                    width: isExtraSmallScreen ? Math.min(cardWidth * 1.2, width - horizontalPadding * 2) : cardWidth, 
-                    height: cardHeight 
+                    width: (width - horizontalPadding * 2) / 2 - cardGap / 2, 
+                    height: cardHeight,
+                    marginBottom: cardGap,
                   }}
                 />
                 <ActionCard
@@ -487,8 +491,9 @@ export default function HomeScreen() {
                   icon="analytics-outline"
                   onPress={() => router.push('/(tabs)/profile')}
                   style={{ 
-                    width: isExtraSmallScreen ? Math.min(cardWidth * 1.2, width - horizontalPadding * 2) : cardWidth, 
-                    height: cardHeight 
+                    width: (width - horizontalPadding * 2) / 2 - cardGap / 2, 
+                    height: cardHeight,
+                    marginBottom: cardGap,
                   }}
                 />
               </>
@@ -513,27 +518,28 @@ export default function HomeScreen() {
         <Animated.View
           entering={FadeInDown.delay(500)}
           style={{
-            marginBottom: 32,
+            marginBottom: spacing.xl,
           }}
         >
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
             marginBottom: spacing.md,
+            paddingHorizontal: isExtraSmallScreen ? 4 : 0,
           }}>
             <View style={{
-              width: 32,
-              height: 32,
-              borderRadius: 16,
+              width: isExtraSmallScreen ? 28 : isVerySmallScreen ? 30 : 32,
+              height: isExtraSmallScreen ? 28 : isVerySmallScreen ? 30 : 32,
+              borderRadius: isExtraSmallScreen ? 14 : isVerySmallScreen ? 15 : 16,
               backgroundColor: '#10B981' + '20',
               justifyContent: 'center',
               alignItems: 'center',
-              marginRight: 12,
+              marginRight: isExtraSmallScreen ? 8 : 12,
             }}>
-              <Ionicons name="trending-up" size={16} color="#10B981" />
+              <Ionicons name="trending-up" size={isExtraSmallScreen ? 14 : 16} color="#10B981" />
             </View>
             <ThemedText style={{
-              fontSize: 18,
+              fontSize: fontSize.title,
               fontWeight: '600',
               color: colors.text,
             }}>
@@ -542,8 +548,8 @@ export default function HomeScreen() {
           </View>
           
           <View style={{
-            flexDirection: 'row',
-            gap: 16,
+            flexDirection: isExtraSmallScreen ? 'column' : 'row',
+            gap: isExtraSmallScreen ? spacing.md : spacing.lg,
           }}>
             <View style={{ flex: 1 }}>
               <CircularChart
@@ -552,8 +558,6 @@ export default function HomeScreen() {
                 title="Средний балл"
                 subtitle="GPA"
                 color="#3B82F6"
-                icon="trophy"
-                size={140}
               />
             </View>
             <View style={{ flex: 1 }}>
@@ -563,8 +567,6 @@ export default function HomeScreen() {
                 title="Посещаемость"
                 subtitle="За семестр"
                 color="#10B981"
-                icon="checkmark-circle"
-                size={140}
               />
             </View>
           </View>
