@@ -1,5 +1,6 @@
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useResponsive } from '@/hooks/useResponsive';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
@@ -27,20 +28,25 @@ export const CircularChart: React.FC<CircularChartProps> = ({
   subtitle,
   color,
   icon,
-  size = 120,
-  strokeWidth = 8,
+  size,
+  strokeWidth,
 }) => {
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
+  const { isExtraSmallScreen, isVerySmallScreen, fontSize, spacing } = useResponsive();
   
-  const radius = (size - strokeWidth) / 2;
+  // Адаптивные размеры
+  const adaptiveSize = size || (isExtraSmallScreen ? 100 : isVerySmallScreen ? 110 : 120);
+  const adaptiveStrokeWidth = strokeWidth || (isExtraSmallScreen ? 4 : isVerySmallScreen ? 5 : 6);
+  
+  const radius = (adaptiveSize - adaptiveStrokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = Math.min(value / maxValue, 1);
   const strokeDasharray = circumference;
   const strokeDashoffset = circumference * (1 - progress);
   
-  const centerX = size / 2;
-  const centerY = size / 2;
+  const centerX = adaptiveSize / 2;
+  const centerY = adaptiveSize / 2;
 
   const formatValue = () => {
     if (maxValue === 5 || maxValue === 4) {
@@ -55,8 +61,8 @@ export const CircularChart: React.FC<CircularChartProps> = ({
   const styles = StyleSheet.create({
     container: {
       backgroundColor: colors.surface,
-      borderRadius: 20,
-      padding: 20,
+      borderRadius: isExtraSmallScreen ? 16 : 20,
+      padding: isExtraSmallScreen ? 12 : isVerySmallScreen ? 16 : 20,
       alignItems: 'center',
       shadowColor: color,
       shadowOffset: { width: 0, height: 8 },
@@ -67,37 +73,27 @@ export const CircularChart: React.FC<CircularChartProps> = ({
       borderColor: color + '20',
       position: 'relative',
       overflow: 'hidden',
-    },
-    iconContainer: {
-      position: 'absolute',
-      top: 16,
-      right: 16,
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: color + '20',
-      justifyContent: 'center',
-      alignItems: 'center',
+      flex: 1, // Делаем карточки одинакового размера
     },
     svgContainer: {
-      marginBottom: 16,
+      marginBottom: isExtraSmallScreen ? 8 : 12,
     },
     valueText: {
-      fontSize: 24,
+      fontSize: isExtraSmallScreen ? 18 : isVerySmallScreen ? 20 : 24,
       fontWeight: '700',
       color: colors.text,
       textAlign: 'center',
       marginBottom: 4,
     },
     titleText: {
-      fontSize: 16,
+      fontSize: isExtraSmallScreen ? 13 : isVerySmallScreen ? 14 : 16,
       fontWeight: '600',
       color: colors.text,
       textAlign: 'center',
       marginBottom: 4,
     },
     subtitleText: {
-      fontSize: 12,
+      fontSize: isExtraSmallScreen ? 10 : 12,
       color: colors.textSecondary,
       textAlign: 'center',
     },
@@ -121,21 +117,15 @@ export const CircularChart: React.FC<CircularChartProps> = ({
 
   return (
     <Animated.View entering={FadeInDown.delay(400)} style={styles.container}>
-      {icon && (
-        <View style={styles.iconContainer}>
-          <Ionicons name={icon} size={16} color={color} />
-        </View>
-      )}
-      
       <View style={styles.svgContainer}>
-        <Svg width={size} height={size} style={{ transform: [{ rotate: '-90deg' }] }}>
+        <Svg width={adaptiveSize} height={adaptiveSize} style={{ transform: [{ rotate: '-90deg' }] }}>
           {/* Background circle */}
           <Circle
             cx={centerX}
             cy={centerY}
             r={radius}
             stroke={colors.border}
-            strokeWidth={strokeWidth}
+            strokeWidth={adaptiveStrokeWidth}
             fill="transparent"
           />
           
@@ -145,7 +135,7 @@ export const CircularChart: React.FC<CircularChartProps> = ({
             cy={centerY}
             r={radius}
             stroke={color}
-            strokeWidth={strokeWidth}
+            strokeWidth={adaptiveStrokeWidth}
             fill="transparent"
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
