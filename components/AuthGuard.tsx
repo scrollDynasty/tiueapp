@@ -16,6 +16,8 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   const { isAuthenticated, loading } = useAppSelector((state) => state.auth);
   const segments = useSegments();
   
+  // Используем ref для предотвращения дублированных вызовов
+  const initializingRef = React.useRef(false);
   
   // Публичные маршруты, которые не требуют аутентификации
   const publicRoutes = ['login', 'debug'];
@@ -23,6 +25,11 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   const isPublicRoute = publicRoutes.includes(currentRoute);
 
   const initializeAuth = useCallback(async () => {
+    if (initializingRef.current) {
+      return; // Предотвращаем дублированные вызовы
+    }
+    
+    initializingRef.current = true;
     try {
       // Если пользователь уже аутентифицирован в Redux, не проверяем AsyncStorage
       if (isAuthenticated) {
@@ -50,6 +57,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
       await AsyncStorage.clear();
       router.replace('/login');
     } finally {
+      initializingRef.current = false;
       setIsInitializing(false);
     }
   }, [dispatch]);

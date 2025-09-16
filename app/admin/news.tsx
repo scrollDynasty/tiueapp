@@ -1,14 +1,9 @@
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { ThemedText } from '@/components/ThemedText';
-import { getThemeColors } from '@/constants/Colors';
 import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { useAppSelector } from '@/hooks/redux';
 import { authApi } from '@/services/api';
-import { fetchEvents } from '@/store/slices/eventsSlice';
-import { addNews, createNews, fetchNews } from '@/store/slices/newsSlice';
-import { News } from '@/types';
-import { formatDateYMD } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
@@ -18,24 +13,32 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function NewsManagementScreen() {
-  const { theme } = useTheme();
-  const themeColors = getThemeColors(theme === 'dark');
-  
-  const dispatch = useAppDispatch();
+  const { isDarkMode } = useTheme();
   const { user } = useAppSelector((state) => state.auth);
-  const { items: news, isLoading } = useAppSelector((state) => state.news);
-  const { items: events } = useAppSelector((state) => state.events);
   
+  const [news, setNews] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(false);
   const [title, setTitle] = React.useState('');
   const [subtitle, setSubtitle] = React.useState('');
   const [content, setContent] = React.useState('');
   const [selectedImage, setSelectedImage] = React.useState<ImagePicker.ImagePickerAsset | null>(null);
-  const [selectedEventIds, setSelectedEventIds] = React.useState<number[]>([]);
   const [selectedIcon, setSelectedIcon] = React.useState<'school-outline' | 'trophy-outline' | 'people-outline' | 'megaphone-outline' | 'calendar-outline'>('megaphone-outline');
 
   // Состояния для удаления новости
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [newsToDelete, setNewsToDelete] = React.useState<{ id: string; title: string } | null>(null);
+
+  // Цвета в бело-синем стиле
+  const colors = {
+    background: isDarkMode ? '#1E3A8A' : '#EFF6FF',
+    surface: isDarkMode ? '#2563EB' : '#FFFFFF',
+    primary: isDarkMode ? '#60A5FA' : '#3B82F6',
+    text: isDarkMode ? '#FFFFFF' : '#1E3A8A',
+    textSecondary: isDarkMode ? '#E2E8F0' : '#64748B',
+    border: isDarkMode ? '#3B82F6' : '#DBEAFE',
+    error: '#EF4444',
+    success: '#10B981',
+  };
 
   // Функция выбора изображения
   const pickImage = async () => {
@@ -65,32 +68,55 @@ export default function NewsManagementScreen() {
     setSelectedImage(null);
   };
 
-  // Загружаем новости и события при открытии страницы
+  // Загружаем новости при открытии страницы
   React.useEffect(() => {
-    dispatch(fetchNews());
-    dispatch(fetchEvents());
-  }, [dispatch]);
+    loadNews();
+  }, []);
+
+  const loadNews = async () => {
+    try {
+      setLoading(true);
+      const response = await authApi.getNews();
+      if (response.success && response.data) {
+        setNews(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading news:', error);
+      Alert.alert('Ошибка', 'Не удалось загрузить новости');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
 
   // Проверяем права доступа
   if (!user || user.role !== 'admin') {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.surface }}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: Spacing.l }}>
-          <Ionicons name="shield-outline" size={64} color={Colors.textSecondary} />
-          <ThemedText style={{ ...Typography.titleH2, color: Colors.textSecondary, marginTop: Spacing.l }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+          <Ionicons name="shield-outline" size={64} color={colors.textSecondary} />
+          <ThemedText style={{ fontSize: 20, fontWeight: 'bold', color: colors.textSecondary, marginTop: 24 }}>
             Доступ запрещен
           </ThemedText>
           <Pressable
             onPress={() => router.back()}
             style={{
-              backgroundColor: Colors.brandPrimary,
-              paddingHorizontal: Spacing.l,
-              paddingVertical: Spacing.m,
+              backgroundColor: colors.primary,
+              paddingHorizontal: 24,
+              paddingVertical: 16,
               borderRadius: 12,
-              marginTop: Spacing.l,
+              marginTop: 24,
             }}
           >
-            <ThemedText style={{ ...Typography.body, color: Colors.surface }}>
+            <ThemedText style={{ fontSize: 16, color: 'white' }}>
               Назад
             </ThemedText>
           </Pressable>
@@ -123,52 +149,30 @@ export default function NewsManagementScreen() {
       image: selectedImage || undefined,
     };
 
-
     try {
-      // Сначала пытаемся сохранить через API
-      await dispatch(createNews(newNewsData)).unwrap();
+      setLoading(true);
+      const response = await authApi.createNews(newNewsData);
       
-      // Перезагружаем список новостей
-      dispatch(fetchNews());
-      
-      // Очищаем форму
-      setTitle('');
-      setSubtitle('');
-      setContent('');
-      setSelectedImage(null);
-      setSelectedEventIds([]);
-      setSelectedIcon('megaphone-outline');
-      
-      Alert.alert('Успешно', 'Новость добавлена и сохранена в базе данных');
+      if (response.success) {
+        // Перезагружаем список новостей
+        await loadNews();
+        
+        // Очищаем форму
+        setTitle('');
+        setSubtitle('');
+        setContent('');
+        setSelectedImage(null);
+        setSelectedIcon('megaphone-outline');
+        
+        Alert.alert('Успешно', 'Новость добавлена и сохранена в базе данных');
+      } else {
+        Alert.alert('Ошибка', response.error || 'Не удалось создать новость');
+      }
     } catch (error) {
       console.error('API Error:', error);
       Alert.alert('Ошибка', `Не удалось создать новость: ${error}`);
-      
-      // Если API не работает, сохраняем локально
-      const fallbackNews: News = {
-        id: Date.now().toString(),
-        title: title.trim(),
-        subtitle: subtitle.trim(),
-        content: content.trim(),
-        category: 'announcement' as const,
-        icon: selectedIcon,
-        image: selectedImage?.uri || undefined,
-        author: `${user.first_name} ${user.last_name}`.trim() || user.username,
-        date: 'только что',
-        isImportant: false,
-      };
-      
-      dispatch(addNews(fallbackNews));
-      
-      // Очищаем форму
-      setTitle('');
-      setSubtitle('');
-      setContent('');
-      setSelectedImage(null);
-      setSelectedEventIds([]);
-      setSelectedIcon('megaphone-outline');
-      
-      Alert.alert('Внимание', 'Новость добавлена локально. Проверьте подключение к серверу для синхронизации с базой данных.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -183,53 +187,54 @@ export default function NewsManagementScreen() {
     if (!newsToDelete) return;
 
     try {
-      // API вызов для удаления новости
       const response = await authApi.deleteNews(newsToDelete.id);
       
+      if (response.success) {
+        // Перезагружаем список новостей
+        await loadNews();
+        Alert.alert('Успешно', 'Новость удалена');
+      } else {
+        Alert.alert('Ошибка', response.error || 'Не удалось удалить новость');
+      }
+    } catch (error) {
+      console.error('Error deleting news:', error);
+      Alert.alert('Ошибка', 'Не удалось удалить новость');
+    } finally {
       // Закрываем модальное окно
       setShowDeleteConfirm(false);
       setNewsToDelete(null);
-      
-      // Обновляем список новостей
-      dispatch(fetchNews());
-      
-      // Показываем уведомление об успешном удалении
-      Alert.alert('Успешно', 'Новость удалена');
-      
-    } catch (error) {
-      console.error('Error deleting news:', error);
-      // Закрываем модальное окно даже при ошибке
-      setShowDeleteConfirm(false);
-      setNewsToDelete(null);
-      Alert.alert('Ошибка', 'Не удалось удалить новость');
     }
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView 
         showsVerticalScrollIndicator={false} 
-        contentContainerStyle={{ padding: Spacing.l }}
+        contentContainerStyle={{ padding: 16 }}
       >
         {/* Заголовок */}
         <Animated.View entering={FadeInDown.duration(400)}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.l }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24 }}>
             <Pressable
               onPress={() => router.back()}
               style={{
                 width: 40,
                 height: 40,
                 borderRadius: 20,
-                backgroundColor: Colors.surface,
+                backgroundColor: colors.surface,
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginRight: Spacing.m,
-                ...Shadows.card,
+                marginRight: 16,
+                elevation: 2,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
               }}
             >
-              <Ionicons name="arrow-back" size={20} color={Colors.textPrimary} />
+              <Ionicons name="arrow-back" size={20} color={colors.text} />
             </Pressable>
-            <ThemedText style={{ ...Typography.displayH1, color: Colors.textPrimary }}>
+            <ThemedText style={{ fontSize: 24, fontWeight: 'bold', color: colors.text }}>
               Управление новостями
             </ThemedText>
           </View>
@@ -445,28 +450,29 @@ export default function NewsManagementScreen() {
           {/* Кнопка добавления */}
           <Pressable
             onPress={handleAddNews}
-            disabled={isLoading}
+            disabled={loading}
             style={{
-              backgroundColor: isLoading ? Colors.strokeSoft : Colors.brandPrimary,
-              paddingVertical: Spacing.m,
+              backgroundColor: loading ? colors.border : colors.primary,
+              paddingVertical: 16,
               borderRadius: 12,
               alignItems: 'center',
               flexDirection: 'row',
               justifyContent: 'center',
             }}
           >
-            {isLoading && (
+            {loading && (
               <ActivityIndicator 
                 size="small" 
-                color={Colors.textSecondary} 
-                style={{ marginRight: Spacing.s }} 
+                color={colors.textSecondary} 
+                style={{ marginRight: 8 }} 
               />
             )}
             <ThemedText style={{ 
-              ...Typography.body, 
-              color: isLoading ? Colors.textSecondary : Colors.surface
+              fontSize: 16,
+              fontWeight: '600',
+              color: loading ? colors.textSecondary : 'white'
             }}>
-              {isLoading ? 'Добавляем...' : 'Добавить новость'}
+              {loading ? 'Добавляем...' : 'Добавить новость'}
             </ThemedText>
           </Pressable>
         </Animated.View>
@@ -522,8 +528,8 @@ export default function NewsManagementScreen() {
                         <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary }}>
                           {item.subtitle}
                         </ThemedText>
-                        <ThemedText style={{ ...Typography.caption, color: Colors.textSecondary, marginTop: 4 }}>
-                          {formatDateYMD(item.date)} • {item.author}
+                        <ThemedText style={{ fontSize: 12, color: colors.textSecondary, marginTop: 4 }}>
+                          {formatDate(item.created_at || item.date)} • {item.author}
                         </ThemedText>
                       </View>
                     </View>
