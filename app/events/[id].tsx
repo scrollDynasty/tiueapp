@@ -1,18 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useState } from 'react';
-import { Image, Modal, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, Modal, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/ThemedText';
 import { getThemeColors } from '@/constants/Colors';
-import { Spacing } from '@/constants/DesignTokens';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAppSelector } from '@/hooks/redux';
 import { useResponsive } from '@/hooks/useResponsive';
-import { getImageUrl } from '@/utils/imageUtils';
+import { authApi } from '@/services/api';
+import { addEventToCalendar, parseEventDateTime } from '@/utils/calendar';
+
 
 export default function EventDetailScreen() {
   const { theme } = useTheme();
@@ -21,43 +20,91 @@ export default function EventDetailScreen() {
   
   const { id } = useLocalSearchParams();
   const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [event, setEvent] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
   const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
   
-  // Приводим ID к строке и ищем событие
-  const eventId = Array.isArray(id) ? id[0] : id;
-  const eventItems = useAppSelector(state => state.events.items);
-  
-  const event = eventItems.find(item => {
-    // Приводим оба ID к строке для сравнения
-    const itemIdString = String(item.id);
-    const searchIdString = String(eventId);
-    return itemIdString === searchIdString;
-  });
+  const eventId = React.useMemo(() => {
+    return Array.isArray(id) ? id[0] : id;
+  }, [id]);
+
+  const loadingRef = React.useRef(false);
+  const isMountedRef = React.useRef(true);
+
+  React.useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const loadEvent = React.useCallback(async () => {
+    if (!eventId || loadingRef.current) {
+      return; // Предотвращаем дублированные запросы
+    }
+
+    try {
+      loadingRef.current = true;
+      if (isMountedRef.current) {
+        setLoading(true);
+      }
+      
+      const response = await authApi.getEventById(eventId);
+      
+      if (isMountedRef.current && response.success && response.data) {
+        setEvent(response.data);
+      }
+    } catch (error) {
+      if (isMountedRef.current) {
+        console.error('Error loading event:', error);
+      }
+    } finally {
+      loadingRef.current = false;
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
+    }
+  }, [eventId]);
+
+  useEffect(() => {
+    if (eventId && !event) { // Загружаем только если событие еще не загружено
+      loadEvent();
+    }
+  }, [eventId, loadEvent, event]);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+        <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#3B82F6" />
+          <ThemedText style={{ 
+            fontSize: 16,
+            color: '#1E3A8A',
+            marginTop: 16,
+            textAlign: 'center'
+          }}>
+            Загрузка события...
+          </ThemedText>
+        </SafeAreaView>
+      </View>
+    );
+  }
 
   if (!event) {
     return (
-      <LinearGradient
-        colors={isDarkMode 
-          ? ['#0F172A', '#1E293B', '#334155']
-          : ['#FFFFFF', '#F8FAFC', '#F1F5F9']
-        }
-        style={{ flex: 1 }}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
+      <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
         <SafeAreaView style={{ flex: 1 }}>
           <View style={{ 
             flex: 1, 
             justifyContent: 'center', 
             alignItems: 'center',
-            padding: isSmallScreen ? spacing.lg : Spacing.xl
+            padding: 32
           }}>
-            <Ionicons name="calendar-outline" size={isSmallScreen ? 48 : 64} color={colors.textSecondary} />
+            <Ionicons name="calendar-outline" size={64} color="#94A3B8" />
             <ThemedText style={{ 
-              fontSize: isSmallScreen ? 18 : 20,
-              color: colors.textSecondary,
-              marginTop: isSmallScreen ? spacing.md : Spacing.m,
+              fontSize: 20,
+              color: '#64748B',
+              marginTop: 16,
               textAlign: 'center'
             }}>
               Событие не найдено
@@ -65,15 +112,15 @@ export default function EventDetailScreen() {
             <Pressable
               onPress={() => router.back()}
               style={{
-                backgroundColor: colors.primary,
+                backgroundColor: '#3B82F6',
                 borderRadius: 12,
-                paddingHorizontal: isSmallScreen ? spacing.lg : Spacing.l,
-                paddingVertical: isSmallScreen ? spacing.md : Spacing.m,
-                marginTop: isSmallScreen ? spacing.lg : Spacing.l,
+                paddingHorizontal: 24,
+                paddingVertical: 16,
+                marginTop: 24,
               }}
             >
               <ThemedText style={{
-                fontSize: isSmallScreen ? 14 : 16,
+                fontSize: 16,
                 color: 'white'
               }}>
                 Назад
@@ -81,327 +128,295 @@ export default function EventDetailScreen() {
             </Pressable>
           </View>
         </SafeAreaView>
-      </LinearGradient>
+      </View>
     );
   }
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'university': return colors.primary;
-      case 'club': return '#8B5CF6';
-      case 'conference': return '#EF4444';
-      case 'social': return '#EC4899';
-      case 'sport': return '#10B981';
-      default: return colors.primary;
-    }
-  };
-
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'university': return 'school-outline';
-      case 'club': return 'people-outline';
-      case 'conference': return 'megaphone-outline';
-      case 'social': return 'heart-outline';
-      case 'sport': return 'fitness-outline';
-      default: return 'calendar-outline';
-    }
-  };
-
-  const getCategoryLabel = (category: string) => {
-    switch (category) {
-      case 'university': return 'Университет';
-      case 'club': return 'Клубы';
-      case 'conference': return 'Конференции';
-      case 'social': return 'Социальные';
-      case 'sport': return 'Спорт';
-      default: return 'Событие';
-    }
-  };
+  // Функции для категорий больше не нужны в новом дизайне
 
   return (
-    <LinearGradient
-      colors={isDarkMode 
-        ? ['#0F172A', '#1E293B', '#334155']
-        : ['#FFFFFF', '#F8FAFC', '#F1F5F9']
-      }
-      style={{ flex: 1 }}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-    >
-      {/* Красивое изображение с header поверх */}
-      {event.image ? (
-        <View style={{ position: 'relative' }}>
-          <Animated.View entering={FadeInUp.duration(600)}>
-            <Pressable onPress={() => setImageModalVisible(true)}>
-              <Image
-                source={{ uri: getImageUrl(event.image) || undefined }}
-                style={{
-                  width: '100%',
-                  height: isVerySmallScreen ? 200 : isSmallScreen ? 250 : 300,
-                  backgroundColor: colors.surfaceSecondary,
-                }}
-                resizeMode="cover"
-              />
-            </Pressable>
-          </Animated.View>
-          
-          {/* Градиент сверху для лучшей читаемости header */}
-          <LinearGradient
-            colors={['rgba(0,0,0,0.7)', 'transparent']}
+    <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+      {/* 1. Хэдер с заголовком */}
+      <SafeAreaView style={{ backgroundColor: '#FFFFFF' }}>
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          backgroundColor: '#FFFFFF',
+          borderBottomWidth: 1,
+          borderBottomColor: '#E2E8F0',
+        }}>
+          <Pressable
+            onPress={() => router.back()}
             style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: isVerySmallScreen ? 80 : isSmallScreen ? 100 : 120,
-            }}
-          />
-          
-          {/* Градиент снизу для плавного перехода */}
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.3)']}
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: isVerySmallScreen ? 40 : isSmallScreen ? 60 : 80,
-            }}
-          />
-
-          {/* Красивый header поверх изображения */}
-          <SafeAreaView style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 10,
-          }}>
-            <Animated.View 
-              entering={FadeInUp.delay(100).duration(600)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                paddingHorizontal: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
-                paddingTop: Platform.OS === 'ios' ? 0 : (isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s),
-                minHeight: isVerySmallScreen ? 48 : isSmallScreen ? 56 : 64,
-              }}
-            >
-              <Pressable
-                onPress={() => router.back()}
-                style={{
-                  backgroundColor: 'rgba(0,0,0,0.5)',
-                  borderRadius: 20,
-                  width: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
-                  height: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  backdropFilter: 'blur(10px)',
-                }}
-              >
-                <Ionicons name="arrow-back" size={isVerySmallScreen ? 18 : isSmallScreen ? 20 : 24} color="white" />
-              </Pressable>
-            </Animated.View>
-          </SafeAreaView>
-        </View>
-      ) : (
-        // Если нет изображения, показываем обычный header
-        <SafeAreaView>
-          <Animated.View 
-            entering={FadeInUp.delay(100).duration(600)}
-            style={{
-              flexDirection: 'row',
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: '#F8FAFC',
+              justifyContent: 'center',
               alignItems: 'center',
-              paddingHorizontal: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
-              paddingVertical: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
-              minHeight: isVerySmallScreen ? 48 : isSmallScreen ? 56 : 64,
+              marginRight: 16,
             }}
           >
-            <Pressable
-              onPress={() => router.back()}
-              style={{
-                backgroundColor: colors.surface,
-                borderRadius: 20,
-                width: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
-                height: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
-                justifyContent: 'center',
-                alignItems: 'center',
-                shadowColor: isDarkMode ? '#000' : '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: isDarkMode ? 0.3 : 0.1,
-                shadowRadius: 4,
-                elevation: 3,
-              }}
-            >
-              <Ionicons name="arrow-back" size={isVerySmallScreen ? 18 : isSmallScreen ? 20 : 24} color={colors.text} />
-            </Pressable>
-          </Animated.View>
-        </SafeAreaView>
-      )}
+            <Ionicons name="arrow-back" size={24} color="#1E3A8A" />
+          </Pressable>
+          <ThemedText style={{
+            fontSize: 20,
+            fontWeight: 'bold',
+            color: '#1E3A8A',
+          }}>
+            Event Details
+          </ThemedText>
+        </View>
+      </SafeAreaView>
 
-      {/* Контент страницы */}
+      {/* 2. Большая картинка события */}
+      <Animated.View entering={FadeInUp.duration(600)}>
+        <Pressable onPress={() => setImageModalVisible(true)}>
+          {event.image ? (
+            <Image
+              source={{ uri: event.image }}
+              style={{
+                width: '100%',
+                height: 280,
+                backgroundColor: '#E2E8F0',
+              }}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={{
+              width: '100%',
+              height: 280,
+              backgroundColor: '#F8FAFC',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+              <Ionicons name="calendar-outline" size={64} color="#94A3B8" />
+              <ThemedText style={{
+                fontSize: 16,
+                color: '#64748B',
+                marginTop: 12,
+              }}>
+                Изображение события
+              </ThemedText>
+            </View>
+          )}
+        </Pressable>
+      </Animated.View>
+
+      {/* 3, 4, 5. Контент: информация + описание + кнопка */}
       <ScrollView 
-        style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: isVerySmallScreen ? spacing.lg : isSmallScreen ? spacing.xl : Spacing.xl }}
+        style={{ flex: 1, backgroundColor: '#FFFFFF' }}
+        contentContainerStyle={{ paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
+        {/* 3. Информация о событии в карточке */}
         <Animated.View 
           entering={FadeInDown.delay(200).duration(600)}
           style={{
-            backgroundColor: colors.surface,
-            marginHorizontal: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
-            marginTop: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
-            borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
-            padding: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
-            shadowColor: isDarkMode ? '#000' : '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: isDarkMode ? 0.3 : 0.1,
-            shadowRadius: 12,
-            elevation: 8,
+            backgroundColor: '#FFFFFF',
+            marginHorizontal: 16,
+            marginTop: 16,
+            borderRadius: 16,
+            padding: 20,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 4,
+            borderWidth: 1,
+            borderColor: '#E2E8F0',
           }}
         >
-          {/* Категория события */}
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
-          }}>
-            <View style={{
-              backgroundColor: getCategoryColor(event.category),
-              borderRadius: 20,
-              paddingHorizontal: isVerySmallScreen ? 10 : isSmallScreen ? 12 : 14,
-              paddingVertical: isVerySmallScreen ? 4 : isSmallScreen ? 6 : 8,
-              flexDirection: 'row',
-              alignItems: 'center',
-            }}>
-              <Ionicons 
-                name={getCategoryIcon(event.category) as any} 
-                size={isVerySmallScreen ? 12 : isSmallScreen ? 14 : 16} 
-                color="white" 
-                style={{ marginRight: isVerySmallScreen ? 3 : isSmallScreen ? 4 : 6 }}
-              />
-              <ThemedText style={{
-                color: 'white',
-                fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.small : fontSize.body,
-                fontWeight: '600',
-              }}>
-                {getCategoryLabel(event.category)}
-              </ThemedText>
-            </View>
-          </View>
-
-          {/* Заголовок */}
+          {/* Заголовок события */}
           <ThemedText style={{
-            fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? fontSize.title : fontSize.header,
+            fontSize: 24,
             fontWeight: 'bold',
-            color: colors.text,
-            marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
-            lineHeight: isVerySmallScreen ? fontSize.body * 1.3 : isSmallScreen ? fontSize.title * 1.3 : fontSize.header * 1.3,
+            color: '#1E3A8A',
+            marginBottom: 20,
+            lineHeight: 32,
           }}>
             {event.title}
           </ThemedText>
 
-          {/* Информация о событии */}
+          {/* Дата и время */}
           <View style={{
-            backgroundColor: colors.surfaceSecondary,
-            borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 12 : 16,
-            padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
-            marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 16,
           }}>
-            {/* Дата и время */}
             <View style={{
-              flexDirection: 'row',
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: '#3B82F6',
+              justifyContent: 'center',
               alignItems: 'center',
-              marginBottom: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+              marginRight: 16,
             }}>
-              <Ionicons name="calendar" size={isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={colors.primary} />
+              <Ionicons name="calendar" size={24} color="white" />
+            </View>
+            <View style={{ flex: 1 }}>
               <ThemedText style={{
-                fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.small : fontSize.body,
-                color: colors.text,
-                marginLeft: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
-                fontWeight: '500',
+                fontSize: 16,
+                fontWeight: '600',
+                color: '#1E3A8A',
+                marginBottom: 2,
               }}>
-                {event.date} в {event.time}
+                {event.date}
+              </ThemedText>
+              <ThemedText style={{
+                fontSize: 14,
+                color: '#64748B',
+              }}>
+                {event.time}
               </ThemedText>
             </View>
+          </View>
 
-            {/* Место */}
+          {/* Локация */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: event.maxParticipants ? 16 : 0,
+          }}>
             <View style={{
-              flexDirection: 'row',
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: '#1E3A8A',
+              justifyContent: 'center',
               alignItems: 'center',
-              marginBottom: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+              marginRight: 16,
             }}>
-              <Ionicons name="location" size={isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={colors.primary} />
+              <Ionicons name="location" size={24} color="white" />
+            </View>
+            <View style={{ flex: 1 }}>
               <ThemedText style={{
-                fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.small : fontSize.body,
-                color: colors.text,
-                marginLeft: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
-                fontWeight: '500',
+                fontSize: 16,
+                fontWeight: '600',
+                color: '#1E3A8A',
               }}>
                 {event.location}
               </ThemedText>
             </View>
+          </View>
 
-            {/* Количество участников */}
-            {event.maxParticipants && (
+          {/* Количество участников (если есть) */}
+          {event.maxParticipants && (
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}>
               <View style={{
-                flexDirection: 'row',
+                width: 44,
+                height: 44,
+                borderRadius: 22,
+                backgroundColor: '#10B981',
+                justifyContent: 'center',
                 alignItems: 'center',
+                marginRight: 16,
               }}>
-                <Ionicons name="people" size={isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={colors.primary} />
+                <Ionicons name="people" size={24} color="white" />
+              </View>
+              <View style={{ flex: 1 }}>
                 <ThemedText style={{
-                  fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.small : fontSize.body,
-                  color: colors.text,
-                  marginLeft: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
-                  fontWeight: '500',
+                  fontSize: 16,
+                  fontWeight: '600',
+                  color: '#1E3A8A',
                 }}>
                   Максимум участников: {event.maxParticipants}
                 </ThemedText>
               </View>
-            )}
-          </View>
+            </View>
+          )}
+        </Animated.View>
 
-          {/* Описание события */}
+        {/* 4. Описание события */}
+        <Animated.View 
+          entering={FadeInDown.delay(400).duration(600)}
+          style={{
+            backgroundColor: '#FFFFFF',
+            marginHorizontal: 16,
+            marginTop: 16,
+            borderRadius: 16,
+            padding: 20,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 4,
+            borderWidth: 1,
+            borderColor: '#E2E8F0',
+          }}
+        >
           <ThemedText style={{
-            fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : fontSize.title,
-            color: colors.text,
-            lineHeight: isVerySmallScreen ? fontSize.small * 1.5 : isSmallScreen ? fontSize.body * 1.5 : fontSize.title * 1.5,
-            marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
+            fontSize: 18,
+            fontWeight: '600',
+            color: '#1E3A8A',
+            marginBottom: 12,
+          }}>
+            Описание
+          </ThemedText>
+          <ThemedText style={{
+            fontSize: 16,
+            color: '#374151',
+            lineHeight: 24,
           }}>
             {event.description}
           </ThemedText>
+        </Animated.View>
 
-          {/* Кнопка регистрации */}
+        {/* 5. Кнопка "Add to Calendar" */}
+        <Animated.View 
+          entering={FadeInDown.delay(600).duration(600)}
+          style={{
+            marginHorizontal: 16,
+            marginTop: 24,
+          }}
+        >
           <Pressable
             style={({ pressed }) => ({
-              backgroundColor: pressed ? colors.secondary : colors.primary,
-              borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 12 : 16,
-              paddingVertical: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
-              paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
+              backgroundColor: pressed ? '#2563EB' : '#3B82F6',
+              borderRadius: 10,
+              paddingVertical: 12,
+              paddingHorizontal: 20,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
-              shadowColor: colors.primary,
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.3,
-              shadowRadius: 8,
-              elevation: 8,
+              shadowColor: '#3B82F6',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 4,
+              elevation: 3,
               transform: [{ scale: pressed ? 0.98 : 1 }],
             })}
-            onPress={() => {
-              // Здесь должна быть логика регистрации на событие
-              console.log('Регистрация на событие:', event.id);
+            onPress={async () => {
+              try {
+                const startDate = parseEventDateTime(event.date, event.time);
+                const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // +2 часа
+                
+                await addEventToCalendar({
+                  title: event.title,
+                  startDate,
+                  endDate,
+                  location: event.location,
+                  notes: event.description,
+                });
+              } catch (error) {
+                console.error('Ошибка при добавлении в календарь:', error);
+              }
             }}
           >
-            <Ionicons name="add-circle" size={isVerySmallScreen ? 18 : isSmallScreen ? 20 : 24} color="white" />
+            <Ionicons name="calendar-outline" size={20} color="white" />
             <ThemedText style={{
               color: 'white',
-              fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : fontSize.title,
+              fontSize: 16,
               fontWeight: '600',
-              marginLeft: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+              marginLeft: 8,
             }}>
-              Зарегистрироваться
+              Добавить в календарь
             </ThemedText>
           </Pressable>
         </Animated.View>
@@ -438,8 +453,8 @@ export default function EventDetailScreen() {
                 onPress={() => setImageModalVisible(false)}
                 style={{
                   position: 'absolute',
-                  top: Platform.OS === 'ios' ? 0 : (isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m),
-                  right: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+                  top: Platform.OS === 'ios' ? 0 : (isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : 16),
+                  right: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : 16,
                   backgroundColor: 'rgba(0,0,0,0.5)',
                   borderRadius: 20,
                   width: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
@@ -454,6 +469,6 @@ export default function EventDetailScreen() {
           </View>
         </Modal>
       )}
-    </LinearGradient>
+    </View>
   );
 }

@@ -1,126 +1,102 @@
-import { AnimatedHeader } from '@/components/AnimatedHeader';
-import { CustomRefreshControl } from '@/components/CustomRefreshControl';
-import { DailyTipCard } from '@/components/home/DailyTipCard';
-import { ImportantNewsSection } from '@/components/home/ImportantNewsSection';
-import { NewsSection } from '@/components/home/NewsSection';
-import { QuickActionsSection } from '@/components/home/QuickActionsSection';
-import { QuickLinksCard } from '@/components/home/QuickLinksCard';
-import { StatsSection } from '@/components/home/StatsSection';
-import { UpcomingEventsSection } from '@/components/home/UpcomingEventsSection';
-import { NotificationModal } from '@/components/NotificationModal';
+import { ThemedText } from '@/components/ThemedText';
+import { CircularChart } from '@/components/dashboard/CircularChart';
+import { CourseProgressCard } from '@/components/dashboard/CourseProgressCard';
+import { EventsCard } from '@/components/dashboard/EventsCard';
+import { NewsCard } from '@/components/dashboard/NewsCard';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { useResponsive } from '@/hooks/useResponsive';
-import { fetchEvents } from '@/store/slices/eventsSlice';
-import { fetchNews } from '@/store/slices/newsSlice';
+import { useAppSelector } from '@/hooks/redux';
+import { authApi } from '@/services/api';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, {
-  useAnimatedScrollHandler,
-  useSharedValue
-} from 'react-native-reanimated';
+import React, { useEffect, useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
+interface DashboardData {
+  news: Array<{ id: number; title: string; description: string; image: string | null; date: string }>;
+  events: Array<{ id: number; title: string; date: string; image: string | null }>;
+  courses: Array<{ id: number; name: string; progress: number }>;
+  gpa: number;
+  attendance: number;
+}
 
 export default function HomeScreen() {
-  const dispatch = useAppDispatch();
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
-  const scrollY = useSharedValue(0);
-  const [refreshing, setRefreshing] = React.useState(false);
-  const [showNotifications, setShowNotifications] = React.useState(false);
-  const { padding, spacing, borderRadius } = useResponsive();
   const { user } = useAppSelector(state => state.auth);
-
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollY.value = event.contentOffset.y;
-    },
+  
+  const [dashboardData, setDashboardData] = useState<DashboardData>({
+    news: [],
+    events: [],
+    courses: [],
+    gpa: 0,
+    attendance: 0
   });
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Загружаем данные при монтировании компонента
+  // Используем ref для предотвращения дублированных запросов
+  const loadingRef = React.useRef(false);
+  const isMountedRef = React.useRef(true);
+
   React.useEffect(() => {
-    if (user) {
-      dispatch(fetchNews());
-      dispatch(fetchEvents());
-    }
-  }, [dispatch, user]);
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
-  const onRefresh = React.useCallback(async () => {
-    setRefreshing(true);
+  const loadDashboardData = React.useCallback(async () => {
+    if (loadingRef.current) {
+      return; // Предотвращаем дублированные запросы
+    }
+
     try {
-      if (user) {
-        await Promise.all([
-          dispatch(fetchNews()).unwrap(),
-          dispatch(fetchEvents()).unwrap()
-        ]);
+      loadingRef.current = true;
+      if (isMountedRef.current) {
+        setLoading(true);
+      }
+      
+      const response = await authApi.getDashboard();
+      
+      if (isMountedRef.current && response.success && response.data) {
+        setDashboardData(response.data);
       }
     } catch (error) {
-      // handle error silently in production
-      if (__DEV__) {
-        console.error('Refresh error:', error);
+      if (isMountedRef.current) {
+        console.error('Error loading dashboard data:', error);
       }
     } finally {
-      setRefreshing(false);
+      loadingRef.current = false;
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
-  }, [dispatch, user]);
+  }, []);
 
-  // Получаем новости и события из Redux store
-  const { items: newsData } = useAppSelector((state) => state.news);
-  const { items: eventsData } = useAppSelector((state) => state.events);
+  // Стабилизируем user ID для предотвращения лишних перерендеров
+  const userId = React.useMemo(() => user?.id, [user?.id]);
 
-  // Получаем ближайшие события (следующие 3)
-  const upcomingEvents = React.useMemo(() => {
-    const now = new Date();
-    return eventsData
-      .filter(event => new Date(event.date) >= now)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(0, 3);
-  }, [eventsData]);
-
-  // Получаем важные новости
-  const importantNews = React.useMemo(() => {
-    return newsData.filter(news => news.isImportant).slice(0, 2);
-  }, [newsData]);
-
-  // Динамические данные для виджетов
-  const statsData = React.useMemo(() => {
-    const role = user?.role;
-    
-    let coursesCount = '0';
-    if (role === 'student') {
-      coursesCount = '8';
-    } else if (role === 'professor') {
-      coursesCount = '5';
-    } else if (role === 'admin') {
-      coursesCount = '12';
+  useEffect(() => {
+    if (userId && dashboardData.news.length === 0) { // Загружаем только если данные еще не загружены
+      loadDashboardData();
     }
-    
-    let gradeValue = '0';
-    let gradeTitle = 'Баллы';
-    if (role === 'student') {
-      gradeValue = '4.2';
-      gradeTitle = 'Средний балл';
-    } else if (role === 'professor') {
-      gradeValue = '4.8';
-      gradeTitle = 'Ср. балл курсов';
-    } else if (role === 'admin') {
-      gradeValue = newsData.length.toString();
-      gradeTitle = 'Новости';
-    }
-    
-    return {
-      courses: coursesCount,
-      events: eventsData.length.toString(),
-      grade: gradeValue,
-      gradeTitle: gradeTitle
-    };
-  }, [user?.role, newsData.length, eventsData.length]);
+  }, [userId, loadDashboardData, dashboardData.news.length]);
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadDashboardData();
+    setRefreshing(false);
+  };
+
+  const handleNewsPress = (newsId: number) => {
+    router.push(`/news/${newsId}`);
+  };
+
+  const handleEventPress = (eventId: number) => {
+    router.push(`/events/${eventId}`);
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -136,9 +112,37 @@ export default function HomeScreen() {
     safeArea: {
       flex: 1,
     },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      backgroundColor: 'transparent',
+    },
+    headerTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: isDarkMode ? '#FFFFFF' : '#1E3A8A',
+      letterSpacing: 1,
+    },
+    profileButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: isDarkMode ? '#2563EB' : '#3B82F6',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     scrollContainer: {
-      paddingHorizontal: padding,
-      paddingBottom: spacing.xl + spacing.lg, // 90 equivalent
+      paddingBottom: 20,
+    },
+    chartsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    chartContainer: {
+      flex: 1,
     },
   });
 
@@ -146,8 +150,8 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <LinearGradient
         colors={isDarkMode 
-          ? ['#0F172A', '#1E293B', '#334155']
-          : ['#FAFAFA', '#F8FAFC', '#EEF2F7']
+          ? ['#1E3A8A', '#2563EB', '#3B82F6']
+          : ['#EFF6FF', '#DBEAFE', '#BFDBFE']
         }
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -155,44 +159,69 @@ export default function HomeScreen() {
       />
       
       <SafeAreaView style={styles.safeArea}>
-        <AnimatedHeader 
-          userName={user?.first_name || user?.username || 'Пользователь'}
-          notificationCount={0}
-          onAvatarPress={() => router.push('/(tabs)/profile')}
-          onNotificationPress={() => setShowNotifications(prev => !prev)}
-        />
+        {/* Header */}
+        <View style={styles.header}>
+          <ThemedText style={styles.headerTitle}>UNIVERSITY</ThemedText>
+          <TouchableOpacity 
+            style={styles.profileButton}
+            onPress={() => router.push('/(tabs)/profile')}
+          >
+            <Ionicons 
+              name="person" 
+              size={20} 
+              color="#FFFFFF" 
+            />
+          </TouchableOpacity>
+        </View>
 
-        {showNotifications && (
-          <NotificationModal
-            isVisible={showNotifications}
-            onClose={() => setShowNotifications(false)}
-          />
-        )}
-
-        <AnimatedScrollView
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
+        <ScrollView
           showsVerticalScrollIndicator={false}
-          showsHorizontalScrollIndicator={false}
           refreshControl={
-            <CustomRefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh}
+              tintColor={isDarkMode ? '#FFFFFF' : '#1E3A8A'}
+            />
           }
           contentContainerStyle={styles.scrollContainer}
         >
-          <StatsSection statsData={statsData} />
-          
-          <QuickActionsSection userRole={user?.role} />
-          
-          <UpcomingEventsSection events={upcomingEvents} />
-          
-          <ImportantNewsSection news={importantNews} />
-          
-          <NewsSection news={newsData} />
-          
-          <DailyTipCard />
-          
-          <QuickLinksCard />
-        </AnimatedScrollView>
+          {/* News Section */}
+          <NewsCard 
+            news={dashboardData.news} 
+            onNewsPress={handleNewsPress}
+          />
+
+          {/* Events Section */}
+          <EventsCard 
+            events={dashboardData.events}
+            onEventPress={handleEventPress}
+          />
+
+          {/* Courses Section */}
+          <CourseProgressCard courses={dashboardData.courses} />
+
+          {/* Charts Row */}
+          <View style={styles.chartsRow}>
+            <View style={styles.chartContainer}>
+              <CircularChart
+                value={dashboardData.gpa}
+                maxValue={5}
+                title="Средний балл (GPA)"
+                color="#10B981"
+                suffix=""
+              />
+            </View>
+            <View style={styles.chartContainer}>
+              <CircularChart
+                value={dashboardData.attendance}
+                maxValue={100}
+                title="Посещаемость"
+                color="#F59E0B"
+                suffix="%"
+              />
+            </View>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );

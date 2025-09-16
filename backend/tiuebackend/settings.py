@@ -171,7 +171,7 @@ for folder in media_folders:
 
 # Base URL for absolute image URLs (fallback)
 # Prefer explicit env var `BASE_URL`. Default set to current ngrok tunnel.
-BASE_URL = config('BASE_URL', default='https://186b7c7318cf.ngrok-free.app')  # Обновляйте с текущим ngrok URL
+BASE_URL = config('BASE_URL', default='https://d40d84efd1a8.ngrok-free.app')  # Обновляйте с текущим ngrok URL
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
