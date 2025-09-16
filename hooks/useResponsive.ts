@@ -1,52 +1,86 @@
+import { useMemo } from 'react';
 import { useWindowDimensions } from 'react-native';
 
 export function useResponsive() {
   const { width, height } = useWindowDimensions();
   
-  // Определяем размер экрана (исправлена логика breakpoints)
-  const isExtraSmallScreen = width < 300; // Экстремально маленькие экраны (очень старые устройства)
-  const isVerySmallScreen = width < 320; // Очень маленькие экраны (старые устройства)
-  const isSmallScreen = width < 375;     // Маленькие экраны (iPhone SE, small Android)
-  const isMediumScreen = width >= 375 && width < 414; // Средние экраны (iPhone 8, etc)
-  const isLargeScreen = width >= 414;    // Большие экраны (iPhone Plus, Pro, большие Android)
-  
-  // Размеры карточек в зависимости от экрана
-  const cardGap = isExtraSmallScreen ? 6 : isVerySmallScreen ? 8 : isSmallScreen ? 8 : isMediumScreen ? 10 : 12;
-  const horizontalPadding = isExtraSmallScreen ? 8 : isVerySmallScreen ? 10 : isSmallScreen ? 12 : isMediumScreen ? 16 : 20;
-  
-  // Размеры карточек для главной страницы (2x2 grid)
-  const cardWidth = (width - (horizontalPadding * 2) - cardGap) / 2;
-  const cardHeight = isExtraSmallScreen ? 120 : isVerySmallScreen ? 130 : isSmallScreen ? 140 : isMediumScreen ? 150 : 160;
-  
-  // Адаптивная типографика
-  const fontSize = {
-    small: isExtraSmallScreen ? 10 : isVerySmallScreen ? 11 : isSmallScreen ? 12 : 13,
-    body: isExtraSmallScreen ? 12 : isVerySmallScreen ? 13 : isSmallScreen ? 14 : 16,
-    title: isExtraSmallScreen ? 16 : isVerySmallScreen ? 17 : isSmallScreen ? 18 : 20,
-    header: isExtraSmallScreen ? 20 : isVerySmallScreen ? 22 : isSmallScreen ? 24 : 28,
-  };
+  const responsiveValues = useMemo(() => {
+    // Простые и надёжные breakpoints
+    const isSmall = width < 360;      // Маленькие устройства
+    const isMedium = width >= 360 && width < 414; // Средние устройства  
+    const isLarge = width >= 414;     // Большие устройства
+    
+    // Базовые размеры
+    const padding = isSmall ? 12 : isMedium ? 16 : 20;
+    const gap = isSmall ? 8 : 12;
+    
+    // Размеры карточек для сетки 2x2 (уменьшены для лучшей адаптации)
+    const cardWidth = (width - (padding * 2) - gap) / 2;
+    const cardHeight = isSmall ? 100 : isMedium ? 120 : 140;
+    
+    // Адаптивная типографика (уменьшены размеры)
+    const typography = {
+      xs: isSmall ? 9 : 10,
+      sm: isSmall ? 11 : 12, 
+      md: isSmall ? 13 : 14,
+      lg: isSmall ? 15 : isMedium ? 16 : 18,
+      xl: isSmall ? 18 : isMedium ? 20 : 24,
+    };
 
-  const spacing = {
-    xs: isExtraSmallScreen ? 2 : isVerySmallScreen ? 3 : isSmallScreen ? 4 : 6,
-    sm: isExtraSmallScreen ? 6 : isVerySmallScreen ? 7 : isSmallScreen ? 8 : 10,
-    md: isExtraSmallScreen ? 8 : isVerySmallScreen ? 10 : isSmallScreen ? 12 : 16,
-    lg: isExtraSmallScreen ? 12 : isVerySmallScreen ? 14 : isSmallScreen ? 16 : 24,
-    xl: isExtraSmallScreen ? 16 : isVerySmallScreen ? 20 : isSmallScreen ? 24 : 32,
-  };
-  
-  return {
-    width,
-    height,
-    isExtraSmallScreen,
-    isVerySmallScreen,
-    isSmallScreen,
-    isMediumScreen,
-    isLargeScreen,
-    cardGap,
-    horizontalPadding,
-    cardWidth,
-    cardHeight,
-    fontSize,
-    spacing,
-  };
+    // Адаптивные отступы
+    const spacing = {
+      xs: isSmall ? 4 : 6,
+      sm: isSmall ? 8 : 12,
+      md: isSmall ? 12 : 16,
+      lg: isSmall ? 16 : 24,
+      xl: isSmall ? 24 : 32,
+    };
+
+    // Радиусы скругления
+    const borderRadius = {
+      sm: 8,
+      md: 12,
+      lg: 16,
+      xl: 20,
+    };
+
+    return {
+      // Screen info
+      width,
+      height,
+      isSmall,
+      isMedium, 
+      isLarge,
+      
+      // Layout
+      padding,
+      gap,
+      cardWidth,
+      cardHeight,
+      
+      // Typography
+      typography,
+      
+      // Spacing
+      spacing,
+      
+      // Border radius
+      borderRadius,
+      
+      // Legacy support (для обратной совместимости)
+      horizontalPadding: padding,
+      cardGap: gap,
+      isVerySmallScreen: isSmall,
+      isSmallScreen: isSmall,
+      isExtraSmallScreen: isSmall,
+      fontSize: {
+        small: typography.sm,
+        body: typography.md,
+        title: typography.lg,
+        header: typography.xl,
+      },
+    };
+  }, [width, height]);
+
+  return responsiveValues;
 }

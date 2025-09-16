@@ -6,12 +6,12 @@ import * as Haptics from 'expo-haptics';
 import React from 'react';
 import { Pressable, ViewStyle } from 'react-native';
 import Animated, {
-    interpolate,
-    runOnJS,
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
-    withTiming,
+  interpolate,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 import { ThemedText } from './ThemedText';
 
@@ -28,7 +28,7 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
   const scale = useSharedValue(1);
   const pressed = useSharedValue(0);
   const hovered = useSharedValue(0);
-  const { isSmallScreen, fontSize } = useResponsive();
+  const { isSmall, typography, spacing, borderRadius } = useResponsive();
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
 
@@ -111,18 +111,18 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
       style={[
         {
           flex: 1,
-          minWidth: 150,
-          maxWidth: 180,
-          height: 160,
-          borderRadius: 20,
+          minWidth: isSmall ? 120 : 140,
+          maxWidth: isSmall ? 160 : 180,
+          height: isSmall ? 110 : 130,
+          borderRadius: borderRadius.lg,
           borderWidth: 1,
           shadowColor: '#000',
           shadowOffset: {
             width: 0,
-            height: 6,
+            height: isSmall ? 4 : 6,
           },
-          shadowRadius: 10,
-          elevation: 8,
+          shadowRadius: isSmall ? 6 : 10,
+          elevation: isSmall ? 4 : 8,
         },
         animatedStyle,
         style,
@@ -132,8 +132,8 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
         style={[
           {
             flex: 1,
-            padding: 20,
-            borderRadius: 20,
+            padding: isSmall ? spacing.md : spacing.lg,
+            borderRadius: borderRadius.lg,
             justifyContent: 'space-between',
             alignItems: 'flex-start',
           },
@@ -143,19 +143,21 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
         <Animated.View style={iconStyle}>
           <Ionicons 
             name={icon} 
-            size={isSmallScreen ? 24 : 28} 
+            size={isSmall ? 20 : 24} 
             color={colors.primary}
           />
         </Animated.View>
         
         <ThemedText
           style={{
-            fontSize: fontSize.small,
-            lineHeight: fontSize.small * 1.4,
+            fontSize: typography.xs,
+            lineHeight: typography.xs * 1.3,
             color: colors.textSecondary,
-            letterSpacing: 0.5,
+            letterSpacing: 0.3,
             textTransform: 'uppercase',
+            textAlign: 'left',
           }}
+          numberOfLines={2}
         >
           {title}
         </ThemedText>

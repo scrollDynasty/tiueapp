@@ -43,8 +43,7 @@ export default function HomeScreen() {
     isVerySmallScreen, 
     isExtraSmallScreen,
     isSmallScreen,
-    isMediumScreen,
-    isLargeScreen,
+    isLarge,
     fontSize, 
     spacing, 
     width 

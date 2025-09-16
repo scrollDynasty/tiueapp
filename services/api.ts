@@ -162,23 +162,90 @@ class ApiService {
       // Ignore errors during logout
     }
     // Remove token from storage after backend call (or if it fails)
-    console.log('🗑️ Clearing token from storage');
+    if (__DEV__) {
+      console.log('🗑️ Clearing token from storage');
+    }
     await AsyncStorage.removeItem('authToken');
-    console.log('✅ Token cleared successfully');
+    
+    // Очищаем кеш пользователя и dashboard
+    this.clearUserCache();
+    this.clearDashboardCache();
+    
+    if (__DEV__) {
+      console.log('✅ Token and caches cleared successfully');
+    }
   }
 
   // Добавляем функцию для принудительной очистки storage
   async clearStorage(): Promise<void> {
-    console.log('🧹 Clearing all AsyncStorage');
+    if (__DEV__) {
+      console.log('🧹 Clearing all AsyncStorage');
+    }
     await AsyncStorage.clear();
-    console.log('✅ AsyncStorage cleared');
+    if (__DEV__) {
+      console.log('✅ AsyncStorage cleared');
+    }
   }
 
+  // Кешируем запрос текущего пользователя для предотвращения дублирования
+  private currentUserPromise: Promise<ApiResponse<User>> | null = null;
+  private currentUserCache: { data: ApiResponse<User>; timestamp: number } | null = null;
+  private readonly CACHE_DURATION = 30000; // 30 секунд
+
   async getCurrentUser(): Promise<ApiResponse<User>> {
-    console.log('👤 Getting current user...');
-    const result = await this.request<User>('/auth/me/');
-    console.log('👤 getCurrentUser result:', result.success ? 'Success' : `Failed: ${result.error}`);
-    return result;
+    // Проверяем кеш
+    if (this.currentUserCache && 
+        Date.now() - this.currentUserCache.timestamp < this.CACHE_DURATION) {
+      if (__DEV__) {
+        console.log('👤 getCurrentUser: returning cached result');
+      }
+      return this.currentUserCache.data;
+    }
+
+    // Если уже есть активный запрос, возвращаем его
+    if (this.currentUserPromise) {
+      if (__DEV__) {
+        console.log('👤 getCurrentUser: reusing existing promise');
+      }
+      return this.currentUserPromise;
+    }
+
+    if (__DEV__) {
+      console.log('👤 Getting current user...');
+    }
+
+    // Создаем новый запрос
+    this.currentUserPromise = this.request<User>('/auth/me/')
+      .then((result) => {
+        // Кешируем успешный результат
+        if (result.success) {
+          this.currentUserCache = {
+            data: result,
+            timestamp: Date.now()
+          };
+        }
+        
+        if (__DEV__) {
+          console.log('👤 getCurrentUser result:', result.success ? 'Success' : `Failed: ${result.error}`);
+        }
+        
+        return result;
+      })
+      .finally(() => {
+        // Очищаем промис после завершения
+        this.currentUserPromise = null;
+      });
+
+    return this.currentUserPromise;
+  }
+
+  // Метод для очистки кеша пользователя (например, при логауте)
+  clearUserCache(): void {
+    this.currentUserCache = null;
+    this.currentUserPromise = null;
+    if (__DEV__) {
+      console.log('👤 User cache cleared');
+    }
   }
 
   // User management (admin only)
@@ -257,42 +324,16 @@ class ApiService {
           formData.append('is_important', newsData.is_important.toString());
         }
 
-        // Создаем изображение для получения правильных данных
         const imageUri = newsData.image.uri;
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
+        const timestamp = Date.now();
+        const filename = `news_${timestamp}.jpg`;
         
-        const imageFile = await new Promise<File>((resolve, reject) => {
-          img.onload = () => {
-            // Создаем canvas для правильной обработки изображения
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            canvas.width = img.width;
-            canvas.height = img.height;
-            
-            if (ctx) {
-              ctx.drawImage(img, 0, 0);
-              
-              // Конвертируем в blob с правильным MIME типом
-              canvas.toBlob((blob) => {
-                if (blob) {
-                  const timestamp = Date.now();
-                  const filename = `news_${timestamp}.jpg`;
-                  const file = new File([blob], filename, { type: 'image/jpeg' });
-                  resolve(file);
-                } else {
-                  reject(new Error('Failed to create blob'));
-                }
-              }, 'image/jpeg', 0.8);
-            } else {
-              reject(new Error('Failed to get canvas context'));
-            }
-          };
-          
-          img.onerror = () => reject(new Error('Failed to load image'));
-          img.src = imageUri;
-        });
+        // Создаем объект для FormData в React Native
+        const imageFile = {
+          uri: imageUri,
+          type: 'image/jpeg',
+          name: filename,
+        } as any;
         
         // Добавляем файл в FormData
         formData.append('image', imageFile);
@@ -359,10 +400,12 @@ class ApiService {
       const url = `${API_BASE_URL}/events/`;
 
       // Log intent
-      console.log('🆕 createEvent(): preparing payload', {
-        hasImage: !!eventData.image,
-        title: eventData?.title,
-      });
+      if (__DEV__) {
+        console.log('🆕 createEvent(): preparing payload', {
+          hasImage: !!eventData.image,
+          title: eventData?.title,
+        });
+      }
 
       if (eventData.image) {
         const formData = new FormData();
@@ -377,57 +420,40 @@ class ApiService {
         }
 
         let imageUri = eventData.image.uri;
-        console.log('🖼 createEvent(): image object', eventData.image);
+        if (__DEV__) {
+          console.log('🖼 createEvent(): image object', eventData.image);
+        }
         if (!imageUri) {
-          console.warn('⚠️ createEvent(): image object missing uri');
+          if (__DEV__) {
+            console.warn('⚠️ createEvent(): image object missing uri');
+          }
         } else if (imageUri.startsWith('/')) {
           // Normalize plain path to file:// for Android
             imageUri = 'file://' + imageUri;
-            console.log('🛠 createEvent(): normalized uri ->', imageUri);
+            if (__DEV__) {
+              console.log('🛠 createEvent(): normalized uri ->', imageUri);
+            }
         }
 
         const now = new Date();
         const filename = `evt_${now.getTime()}.jpg`;
 
-        // Универсальный подход для всех платформ - создаем File объект как в createNews
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        
-        const imageFile = await new Promise<File>((resolve, reject) => {
-          img.onload = () => {
-            // Создаем canvas для правильной обработки изображения
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            
-            canvas.width = img.width;
-            canvas.height = img.height;
-            
-            if (ctx) {
-              ctx.drawImage(img, 0, 0);
-              
-              // Конвертируем в blob с правильным MIME типом
-              canvas.toBlob((blob) => {
-                if (blob) {
-                  const file = new File([blob], filename, { type: 'image/jpeg' });
-                  resolve(file);
-                } else {
-                  reject(new Error('Failed to create blob'));
-                }
-              }, 'image/jpeg', 0.8);
-            } else {
-              reject(new Error('Failed to get canvas context'));
-            }
-          };
-          
-          img.onerror = () => reject(new Error('Failed to load image'));
-          img.src = imageUri;
-        });
+        // React Native-совместимая обработка изображения
+        const imageFile = {
+          uri: imageUri,
+          type: 'image/jpeg',
+          name: filename,
+        } as any;
         
         // Добавляем файл в FormData
         formData.append('image', imageFile);
-        console.log('📤 createEvent(): added File object', { name: filename, type: imageFile.type, size: imageFile.size });
+        if (__DEV__) {
+          console.log('📤 createEvent(): added image object', { name: filename, uri: imageUri });
+        }
 
-        console.log('📤 createEvent(): sending multipart request', { url });
+        if (__DEV__) {
+          console.log('📤 createEvent(): sending multipart request', { url });
+        }
 
         let apiResponse: Response;
         try {
@@ -439,9 +465,11 @@ class ApiService {
             body: formData,
           });
         } catch (networkErr: any) {
-          console.error('🌐 createEvent(): network layer failure', networkErr?.message || networkErr);
-          console.log('💡 Hint: If using ngrok, ensure tunnel is active and device can reach it (same Wi-Fi, not asleep).');
-          console.log('↩️ Fallback: try create WITHOUT image');
+          if (__DEV__) {
+            console.error('🌐 createEvent(): network layer failure', networkErr?.message || networkErr);
+            console.log('💡 Hint: If using ngrok, ensure tunnel is active and device can reach it (same Wi-Fi, not asleep).');
+            console.log('↩️ Fallback: try create WITHOUT image');
+          }
           try {
             const fallback = await this.request<any>('/events/', {
               method: 'POST',
@@ -460,7 +488,9 @@ class ApiService {
             }
             return { success: false, error: 'Сеть недоступна (multipart) и fallback не удался' };
           } catch (fbErr) {
-            console.error('❌ createEvent(): fallback failed', fbErr);
+            if (__DEV__) {
+              console.error('❌ createEvent(): fallback failed', fbErr);
+            }
             return { success: false, error: 'Сеть недоступна (multipart)' };
           }
         }
@@ -469,15 +499,21 @@ class ApiService {
         try {
           data = await apiResponse.json();
         } catch (parseErr) {
-          console.error('🧩 createEvent(): JSON parse failed', parseErr);
+          if (__DEV__) {
+            console.error('🧩 createEvent(): JSON parse failed', parseErr);
+          }
         }
 
         if (!apiResponse.ok) {
-          console.error('❌ createEvent(): server responded with error status', apiResponse.status, data);
+          if (__DEV__) {
+            console.error('❌ createEvent(): server responded with error status', apiResponse.status, data);
+          }
           return { success: false, error: data?.error || data?.message || `HTTP ${apiResponse.status}` };
         }
 
-        console.log('✅ createEvent(): success (multipart)');
+        if (__DEV__) {
+          console.log('✅ createEvent(): success (multipart)');
+        }
         return { success: true, data: data?.data || data };
       } else {
         return this.request<any>('/events/', {
@@ -503,7 +539,9 @@ class ApiService {
 
   async deleteEvent(eventId: string): Promise<ApiResponse<void>> {
     try {
-      console.log('🔧 API deleteEvent: Starting delete for ID:', eventId);
+      if (__DEV__) {
+        console.log('🔧 API deleteEvent: Starting delete for ID:', eventId);
+      }
       
       const token = await AsyncStorage.getItem('authToken');
       const headers: Record<string, string> = {};
@@ -514,36 +552,48 @@ class ApiService {
       
       const url = `${API_BASE_URL}/events/${eventId}/`;
       
-      console.log('🔧 API deleteEvent: Making request to:', url);
-      console.log('🔧 API deleteEvent: Headers:', headers);
+      if (__DEV__) {
+        console.log('🔧 API deleteEvent: Making request to:', url);
+        console.log('🔧 API deleteEvent: Headers:', headers);
+      }
       
       const response = await fetch(url, {
         method: 'DELETE',
         headers: headers,
       });
 
-      console.log('🔧 API deleteEvent: Response status:', response.status);
-      console.log('🔧 API deleteEvent: Response ok:', response.ok);
+      if (__DEV__) {
+        console.log('🔧 API deleteEvent: Response status:', response.status);
+        console.log('🔧 API deleteEvent: Response ok:', response.ok);
+      }
 
       // DELETE возвращает 204 без контента, поэтому не парсим JSON
       if (response.ok) {
-        console.log('🔧 API deleteEvent: Success, returning');
+        if (__DEV__) {
+          console.log('🔧 API deleteEvent: Success, returning');
+        }
         return {
           success: true,
           data: undefined as any,
         };
       } else {
-        console.log('🔧 API deleteEvent: Response not ok, trying to parse error');
+        if (__DEV__) {
+          console.log('🔧 API deleteEvent: Response not ok, trying to parse error');
+        }
         // Только если есть ошибка, пытаемся парсить JSON
         try {
           const data = await response.json();
-          console.log('🔧 API deleteEvent: Error data:', data);
+          if (__DEV__) {
+            console.log('🔧 API deleteEvent: Error data:', data);
+          }
           return {
             success: false,
             error: data.error || data.message || `HTTP ${response.status}`,
           };
         } catch (parseError) {
-          console.log('🔧 API deleteEvent: Failed to parse error JSON:', parseError);
+          if (__DEV__) {
+            console.log('🔧 API deleteEvent: Failed to parse error JSON:', parseError);
+          }
           return {
             success: false,
             error: `HTTP ${response.status}`,
@@ -551,12 +601,91 @@ class ApiService {
         }
       }
     } catch (error) {
-      console.log('🔧 API deleteEvent: Caught exception:', error);
+      if (__DEV__) {
+        console.log('🔧 API deleteEvent: Caught exception:', error);
+      }
       return {
         success: false,
         error: 'Network error occurred',
       };
     }
+  }
+
+  // Кешируем dashboard данные
+  private dashboardPromise: Promise<ApiResponse<any>> | null = null;
+  private dashboardCache: { data: ApiResponse<any>; timestamp: number } | null = null;
+  private readonly DASHBOARD_CACHE_DURATION = 60000; // 1 минута
+
+  // Dashboard API
+  async getDashboard(): Promise<ApiResponse<{
+    news: Array<{ id: number; title: string; description: string; image: string | null; date: string }>;
+    events: Array<{ id: number; title: string; date: string; image: string | null }>;
+    courses: Array<{ id: number; name: string; progress: number }>;
+    gpa: number;
+    attendance: number;
+  }>> {
+    // Проверяем кеш
+    if (this.dashboardCache && 
+        Date.now() - this.dashboardCache.timestamp < this.DASHBOARD_CACHE_DURATION) {
+      if (__DEV__) {
+        console.log('📋 getDashboard: returning cached result');
+      }
+      return this.dashboardCache.data;
+    }
+
+    // Если уже есть активный запрос, возвращаем его
+    if (this.dashboardPromise) {
+      if (__DEV__) {
+        console.log('📋 getDashboard: reusing existing promise');
+      }
+      return this.dashboardPromise;
+    }
+
+    if (__DEV__) {
+      console.log('📋 Getting dashboard data...');
+    }
+
+    // Создаем новый запрос
+    this.dashboardPromise = this.request('/users/dashboard/')
+      .then((result) => {
+        // Кешируем успешный результат
+        if (result.success) {
+          this.dashboardCache = {
+            data: result,
+            timestamp: Date.now()
+          };
+        }
+        
+        if (__DEV__) {
+          console.log('📋 getDashboard result:', result.success ? 'Success' : `Failed: ${result.error}`);
+        }
+        
+        return result;
+      })
+      .finally(() => {
+        // Очищаем промис после завершения
+        this.dashboardPromise = null;
+      });
+
+    return this.dashboardPromise;
+  }
+
+  // Метод для очистки кеша dashboard
+  clearDashboardCache(): void {
+    this.dashboardCache = null;
+    this.dashboardPromise = null;
+    if (__DEV__) {
+      console.log('📋 Dashboard cache cleared');
+    }
+  }
+
+  // Отдельные методы для получения конкретной новости/события
+  async getNewsById(id: string): Promise<ApiResponse<any>> {
+    return this.request(`/news/${id}/`);
+  }
+
+  async getEventById(id: string): Promise<ApiResponse<any>> {
+    return this.request(`/events/${id}/`);
   }
 }
 
