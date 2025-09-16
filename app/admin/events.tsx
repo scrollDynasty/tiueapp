@@ -35,18 +35,6 @@ export default function EventsManagementScreen() {
   const { user } = useAppSelector((state) => state.auth);
   const { items: events, isLoading } = useAppSelector((state) => state.events);
   
-  // Добавляем логирование изменений events
-  React.useEffect(() => {
-    // Lightweight change log (only when length changes)
-    console.log(`📋 Events count: ${events.length}`);
-  }, [events.length]);
-
-  // Уберем принудительное обновление - оно может вызывать лишние рендеры
-  // const [forceUpdate, setForceUpdate] = React.useState(0);
-  // React.useEffect(() => {
-  //   setForceUpdate(prev => prev + 1);
-  // }, [events.length]); // Триггерим при изменении количества событий
-  
   const [title, setTitle] = React.useState('');
   const [description, setDescription] = React.useState('');
   const [location, setLocation] = React.useState('');

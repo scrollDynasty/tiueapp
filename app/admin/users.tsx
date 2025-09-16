@@ -96,10 +96,7 @@ export default function UsersManagementScreen() {
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // Загрузка пользователей при монтировании компонента
-  React.useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
+  // Загрузка пользователей выполняется автоматически в useUsersApi хуке
 
   // Фильтрация пользователей
   const filteredUsers = React.useMemo(() => {

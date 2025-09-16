@@ -1,7 +1,6 @@
 import { authApi } from '@/services/api';
 import { UserProfile } from '@/types';
 import { showToast } from '@/utils/toast';
-import * as SecureStore from 'expo-secure-store';
 import React from 'react';
 
 // Этот хук инкапсулирует всю логику для работы с API пользователей
@@ -10,25 +9,16 @@ export const useUsersApi = () => {
   const [isLoading, setIsLoading] = React.useState(true);
   const isMountedRef = React.useRef(true);
 
-  // Безопасное получение токена
-  const getSecureToken = React.useCallback(async (): Promise<string | null> => {
-    try {
-      return await SecureStore.getItemAsync('authToken');
-    } catch (error) {
-      console.error('CRITICAL: Could not get token from SecureStore.', error);
-      return null;
-    }
-  }, []);
 
-  // Обработка ошибок API
-  const handleApiError = React.useCallback((error: any, operation: string) => {
+  // Обработка ошибок API - убираем из useCallback чтобы не пересоздавать loadUsers
+  const handleApiError = (error: any, operation: string) => {
     console.error(`${operation} error:`, error);
     const message =
       error?.response?.data?.message ||
       error?.message ||
       `Произошла ошибка при ${operation.toLowerCase()}`;
     showToast(`Ошибка: ${message}`);
-  }, []);
+  };
 
   // Выполнение запроса с логикой повторных попыток
   const executeWithRetry = React.useCallback(async (
@@ -56,9 +46,6 @@ export const useUsersApi = () => {
     if (!isMountedRef.current) return;
     setIsLoading(true);
     try {
-      const token = await getSecureToken();
-      if (!token) throw new Error('No auth token');
-
       const response = await executeWithRetry(() => authApi.getUsers());
       if (isMountedRef.current && response.success && Array.isArray(response.data)) {
         setUsers(response.data);
@@ -75,7 +62,7 @@ export const useUsersApi = () => {
         setIsLoading(false);
       }
     }
-  }, [getSecureToken, executeWithRetry, handleApiError]);
+  }, [executeWithRetry]);
 
   // Изначальная загрузка данных
   React.useEffect(() => {
@@ -145,7 +132,7 @@ export const useUsersApi = () => {
     try {
         // API должен поддерживать сброс пароля отдельным эндпоинтом или через updateUser
         // Здесь предполагается, что updateUser может принимать только пароль
-        const response = await executeWithRetry(() => authApi.updateUser(userId, { password: newPassword }));
+        const response = await executeWithRetry(() => authApi.updateUser(userId, { password: newPassword } as any));
         if (response.success) {
             showToast('Пароль успешно изменен');
             return true;

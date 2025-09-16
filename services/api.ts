@@ -9,7 +9,6 @@ class ApiService {
     // Даем время AsyncStorage обновиться
     await new Promise(resolve => setTimeout(resolve, 100));
     const token = await AsyncStorage.getItem('authToken');
-    console.log('🔑 Token from storage:', token ? `${token.substring(0, 10)}...` : 'No token');
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -18,9 +17,6 @@ class ApiService {
     
     if (token && token !== 'undefined' && token !== 'null') {
       headers.Authorization = `Token ${token}`;
-      console.log('✅ Authorization header added');
-    } else {
-      console.log('❌ No valid token found');
     }
     
     return headers;
@@ -41,19 +37,16 @@ class ApiService {
       
       // Avoid logging URLs with sensitive identifiers
       // console.log(`🌐 Making request to: ${url}`); // REMOVED: may contain sensitive info (userId etc.)
-      console.log(`📋 Headers:`, JSON.stringify(finalHeaders, null, 2));
       
       const response = await fetch(url, {
         ...options,
         headers: finalHeaders,
       });
 
-      console.log(`📡 Response status: ${response.status}`);
       
       const data = await response.json();
 
       if (!response.ok) {
-        console.log(`❌ Request failed: ${response.status} - ${data.error || data.message}`);
         return {
           success: false,
           error: data.error || data.message || `HTTP ${response.status}`,
@@ -86,12 +79,9 @@ class ApiService {
       body: JSON.stringify(credentials),
     });
 
-    console.log('🌐 Login response status:', response.status);
-    console.log('🌐 Login response headers:', Object.fromEntries(response.headers.entries()));
 
     try {
       const data = await response.json();
-      console.log('📦 Raw server response:', JSON.stringify(data, null, 2));
 
       if (!response.ok) {
         let errorMessage = 'Ошибка входа';
@@ -119,7 +109,6 @@ class ApiService {
         data: data.data, // Всегда используем data.data для login endpoint
       };
       
-      console.log('🔍 Processed result:', JSON.stringify(result, null, 2));
 
       if (result.success && result.data) {
         if (__DEV__) {
