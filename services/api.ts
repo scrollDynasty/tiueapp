@@ -166,8 +166,13 @@ class ApiService {
       console.log('🗑️ Clearing token from storage');
     }
     await AsyncStorage.removeItem('authToken');
+    
+    // Очищаем кеш пользователя и dashboard
+    this.clearUserCache();
+    this.clearDashboardCache();
+    
     if (__DEV__) {
-      console.log('✅ Token cleared successfully');
+      console.log('✅ Token and caches cleared successfully');
     }
   }
 
@@ -182,15 +187,65 @@ class ApiService {
     }
   }
 
+  // Кешируем запрос текущего пользователя для предотвращения дублирования
+  private currentUserPromise: Promise<ApiResponse<User>> | null = null;
+  private currentUserCache: { data: ApiResponse<User>; timestamp: number } | null = null;
+  private readonly CACHE_DURATION = 30000; // 30 секунд
+
   async getCurrentUser(): Promise<ApiResponse<User>> {
+    // Проверяем кеш
+    if (this.currentUserCache && 
+        Date.now() - this.currentUserCache.timestamp < this.CACHE_DURATION) {
+      if (__DEV__) {
+        console.log('👤 getCurrentUser: returning cached result');
+      }
+      return this.currentUserCache.data;
+    }
+
+    // Если уже есть активный запрос, возвращаем его
+    if (this.currentUserPromise) {
+      if (__DEV__) {
+        console.log('👤 getCurrentUser: reusing existing promise');
+      }
+      return this.currentUserPromise;
+    }
+
     if (__DEV__) {
       console.log('👤 Getting current user...');
     }
-    const result = await this.request<User>('/auth/me/');
+
+    // Создаем новый запрос
+    this.currentUserPromise = this.request<User>('/auth/me/')
+      .then((result) => {
+        // Кешируем успешный результат
+        if (result.success) {
+          this.currentUserCache = {
+            data: result,
+            timestamp: Date.now()
+          };
+        }
+        
+        if (__DEV__) {
+          console.log('👤 getCurrentUser result:', result.success ? 'Success' : `Failed: ${result.error}`);
+        }
+        
+        return result;
+      })
+      .finally(() => {
+        // Очищаем промис после завершения
+        this.currentUserPromise = null;
+      });
+
+    return this.currentUserPromise;
+  }
+
+  // Метод для очистки кеша пользователя (например, при логауте)
+  clearUserCache(): void {
+    this.currentUserCache = null;
+    this.currentUserPromise = null;
     if (__DEV__) {
-      console.log('👤 getCurrentUser result:', result.success ? 'Success' : `Failed: ${result.error}`);
+      console.log('👤 User cache cleared');
     }
-    return result;
   }
 
   // User management (admin only)
@@ -554,6 +609,83 @@ class ApiService {
         error: 'Network error occurred',
       };
     }
+  }
+
+  // Кешируем dashboard данные
+  private dashboardPromise: Promise<ApiResponse<any>> | null = null;
+  private dashboardCache: { data: ApiResponse<any>; timestamp: number } | null = null;
+  private readonly DASHBOARD_CACHE_DURATION = 60000; // 1 минута
+
+  // Dashboard API
+  async getDashboard(): Promise<ApiResponse<{
+    news: Array<{ id: number; title: string; description: string; image: string | null; date: string }>;
+    events: Array<{ id: number; title: string; date: string; image: string | null }>;
+    courses: Array<{ id: number; name: string; progress: number }>;
+    gpa: number;
+    attendance: number;
+  }>> {
+    // Проверяем кеш
+    if (this.dashboardCache && 
+        Date.now() - this.dashboardCache.timestamp < this.DASHBOARD_CACHE_DURATION) {
+      if (__DEV__) {
+        console.log('📋 getDashboard: returning cached result');
+      }
+      return this.dashboardCache.data;
+    }
+
+    // Если уже есть активный запрос, возвращаем его
+    if (this.dashboardPromise) {
+      if (__DEV__) {
+        console.log('📋 getDashboard: reusing existing promise');
+      }
+      return this.dashboardPromise;
+    }
+
+    if (__DEV__) {
+      console.log('📋 Getting dashboard data...');
+    }
+
+    // Создаем новый запрос
+    this.dashboardPromise = this.request('/users/dashboard/')
+      .then((result) => {
+        // Кешируем успешный результат
+        if (result.success) {
+          this.dashboardCache = {
+            data: result,
+            timestamp: Date.now()
+          };
+        }
+        
+        if (__DEV__) {
+          console.log('📋 getDashboard result:', result.success ? 'Success' : `Failed: ${result.error}`);
+        }
+        
+        return result;
+      })
+      .finally(() => {
+        // Очищаем промис после завершения
+        this.dashboardPromise = null;
+      });
+
+    return this.dashboardPromise;
+  }
+
+  // Метод для очистки кеша dashboard
+  clearDashboardCache(): void {
+    this.dashboardCache = null;
+    this.dashboardPromise = null;
+    if (__DEV__) {
+      console.log('📋 Dashboard cache cleared');
+    }
+  }
+
+  // Отдельные методы для получения конкретной новости/события
+  async getNewsById(id: string): Promise<ApiResponse<any>> {
+    return this.request(`/news/${id}/`);
+  }
+
+  async getEventById(id: string): Promise<ApiResponse<any>> {
+    return this.request(`/events/${id}/`);
   }
 }
 

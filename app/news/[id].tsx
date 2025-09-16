@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useState } from 'react';
-import { Image, Modal, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Image, Modal, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -10,9 +10,9 @@ import { ThemedText } from '@/components/ThemedText';
 import { getThemeColors } from '@/constants/Colors';
 import { Spacing } from '@/constants/DesignTokens';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAppSelector } from '@/hooks/redux';
 import { useResponsive } from '@/hooks/useResponsive';
-import { formatDateYMD } from '@/utils/date';
+import { authApi } from '@/services/api';
+
 
 export default function NewsDetailScreen() {
   const { theme } = useTheme();
@@ -21,31 +21,104 @@ export default function NewsDetailScreen() {
   
   const { id } = useLocalSearchParams();
   const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [news, setNews] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
   const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
   // Динамическая высота изображения, которая обновляется при изменении размера окна/экрана
   const baseImageHeight = (isVerySmallScreen ? 0.3 : isSmallScreen ? 0.35 : 0.4) * viewportHeight;
   const imageHeight = Math.max(180, Math.min(baseImageHeight, 520));
   
-  // Приводим ID к строке и ищем новость
-  const newsId = Array.isArray(id) ? id[0] : id;
-  const newsItems = useAppSelector(state => state.news.items);
-  
-  const news = newsItems.find(item => {
-    // Приводим оба ID к строке для сравнения
-    const itemIdString = String(item.id);
-    const searchIdString = String(newsId);
-    return itemIdString === searchIdString;
-  });
+  // Стабилизируем newsId для предотвращения лишних перерендеров
+  const newsId = React.useMemo(() => {
+    return Array.isArray(id) ? id[0] : id;
+  }, [id]);
 
-  // Debug logs removed to reduce noise and overhead
+  // Используем ref для отслеживания состояния загрузки и предотвращения дублированных запросов
+  const loadingRef = React.useRef(false);
+  const isMountedRef = React.useRef(true);
+
+  React.useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const loadNews = React.useCallback(async () => {
+    if (!newsId || loadingRef.current) {
+      return; // Предотвращаем дублированные запросы
+    }
+
+    try {
+      loadingRef.current = true;
+      if (isMountedRef.current) {
+        setLoading(true);
+      }
+      
+      const response = await authApi.getNewsById(newsId);
+      
+      if (isMountedRef.current && response.success && response.data) {
+        setNews(response.data);
+      }
+    } catch (error) {
+      if (isMountedRef.current) {
+        console.error('Error loading news:', error);
+      }
+    } finally {
+      loadingRef.current = false;
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
+    }
+  }, [newsId]);
+
+  useEffect(() => {
+    if (newsId && !news) { // Загружаем только если новость еще не загружена
+      loadNews();
+    }
+  }, [newsId, loadNews, news]);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  };
+
+  if (loading) {
+    return (
+      <LinearGradient
+        colors={isDarkMode 
+          ? ['#1E3A8A', '#2563EB', '#3B82F6']
+          : ['#EFF6FF', '#DBEAFE', '#BFDBFE']
+        }
+        style={{ flex: 1 }}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={isDarkMode ? '#FFFFFF' : '#1E3A8A'} />
+          <ThemedText style={{ 
+            fontSize: 16,
+            color: isDarkMode ? '#FFFFFF' : '#1E3A8A',
+            marginTop: 16,
+            textAlign: 'center'
+          }}>
+            Загрузка новости...
+          </ThemedText>
+        </SafeAreaView>
+      </LinearGradient>
+    );
+  }
 
   if (!news) {
     return (
       <LinearGradient
         colors={isDarkMode 
-          ? ['#0F172A', '#1E293B', '#334155']
-          : ['#FFFFFF', '#F8FAFC', '#F1F5F9']
+          ? ['#1E3A8A', '#2563EB', '#3B82F6']
+          : ['#EFF6FF', '#DBEAFE', '#BFDBFE']
         }
         style={{ flex: 1 }}
         start={{ x: 0, y: 0 }}
@@ -58,10 +131,10 @@ export default function NewsDetailScreen() {
             alignItems: 'center',
             padding: isSmallScreen ? spacing.lg : Spacing.xl
           }}>
-            <Ionicons name="newspaper-outline" size={isSmallScreen ? 48 : 64} color={colors.textSecondary} />
+            <Ionicons name="newspaper-outline" size={isSmallScreen ? 48 : 64} color={isDarkMode ? '#94A3B8' : '#64748B'} />
             <ThemedText style={{ 
               fontSize: isSmallScreen ? 18 : 20,
-              color: colors.textSecondary,
+              color: isDarkMode ? '#94A3B8' : '#64748B',
               marginTop: isSmallScreen ? spacing.md : Spacing.m,
               textAlign: 'center'
             }}>
@@ -70,7 +143,7 @@ export default function NewsDetailScreen() {
             <Pressable
               onPress={() => router.back()}
               style={{
-                backgroundColor: colors.primary,
+                backgroundColor: isDarkMode ? '#2563EB' : '#3B82F6',
                 borderRadius: 12,
                 paddingHorizontal: isSmallScreen ? spacing.lg : Spacing.l,
                 paddingVertical: isSmallScreen ? spacing.md : Spacing.m,
@@ -93,8 +166,8 @@ export default function NewsDetailScreen() {
   return (
     <LinearGradient
       colors={isDarkMode 
-        ? ['#0F172A', '#1E293B', '#334155']
-        : ['#FFFFFF', '#F8FAFC', '#F1F5F9']
+        ? ['#1E3A8A', '#2563EB', '#3B82F6']
+        : ['#EFF6FF', '#DBEAFE', '#BFDBFE']
       }
       style={{ flex: 1 }}
       start={{ x: 0, y: 0 }}
@@ -259,7 +332,7 @@ export default function NewsDetailScreen() {
             zIndex: 5,
           }}
         >
-          {/* Адаптивная мета информация */}
+          {/* Красивая мета информация */}
           <View style={{ 
             flexDirection: 'row', 
             alignItems: 'center',
@@ -301,7 +374,7 @@ export default function NewsDetailScreen() {
                 color: colors.textSecondary,
                 marginLeft: 6,
               }}>
-                {formatDateYMD(news.date)}
+                {formatDate(news.created_at || news.date)}
               </ThemedText>
             </View>
           </View>

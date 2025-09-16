@@ -1,18 +1,14 @@
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { ThemedText } from '@/components/ThemedText';
-import { getThemeColors } from '@/constants/Colors';
-import { Colors, Shadows, Spacing, Typography } from '@/constants/DesignTokens';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { createEvent, deleteEvent, fetchEvents } from '@/store/slices/eventsSlice';
-import { formatDateYMD } from '@/utils/date';
-import { getImageUrl } from '@/utils/imageUtils';
+import { useAppSelector } from '@/hooks/redux';
+import { authApi } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import React from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, TextInput, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -26,169 +22,206 @@ const EVENT_CATEGORIES = [
 ];
 
 export default function EventsManagementScreen() {
-  // Debug render log removed to reduce noise
+  const { isDarkMode } = useTheme();
   
-  const { theme } = useTheme();
-  const themeColors = getThemeColors(theme === 'dark');
+  // Цвета в бело-синем стиле
+  const colors = {
+    background: isDarkMode ? '#1E3A8A' : '#EFF6FF',
+    surface: isDarkMode ? '#2563EB' : '#FFFFFF',
+    primary: isDarkMode ? '#60A5FA' : '#3B82F6',
+    text: isDarkMode ? '#FFFFFF' : '#1E3A8A',
+    textSecondary: isDarkMode ? '#E2E8F0' : '#64748B',
+    border: isDarkMode ? '#3B82F6' : '#DBEAFE',
+    error: '#EF4444',
+    success: '#10B981',
+  };
   
-  const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
-  const { items: events, isLoading } = useAppSelector((state) => state.events);
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   
-  const [title, setTitle] = React.useState('');
-  const [description, setDescription] = React.useState('');
-  const [location, setLocation] = React.useState('');
-  const [date, setDate] = React.useState('');
-  const [time, setTime] = React.useState('');
-  const [category, setCategory] = React.useState('university');
-  const [image, setImage] = React.useState<any>(null);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [location, setLocation] = useState('');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [category, setCategory] = useState('university');
+  const [image, setImage] = useState<any>(null);
 
   // Состояния для удаления события
-  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
-  const [eventToDelete, setEventToDelete] = React.useState<{ id: string; title: string } | null>(null);
-  
-  // Добавляем состояние для блокировки кнопки создания
-  const [isCreating, setIsCreating] = React.useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<{ id: string; title: string } | null>(null);
 
-  // Загружаем события при входе в компонент
-  React.useEffect(() => {
-    dispatch(fetchEvents());
-  }, [dispatch]);
+  // Загружаем события при открытии страницы
+  useEffect(() => {
+    loadEvents();
+  }, []);
+
+  const loadEvents = async () => {
+    try {
+      setLoading(true);
+      const response = await authApi.getEvents();
+      if (response.success && response.data) {
+        setEvents(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading events:', error);
+      Alert.alert('Ошибка', 'Не удалось загрузить события');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
 
   // Функция для форматирования даты (дд.мм.гггг)
-  const formatDate = (text: string) => {
-    // Удаляем все нецифровые символы
+  const formatDateInput = (text: string) => {
     const cleaned = text.replace(/\D/g, '');
-    
-    // Ограничиваем до 8 цифр
-    const limited = cleaned.slice(0, 8);
-    
-    // Добавляем точки в нужных местах
-    if (limited.length >= 3 && limited.length <= 4) {
-      return `${limited.slice(0, 2)}.${limited.slice(2)}`;
-    } else if (limited.length >= 5) {
-      return `${limited.slice(0, 2)}.${limited.slice(2, 4)}.${limited.slice(4)}`;
-    } else {
-      return limited;
+    const match = cleaned.match(/^(\d{0,2})(\d{0,2})(\d{0,4})$/);
+    if (match) {
+      const [, day, month, year] = match;
+      let formatted = day;
+      if (month) formatted += `.${month}`;
+      if (year) formatted += `.${year}`;
+      return formatted;
     }
+    return text;
   };
 
   // Функция для форматирования времени (чч:мм)
-  const formatTime = (text: string) => {
-    // Удаляем все нецифровые символы
+  const formatTimeInput = (text: string) => {
     const cleaned = text.replace(/\D/g, '');
-    
-    // Ограничиваем до 4 цифр
-    const limited = cleaned.slice(0, 4);
-    
-    // Добавляем двоеточие
-    if (limited.length >= 3) {
-      return `${limited.slice(0, 2)}:${limited.slice(2)}`;
-    } else {
-      return limited;
+    const match = cleaned.match(/^(\d{0,2})(\d{0,2})$/);
+    if (match) {
+      const [, hours, minutes] = match;
+      let formatted = hours;
+      if (minutes) formatted += `:${minutes}`;
+      return formatted;
     }
+    return text;
   };
 
-  // Функция для валидации даты
-  const validateDate = (dateString: string) => {
-    const regex = /^(\d{2})\.(\d{2})\.(\d{4})$/;
-    const match = dateString.match(regex);
-    
-    if (!match) return false;
-    
-    const [, day, month, year] = match;
-    const dayNum = parseInt(day, 10);
-    const monthNum = parseInt(month, 10);
-    const yearNum = parseInt(year, 10);
-    
-    // Проверяем базовые ограничения
-    if (dayNum < 1 || dayNum > 31) return false;
-    if (monthNum < 1 || monthNum > 12) return false;
-    if (yearNum < 2024 || yearNum > 2030) return false;
-    
-    // Проверяем валидность даты через объект Date
-    const dateObj = new Date(yearNum, monthNum - 1, dayNum);
-    return dateObj.getFullYear() === yearNum && 
-           dateObj.getMonth() === monthNum - 1 && 
-           dateObj.getDate() === dayNum;
-  };
-
-  // Функция для валидации времени
-  const validateTime = (timeString: string) => {
-    const regex = /^(\d{2}):(\d{2})$/;
-    const match = timeString.match(regex);
-    
-    if (!match) return false;
-    
-    const [, hours, minutes] = match;
-    const hoursNum = parseInt(hours, 10);
-    const minutesNum = parseInt(minutes, 10);
-    
-    return hoursNum >= 0 && hoursNum <= 23 && minutesNum >= 0 && minutesNum <= 59;
-  };
-
-  // Обработчики изменения полей с валидацией
-  const handleDateChange = (text: string) => {
-    const formatted = formatDate(text);
-    setDate(formatted);
-  };
-
-  const handleTimeChange = (text: string) => {
-    const formatted = formatTime(text);
-    setTime(formatted);
-  };
-
-  // Функция для выбора изображения
   const pickImage = async () => {
-    try {
-      const pickerOptions: any = {
-        allowsEditing: true,
-        aspect: [16, 9],
-        quality: 0.8,
-      };
-      // Try new API if available, else fallback to deprecated constant
-      if ((ImagePicker as any).MediaType) {
-        pickerOptions.mediaTypes = [(ImagePicker as any).MediaType.IMAGE];
-      } else {
-        // Fallback (will show deprecation warning but still works)
-        pickerOptions.mediaTypes = ImagePicker.MediaTypeOptions.Images;
-      }
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      Alert.alert('Разрешение требуется', 'Разрешите доступ к фотографиям для загрузки изображений');
+      return;
+    }
 
-      const result = await ImagePicker.launchImageLibraryAsync(pickerOptions);
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.8,
+    });
 
-      if (!result.canceled && result.assets && result.assets[0]) {
-        setImage(result.assets[0]);
-      }
-    } catch (error) {
-      Alert.alert('Ошибка', 'Не удалось выбрать изображение');
+    if (!result.canceled && result.assets[0]) {
+      setImage(result.assets[0]);
     }
   };
 
-  // Функция для удаления изображения
   const removeImage = () => {
     setImage(null);
+  };
+
+  const handleCreateEvent = async () => {
+    if (!title.trim() || !description.trim() || !location.trim() || !date.trim() || !time.trim()) {
+      Alert.alert('Ошибка', 'Заполните все поля');
+      return;
+    }
+
+    const eventData = {
+      title: title.trim(),
+      description: description.trim(),
+      location: location.trim(),
+      date: date.trim(),
+      time: time.trim(),
+      category,
+      image: image || undefined,
+    };
+
+    try {
+      setLoading(true);
+      const response = await authApi.createEvent(eventData);
+      
+      if (response.success) {
+        await loadEvents();
+        
+        // Очищаем форму
+        setTitle('');
+        setDescription('');
+        setLocation('');
+        setDate('');
+        setTime('');
+        setCategory('university');
+        setImage(null);
+        
+        Alert.alert('Успешно', 'Событие создано');
+      } else {
+        Alert.alert('Ошибка', response.error || 'Не удалось создать событие');
+      }
+    } catch (error) {
+      console.error('Create event error:', error);
+      Alert.alert('Ошибка', `Не удалось создать событие: ${error}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteEvent = (eventId: string, eventTitle: string) => {
+    setEventToDelete({ id: eventId, title: eventTitle });
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteEvent = async () => {
+    if (!eventToDelete) return;
+
+    try {
+      const response = await authApi.deleteEvent(eventToDelete.id);
+      
+      if (response.success) {
+        await loadEvents();
+        Alert.alert('Успешно', 'Событие удалено');
+      } else {
+        Alert.alert('Ошибка', response.error || 'Не удалось удалить событие');
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      Alert.alert('Ошибка', 'Не удалось удалить событие');
+    } finally {
+      setShowDeleteConfirm(false);
+      setEventToDelete(null);
+    }
   };
 
   // Проверяем права доступа
   if (!user || user.role !== 'admin') {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: Spacing.l }}>
-          <Ionicons name="shield-outline" size={64} color={themeColors.textSecondary} />
-          <ThemedText style={{ ...Typography.titleH2, color: themeColors.textSecondary, marginTop: Spacing.l }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 }}>
+          <Ionicons name="shield-outline" size={64} color={colors.textSecondary} />
+          <ThemedText style={{ fontSize: 20, fontWeight: 'bold', color: colors.textSecondary, marginTop: 24 }}>
             Доступ запрещен
           </ThemedText>
           <Pressable
             onPress={() => router.back()}
             style={{
-              backgroundColor: themeColors.primary,
-              paddingHorizontal: Spacing.l,
-              paddingVertical: Spacing.m,
+              backgroundColor: colors.primary,
+              paddingHorizontal: 24,
+              paddingVertical: 16,
               borderRadius: 12,
-              marginTop: Spacing.l,
+              marginTop: 24,
             }}
           >
-            <ThemedText style={{ ...Typography.body, color: 'white' }}>
+            <ThemedText style={{ fontSize: 16, color: 'white' }}>
               Назад
             </ThemedText>
           </Pressable>
@@ -197,820 +230,436 @@ export default function EventsManagementScreen() {
     );
   }
 
-  const handleAddEvent = async () => {
-    // Блокируем повторные вызовы
-    if (isCreating) {
-      console.log('⚠️ Create event already in progress, ignoring duplicate call');
-      return;
-    }
-
-    if (!title.trim() || !description.trim() || !location.trim() || !date.trim() || !time.trim()) {
-      Alert.alert('Ошибка', 'Заполните все поля');
-      return;
-    }
-
-    // Проверяем наличие изображения
-    if (!image) {
-      Alert.alert('Ошибка', 'Выберите изображение для события');
-      return;
-    }
-
-    // Валидация даты
-    if (!validateDate(date.trim())) {
-      Alert.alert('Ошибка', 'Введите корректную дату в формате дд.мм.гггг\nПример: 25.12.2024');
-      return;
-    }
-
-    // Валидация времени
-    if (!validateTime(time.trim())) {
-      Alert.alert('Ошибка', 'Введите корректное время в формате чч:мм\nПример: 14:30');
-      return;
-    }
-
-    // Проверка, что дата не в прошлом
-    const [day, month, year] = date.split('.');
-    const eventDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Сбрасываем время для корректного сравнения дат
-    
-    if (eventDate < today) {
-      Alert.alert('Ошибка', 'Дата события не может быть в прошлом');
-      return;
-    }
-
-    console.log('🆕 Starting event creation process');
-    setIsCreating(true);
-
-    const newEventData = {
-      title: title.trim(),
-      description: description.trim(),
-      location: location.trim(),
-      date: date.trim(),
-      time: time.trim(),
-      category: category as 'university' | 'club' | 'conference' | 'social' | 'sport',
-      max_participants: undefined,
-      image: image, // Изображение обязательно
-    };
-
-    try {
-      // Создаем событие через API
-      const result = await dispatch(createEvent(newEventData)).unwrap();
-      
-      console.log('✅ Event created successfully:', result);
-      
-      // Очищаем форму только после успешного создания
-      setTitle('');
-      setDescription('');
-      setLocation('');
-      setDate('');
-      setTime('');
-      setCategory('university');
-      setImage(null);
-      
-      Alert.alert('Успешно', 'Событие добавлено и сохранено в базе данных');
-    } catch (error: any) {
-      console.error('❌ Create event error:', error);
-      
-      // Показываем конкретную ошибку пользователю
-      const errorMessage = typeof error === 'string' ? error : 'Не удалось создать событие. Проверьте подключение к серверу.';
-      Alert.alert('Ошибка', errorMessage);
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
-  // Функция удаления события
-  const handleDeleteEvent = (eventId: string, eventTitle: string) => {
-    setEventToDelete({ id: eventId, title: eventTitle });
-    setShowDeleteConfirm(true);
-  };
-
-  // Подтверждение удаления события
-  const confirmDeleteEvent = async () => {
-    if (!eventToDelete) return;
-
-    try {
-      console.log('🗑️ Starting delete process for event:', eventToDelete.id);
-      console.log('📋 Events before delete:', events.map(e => ({ id: e.id, title: e.title })));
-      
-      try {
-        // Используем Redux action для удаления
-        const result = await dispatch(deleteEvent(eventToDelete.id)).unwrap();
-        console.log('✅ Delete action completed with result:', result);
-      } catch (deleteError) {
-        console.log('⚠️ Delete action failed, but will continue with refresh:', deleteError);
-      }
-      
-      // Принудительно обновляем список событий в любом случае
-      console.log('🔄 Force refreshing events list');
-      await dispatch(fetchEvents());
-      
-      // Закрываем модальное окно
-      setShowDeleteConfirm(false);
-      setEventToDelete(null);
-      
-      // Показываем уведомление об успешном удалении
-      Alert.alert('Успешно', 'Событие удалено');
-      
-    } catch (error) {
-      console.error('❌ Delete process error:', error);
-      
-      // Даже при ошибке попробуем обновить список
-      try {
-        await dispatch(fetchEvents());
-      } catch (fetchError) {
-        console.error('❌ Failed to refresh events:', fetchError);
-      }
-      
-      // Закрываем модальное окно даже при ошибке
-      setShowDeleteConfirm(false);
-      setEventToDelete(null);
-      
-      Alert.alert('Ошибка', 'Не удалось удалить событие. Проверьте подключение к серверу.');
-    }
-  };
-
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
-      <ScrollView 
-        showsVerticalScrollIndicator={false} 
-        contentContainerStyle={{ padding: Spacing.l }}
-      >
-        {/* Заголовок */}
-        <Animated.View entering={FadeInDown.duration(400)}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.l }}>
-            <Pressable
-              onPress={() => router.back()}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: themeColors.surface,
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginRight: Spacing.m,
-                ...Shadows.card,
-              }}
-            >
-              <Ionicons name="arrow-back" size={20} color={themeColors.text} />
-            </Pressable>
-            <ThemedText style={{ ...Typography.displayH1, color: themeColors.text }}>
-              Управление событиями
-            </ThemedText>
-          </View>
-        </Animated.View>
-
-        {/* Форма добавления события */}
-        <Animated.View 
-          entering={FadeInDown.duration(500).delay(200)}
-          style={{
-            backgroundColor: themeColors.surface,
-            borderRadius: 16,
-            padding: Spacing.l,
-            marginBottom: Spacing.l,
-            ...Shadows.card,
-          }}
+    <LinearGradient
+      colors={isDarkMode 
+        ? ['#1E3A8A', '#2563EB', '#3B82F6']
+        : ['#EFF6FF', '#DBEAFE', '#BFDBFE']
+      }
+      style={{ flex: 1 }}
+    >
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView 
+          showsVerticalScrollIndicator={false} 
+          contentContainerStyle={{ padding: 16 }}
         >
-          <ThemedText style={{ ...Typography.titleH2, color: themeColors.text, marginBottom: Spacing.m }}>
-            Добавить событие
-          </ThemedText>
-
-          {/* Название */}
-          <View style={{ marginBottom: Spacing.m }}>
-            <Text style={{ 
-              fontSize: 16, 
-              color: theme === 'dark' ? '#FFFFFF' : '#000000', 
-              marginBottom: Spacing.s
-            }}>
-              Название события
-            </Text>
-            <TextInput
-              value={title}
-              onChangeText={setTitle}
-              placeholder="Введите название события"
-              style={{
-                backgroundColor: themeColors.surfaceSecondary,
-                borderRadius: 12,
-                padding: Spacing.m,
-                fontSize: 16,
-                color: themeColors.text,
-              }}
-              placeholderTextColor={themeColors.textSecondary}
-            />
-          </View>
-
-          {/* Описание */}
-          <View style={{ marginBottom: Spacing.m }}>
-            <Text style={{ 
-              fontSize: 16, 
-              color: theme === 'dark' ? '#FFFFFF' : '#000000', 
-              marginBottom: Spacing.s
-            }}>
-              Описание
-            </Text>
-            <TextInput
-              value={description}
-              onChangeText={setDescription}
-              placeholder="Описание события"
-              multiline
-              numberOfLines={3}
-              style={{
-                backgroundColor: themeColors.surfaceSecondary,
-                borderRadius: 12,
-                padding: Spacing.m,
-                fontSize: 16,
-                color: themeColors.text,
-                minHeight: 80,
-                textAlignVertical: 'top',
-              }}
-              placeholderTextColor={themeColors.textSecondary}
-            />
-          </View>
-
-          {/* Место */}
-          <View style={{ marginBottom: Spacing.m }}>
-            <Text style={{ 
-              fontSize: 16, 
-              color: theme === 'dark' ? '#FFFFFF' : '#000000', 
-              marginBottom: Spacing.s
-            }}>
-              Место проведения
-            </Text>
-            <TextInput
-              value={location}
-              onChangeText={setLocation}
-              placeholder="Например: Актовый зал, Ауд. 101"
-              style={{
-                backgroundColor: themeColors.surfaceSecondary,
-                borderRadius: 12,
-                padding: Spacing.m,
-                fontSize: 16,
-                color: themeColors.text,
-              }}
-              placeholderTextColor={themeColors.textSecondary}
-            />
-          </View>
-
-          {/* Категория события */}
-          <View style={{ marginBottom: Spacing.m }}>
-            <Text style={{ 
-              fontSize: 16, 
-              color: theme === 'dark' ? '#FFFFFF' : '#000000', 
-              marginBottom: Spacing.s
-            }}>
-              Категория события
-            </Text>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              style={{ marginHorizontal: -4 }}
-              contentContainerStyle={{ paddingHorizontal: 4, gap: 8 }}
-            >
-              {EVENT_CATEGORIES.map((cat) => (
-                <Pressable
-                  key={cat.key}
-                  onPress={() => setCategory(cat.key)}
-                  style={{
-                    backgroundColor: category === cat.key ? cat.color : themeColors.surfaceSecondary,
-                    paddingHorizontal: 16,
-                    paddingVertical: 12,
-                    borderRadius: 12,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    minWidth: 120,
-                    borderWidth: 1,
-                    borderColor: category === cat.key ? cat.color : themeColors.border,
-                  }}
-                >
-                  <Ionicons 
-                    name={cat.icon as any} 
-                    size={18} 
-                    color={category === cat.key ? 'white' : themeColors.textSecondary} 
-                    style={{ marginRight: 8 }}
-                  />
-                  <ThemedText style={{
-                    color: category === cat.key ? 'white' : themeColors.text,
-                    fontSize: 14,
-                    opacity: category === cat.key ? 1 : 0.85,
-                  }}>
-                    {cat.label}
-                  </ThemedText>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
-
-          {/* Выбор изображения */}
-          <View style={{ marginBottom: Spacing.m }}>
-            <Text style={{ 
-              fontSize: 16, 
-              color: theme === 'dark' ? '#FFFFFF' : '#000000', 
-              marginBottom: Spacing.s
-            }}>
-              Изображение события (необязательно)
-            </Text>
-            
-            {image ? (
-              <View style={{
-                backgroundColor: themeColors.surfaceSecondary,
-                borderRadius: 12,
-                padding: Spacing.s,
-                alignItems: 'center',
-              }}>
-                <Image
-                  source={{ uri: image.uri }}
-                  style={{
-                    width: '100%',
-                    height: 200,
-                    borderRadius: 8,
-                    marginBottom: Spacing.s,
-                  }}
-                  resizeMode="cover"
-                />
-                <View style={{ flexDirection: 'row', gap: Spacing.s }}>
-                  <Pressable
-                    onPress={pickImage}
-                    style={{
-                      backgroundColor: themeColors.primary,
-                      paddingHorizontal: Spacing.m,
-                      paddingVertical: Spacing.s,
-                      borderRadius: 8,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Ionicons name="image-outline" size={16} color="white" style={{ marginRight: 6 }} />
-                    <Text style={{ color: 'white', fontSize: 14 }}>
-                      Изменить
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={removeImage}
-                    style={{
-                      backgroundColor: '#EF4444',
-                      paddingHorizontal: Spacing.m,
-                      paddingVertical: Spacing.s,
-                      borderRadius: 8,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Ionicons name="trash-outline" size={16} color="white" style={{ marginRight: 6 }} />
-                    <Text style={{ color: 'white', fontSize: 14 }}>
-                      Удалить
-                    </Text>
-                  </Pressable>
-                </View>
-              </View>
-            ) : (
+          {/* Заголовок */}
+          <Animated.View entering={FadeInDown.duration(400)}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24 }}>
               <Pressable
-                onPress={pickImage}
+                onPress={() => router.back()}
                 style={{
-                  backgroundColor: themeColors.surfaceSecondary,
-                  borderRadius: 12,
-                  padding: Spacing.l,
-                  alignItems: 'center',
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: colors.surface,
                   justifyContent: 'center',
-                  borderWidth: 2,
-                  borderColor: themeColors.border,
-                  borderStyle: 'dashed',
+                  alignItems: 'center',
+                  marginRight: 16,
+                  elevation: 2,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 4,
                 }}
               >
-                <Ionicons name="image-outline" size={32} color={themeColors.textSecondary} />
-                <Text style={{
-                  fontSize: 16,
-                  color: themeColors.textSecondary,
-                  marginTop: Spacing.s,
-                }}>
-                  Выбрать изображение
-                </Text>
-                <Text style={{
-                  fontSize: 13,
-                  color: themeColors.textSecondary,
-                  marginTop: 4,
-                }}>
-                  Нажмите для выбора изображения из галереи
-                </Text>
+                <Ionicons name="arrow-back" size={20} color={colors.text} />
               </Pressable>
-            )}
-          </View>
-
-          {/* Дата и время */}
-          <View style={{ flexDirection: 'row', gap: Spacing.m, marginBottom: Spacing.l }}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ 
-                fontSize: 16, 
-                color: theme === 'dark' ? '#FFFFFF' : '#000000', 
-                marginBottom: Spacing.s
-              }}>
-                Дата
-              </Text>
-              <TextInput
-                value={date}
-                onChangeText={handleDateChange}
-                placeholder="дд.мм.гггг"
-                keyboardType="numeric"
-                maxLength={10}
-                style={{
-                  backgroundColor: themeColors.surfaceSecondary,
-                  borderRadius: 12,
-                  padding: Spacing.m,
-                  fontSize: 16,
-                  color: themeColors.text,
-                  borderWidth: date && !validateDate(date) ? 2 : 0,
-                  borderColor: date && !validateDate(date) ? '#EF4444' : 'transparent',
-                }}
-                placeholderTextColor={themeColors.textSecondary}
-              />
-              {/* Подсказка для формата даты */}
-              <ThemedText style={{
-                fontSize: 12,
-                color: date && !validateDate(date) ? '#EF4444' : themeColors.textSecondary,
-                marginTop: 4,
-              }}>
-                Формат: дд.мм.гггг (например: 25.12.2024)
+              <ThemedText style={{ fontSize: 24, fontWeight: 'bold', color: colors.text }}>
+                Управление событиями
               </ThemedText>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ 
-                fontSize: 16, 
-                color: theme === 'dark' ? '#FFFFFF' : '#000000', 
-                marginBottom: Spacing.s
-              }}>
-                Время
-              </Text>
-              <TextInput
-                value={time}
-                onChangeText={handleTimeChange}
-                placeholder="чч:мм"
-                keyboardType="numeric"
-                maxLength={5}
-                style={{
-                  backgroundColor: themeColors.surfaceSecondary,
-                  borderRadius: 12,
-                  padding: Spacing.m,
-                  fontSize: 16,
-                  color: themeColors.text,
-                  borderWidth: time && !validateTime(time) ? 2 : 0,
-                  borderColor: time && !validateTime(time) ? '#EF4444' : 'transparent',
-                }}
-                placeholderTextColor={themeColors.textSecondary}
-              />
-              {/* Подсказка для формата времени */}
-              <ThemedText style={{
-                fontSize: 12,
-                color: time && !validateTime(time) ? '#EF4444' : themeColors.textSecondary,
-                marginTop: 4,
-              }}>
-                Формат: чч:мм (например: 14:30)
-              </ThemedText>
-            </View>
-          </View>
+          </Animated.View>
 
-          {/* Кнопка добавления */}
-          <Pressable
-            onPress={handleAddEvent}
-            disabled={isLoading || isCreating}
+          {/* Форма создания события */}
+          <Animated.View 
+            entering={FadeInDown.duration(500).delay(200)}
             style={{
-              backgroundColor: (isLoading || isCreating) ? Colors.strokeSoft : Colors.brandPrimary,
-              paddingVertical: Spacing.m,
-              borderRadius: 12,
-              alignItems: 'center',
-              flexDirection: 'row',
-              justifyContent: 'center',
+              backgroundColor: colors.surface,
+              borderRadius: 16,
+              padding: 16,
+              marginBottom: 24,
+              elevation: 3,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
             }}
           >
-            {(isLoading || isCreating) && (
-              <ActivityIndicator 
-                size="small" 
-                color={themeColors.textSecondary} 
-                style={{ marginRight: Spacing.s }} 
-              />
-            )}
-            <ThemedText style={{ 
-              ...Typography.body, 
-              color: (isLoading || isCreating) ? themeColors.textSecondary : 'white'
-            }}>
-              {isCreating ? 'Создание...' : isLoading ? 'Добавляем...' : 'Добавить событие'}
+            <ThemedText style={{ fontSize: 18, fontWeight: 'bold', color: colors.text, marginBottom: 16 }}>
+              Создать событие
             </ThemedText>
-          </Pressable>
-        </Animated.View>
 
-        {/* Список событий */}
-        <Animated.View entering={FadeInDown.duration(500).delay(400)}>
-          <ThemedText style={{ ...Typography.titleH2, color: themeColors.text, marginBottom: Spacing.m }}>
-            Существующие события ({Array.isArray(events) ? events.length : 0})
-          </ThemedText>
-          
-          {!Array.isArray(events) || events.length === 0 ? (
-            <View style={{
-              backgroundColor: themeColors.surface,
-              borderRadius: 12,
-              padding: Spacing.l,
-              alignItems: 'center',
-              ...Shadows.card,
-            }}>
-              <Ionicons name="calendar-outline" size={48} color={themeColors.textSecondary} />
-              <ThemedText style={{ ...Typography.body, color: themeColors.textSecondary, marginTop: Spacing.s }}>
-                События пока не созданы
+            {/* Название */}
+            <View style={{ marginBottom: 16 }}>
+              <ThemedText style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8 }}>
+                Название
               </ThemedText>
+              <TextInput
+                value={title}
+                onChangeText={setTitle}
+                placeholder="Введите название события"
+                style={{
+                  backgroundColor: isDarkMode ? '#334155' : '#F8FAFC',
+                  borderRadius: 12,
+                  padding: 12,
+                  fontSize: 16,
+                  color: colors.text,
+                }}
+                placeholderTextColor={colors.textSecondary}
+              />
             </View>
-          ) : (
-            <View style={{ gap: Spacing.m }}>
-              {events.map((item) => {
-                const categoryInfo = EVENT_CATEGORIES.find(cat => cat.key === item.category);
-                return (
-                  <Animated.View
-                    key={item.id}
-                    entering={FadeInDown.duration(300)}
-                    style={{
-                      backgroundColor: themeColors.surface,
-                      borderRadius: 16,
-                      padding: 0,
-                      overflow: 'hidden',
-                      ...Shadows.card,
-                      borderWidth: 1,
-                      borderColor: themeColors.border,
-                    }}
-                  >
-                    {/* Верхняя часть с градиентом */}
-                    <LinearGradient
-                      colors={categoryInfo ? [categoryInfo.color + '15', categoryInfo.color + '08'] : ['#6366F115', '#6366F108']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
+
+            {/* Описание */}
+            <View style={{ marginBottom: 16 }}>
+              <ThemedText style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8 }}>
+                Описание
+              </ThemedText>
+              <TextInput
+                value={description}
+                onChangeText={setDescription}
+                placeholder="Описание события"
+                multiline
+                numberOfLines={3}
+                style={{
+                  backgroundColor: isDarkMode ? '#334155' : '#F8FAFC',
+                  borderRadius: 12,
+                  padding: 12,
+                  fontSize: 16,
+                  color: colors.text,
+                  minHeight: 80,
+                  textAlignVertical: 'top',
+                }}
+                placeholderTextColor={colors.textSecondary}
+              />
+            </View>
+
+            {/* Место */}
+            <View style={{ marginBottom: 16 }}>
+              <ThemedText style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8 }}>
+                Место проведения
+              </ThemedText>
+              <TextInput
+                value={location}
+                onChangeText={setLocation}
+                placeholder="Введите место проведения"
+                style={{
+                  backgroundColor: isDarkMode ? '#334155' : '#F8FAFC',
+                  borderRadius: 12,
+                  padding: 12,
+                  fontSize: 16,
+                  color: colors.text,
+                }}
+                placeholderTextColor={colors.textSecondary}
+              />
+            </View>
+
+            {/* Дата и время */}
+            <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8 }}>
+                  Дата (дд.мм.гггг)
+                </ThemedText>
+                <TextInput
+                  value={date}
+                  onChangeText={(text) => setDate(formatDateInput(text))}
+                  placeholder="01.01.2024"
+                  keyboardType="numeric"
+                  maxLength={10}
+                  style={{
+                    backgroundColor: isDarkMode ? '#334155' : '#F8FAFC',
+                    borderRadius: 12,
+                    padding: 12,
+                    fontSize: 16,
+                    color: colors.text,
+                  }}
+                  placeholderTextColor={colors.textSecondary}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8 }}>
+                  Время (чч:мм)
+                </ThemedText>
+                <TextInput
+                  value={time}
+                  onChangeText={(text) => setTime(formatTimeInput(text))}
+                  placeholder="10:00"
+                  keyboardType="numeric"
+                  maxLength={5}
+                  style={{
+                    backgroundColor: isDarkMode ? '#334155' : '#F8FAFC',
+                    borderRadius: 12,
+                    padding: 12,
+                    fontSize: 16,
+                    color: colors.text,
+                  }}
+                  placeholderTextColor={colors.textSecondary}
+                />
+              </View>
+            </View>
+
+            {/* Категория */}
+            <View style={{ marginBottom: 16 }}>
+              <ThemedText style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8 }}>
+                Категория
+              </ThemedText>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={{ flexDirection: 'row', gap: 8 }}>
+                  {EVENT_CATEGORIES.map((cat) => (
+                    <Pressable
+                      key={cat.key}
+                      onPress={() => setCategory(cat.key)}
                       style={{
-                        padding: Spacing.l,
-                        paddingBottom: Spacing.m,
+                        backgroundColor: category === cat.key ? colors.primary : (isDarkMode ? '#334155' : '#F8FAFC'),
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        borderRadius: 12,
+                        alignItems: 'center',
+                        minWidth: 80,
                       }}
                     >
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.s }}>
-                        <View style={{ flex: 1, marginRight: Spacing.m }}>
-                          <Text style={{ 
-                            fontSize: 18, 
-                            color: theme === 'dark' ? '#FFFFFF' : '#000000', 
-                            marginBottom: 6 
-                          }}>
-                            {item.title}
-                          </Text>
-                          
-                          {/* Категория события */}
-                          {categoryInfo && (
-                            <View style={{
-                              flexDirection: 'row',
-                              alignItems: 'center',
-                              backgroundColor: categoryInfo.color + '20',
-                              paddingHorizontal: 12,
-                              paddingVertical: 6,
-                              borderRadius: 20,
-                              alignSelf: 'flex-start',
-                              borderWidth: 1,
-                              borderColor: categoryInfo.color + '30',
-                            }}>
-                              <Ionicons 
-                                name={categoryInfo.icon as any} 
-                                size={14} 
-                                color={categoryInfo.color} 
-                                style={{ marginRight: 6 }}
-                              />
-                              <Text style={{
-                                fontSize: 13,
-                                color: categoryInfo.color,
-                              }}>
-                                {categoryInfo.label}
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-                        
-                        {/* Кнопка удаления */}
-                        <Pressable
-                          onPress={() => handleDeleteEvent(item.id, item.title)}
-                          style={({ pressed }) => ({
-                            backgroundColor: pressed ? '#FEE2E2' : '#FECACA',
-                            width: 36,
-                            height: 36,
-                            borderRadius: 18,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            borderWidth: 1,
-                            borderColor: '#FCA5A5',
-                            opacity: pressed ? 0.8 : 1,
-                          })}
-                        >
-                          <Ionicons name="trash-outline" size={18} color="#DC2626" />
-                        </Pressable>
-                      </View>
-                    </LinearGradient>
-
-                    {/* Изображение события если есть */}
-                    {item.image && (
-                      <View style={{ position: 'relative' }}>
-                        <Image
-                          source={{ uri: getImageUrl(item.image) || undefined }}
-                          style={{
-                            width: '100%',
-                            height: 160,
-                          }}
-                          resizeMode="cover"
-                        />
-                        {/* Градиентный оверлей */}
-                        <LinearGradient
-                          colors={['transparent', 'rgba(0,0,0,0.1)', 'rgba(0,0,0,0.3)']}
-                          style={{
-                            position: 'absolute',
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            height: 40,
-                          }}
-                        />
-                      </View>
-                    )}
-
-                    {/* Основной контент */}
-                    <View style={{ padding: Spacing.l, paddingTop: 0 }}>
-                      {/* Описание */}
-                      <Text style={{ 
-                        fontSize: 15, 
-                        color: theme === 'dark' ? '#CCCCCC' : '#666666', 
-                        lineHeight: 22,
-                        marginBottom: Spacing.m 
+                      <Ionicons 
+                        name={cat.icon as any} 
+                        size={16} 
+                        color={category === cat.key ? 'white' : colors.textSecondary} 
+                      />
+                      <ThemedText style={{
+                        fontSize: 12,
+                        color: category === cat.key ? 'white' : colors.textSecondary,
+                        marginTop: 4,
                       }}>
-                        {item.description}
-                      </Text>
-                      
-                      {/* Информационные блоки */}
-                      <View style={{ 
-                        flexDirection: 'row', 
-                        backgroundColor: themeColors.surfaceSecondary, 
-                        borderRadius: 12, 
-                        padding: Spacing.m,
-                        gap: Spacing.l
-                      }}>
-                        {/* Дата и время */}
-                        <View style={{ flex: 1 }}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                            <View style={{
-                              width: 32,
-                              height: 32,
-                              borderRadius: 16,
-                              backgroundColor: '#6366F115',
-                              justifyContent: 'center',
-                              alignItems: 'center',
-                              marginRight: 10,
-                            }}>
-                              <Ionicons name="calendar-outline" size={16} color="#6366F1" />
-                            </View>
-                            <View>
-                              <Text style={{ 
-                                fontSize: 13, 
-                                color: theme === 'dark' ? '#CCCCCC' : '#666666'
-                              }}>
-                                Дата и время
-                              </Text>
-                              <Text style={{ 
-                                fontSize: 14, 
-                                color: theme === 'dark' ? '#FFFFFF' : '#000000'
-                              }}>
-                                {formatDateYMD(item.date)}
-                              </Text>
-                            </View>
-                          </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <View style={{
-                              width: 32,
-                              height: 32,
-                              borderRadius: 16,
-                              backgroundColor: '#8B5CF615',
-                              justifyContent: 'center',
-                              alignItems: 'center',
-                              marginRight: 10,
-                            }}>
-                              <Ionicons name="time-outline" size={16} color="#8B5CF6" />
-                            </View>
-                            <View>
-                              <Text style={{ 
-                                fontSize: 13, 
-                                color: theme === 'dark' ? '#CCCCCC' : '#666666'
-                              }}>
-                                Время
-                              </Text>
-                              <Text style={{ 
-                                fontSize: 14, 
-                                color: theme === 'dark' ? '#FFFFFF' : '#000000'
-                              }}>
-                                {item.time}
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
-                        
-                        {/* Место проведения */}
-                        <View style={{ flex: 1 }}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <View style={{
-                              width: 32,
-                              height: 32,
-                              borderRadius: 16,
-                              backgroundColor: '#EC489915',
-                              justifyContent: 'center',
-                              alignItems: 'center',
-                              marginRight: 10,
-                            }}>
-                              <Ionicons name="location-outline" size={16} color="#EC4899" />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                              <Text style={{ 
-                                fontSize: 13, 
-                                color: theme === 'dark' ? '#CCCCCC' : '#666666'
-                              }}>
-                                Место проведения
-                              </Text>
-                              <Text 
-                                numberOfLines={2}
-                                style={{ 
-                                  fontSize: 14, 
-                                  color: theme === 'dark' ? '#FFFFFF' : '#000000'
-                                }}
-                              >
-                                {item.location}
-                              </Text>
-                            </View>
-                          </View>
-                        </View>
-                      </View>
-                      
-                      {/* Статистика участников */}
-                      <View style={{ 
-                        flexDirection: 'row', 
-                        alignItems: 'center', 
-                        marginTop: Spacing.m,
-                        paddingTop: Spacing.m,
-                        borderTopWidth: 1,
-                        borderTopColor: Colors.strokeSoft
-                      }}>
-                        <View style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          backgroundColor: '#10B98115',
-                          paddingHorizontal: 12,
-                          paddingVertical: 6,
-                          borderRadius: 20,
-                          marginRight: Spacing.m,
-                        }}>
-                          <Ionicons name="people-outline" size={14} color="#10B981" style={{ marginRight: 4 }} />
-                          <ThemedText style={{ 
-                            fontSize: 13, 
-                            color: '#10B981'
-                          }}>
-                            {item.currentParticipants || 0} участников
-                          </ThemedText>
-                        </View>
-                        
-                        <View style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          backgroundColor: themeColors.surfaceSecondary,
-                          paddingHorizontal: 12,
-                          paddingVertical: 6,
-                          borderRadius: 20,
-                        }}>
-                          <Ionicons name="person-outline" size={14} color={themeColors.textSecondary} style={{ marginRight: 4 }} />
-                          <ThemedText style={{ 
-                            fontSize: 13, 
-                            color: themeColors.textSecondary
-                          }}>
-                            Администратор
-                          </ThemedText>
-                        </View>
-                      </View>
-                    </View>
-                  </Animated.View>
-                );
-              })}
+                        {cat.label}
+                      </ThemedText>
+                    </Pressable>
+                  ))}
+                </View>
+              </ScrollView>
             </View>
-          )}
-        </Animated.View>
-      </ScrollView>
 
-      {/* Модальное окно подтверждения удаления */}
-      <ConfirmationModal
-        isVisible={showDeleteConfirm}
-        title="Удалить событие?"
-        message={
-          eventToDelete 
-            ? `Вы уверены, что хотите удалить событие "${eventToDelete.title}"?\n\nЭто действие нельзя отменить!`
-            : ''
-        }
-        confirmText="Удалить"
-        cancelText="Отмена"
-        onConfirm={confirmDeleteEvent}
-        onCancel={() => {
-          setShowDeleteConfirm(false);
-          setEventToDelete(null);
-        }}
-        isDangerous={true}
-      />
-    </SafeAreaView>
+            {/* Изображение */}
+            <View style={{ marginBottom: 24 }}>
+              <ThemedText style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8 }}>
+                Изображение (необязательно)
+              </ThemedText>
+              
+              {image ? (
+                <View>
+                  <Image
+                    source={{ uri: image.uri }}
+                    style={{
+                      width: '100%',
+                      height: 200,
+                      borderRadius: 12,
+                      marginBottom: 8,
+                    }}
+                    resizeMode="cover"
+                  />
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <Pressable
+                      onPress={pickImage}
+                      style={{
+                        flex: 1,
+                        backgroundColor: colors.primary,
+                        borderRadius: 8,
+                        paddingVertical: 8,
+                        alignItems: 'center',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Ionicons name="image-outline" size={18} color="white" style={{ marginRight: 6 }} />
+                      <ThemedText style={{ color: 'white' }}>
+                        Заменить
+                      </ThemedText>
+                    </Pressable>
+                    <Pressable
+                      onPress={removeImage}
+                      style={{
+                        backgroundColor: colors.error + '20',
+                        borderRadius: 8,
+                        paddingVertical: 8,
+                        paddingHorizontal: 16,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Ionicons name="trash-outline" size={18} color={colors.error} />
+                    </Pressable>
+                  </View>
+                </View>
+              ) : (
+                <Pressable
+                  onPress={pickImage}
+                  style={{
+                    backgroundColor: isDarkMode ? '#334155' : '#F8FAFC',
+                    borderRadius: 12,
+                    padding: 24,
+                    alignItems: 'center',
+                    borderWidth: 2,
+                    borderColor: colors.border,
+                    borderStyle: 'dashed',
+                  }}
+                >
+                  <Ionicons name="cloud-upload-outline" size={32} color={colors.textSecondary} />
+                  <ThemedText style={{ 
+                    fontSize: 14,
+                    color: colors.textSecondary, 
+                    marginTop: 8,
+                    textAlign: 'center'
+                  }}>
+                    Нажмите для выбора изображения
+                  </ThemedText>
+                  <ThemedText style={{ 
+                    fontSize: 12,
+                    color: colors.textSecondary, 
+                    marginTop: 4,
+                    textAlign: 'center'
+                  }}>
+                    JPG, PNG до 10MB
+                  </ThemedText>
+                </Pressable>
+              )}
+            </View>
+
+            {/* Кнопка создания */}
+            <Pressable
+              onPress={handleCreateEvent}
+              disabled={loading}
+              style={{
+                backgroundColor: loading ? colors.border : colors.primary,
+                paddingVertical: 16,
+                borderRadius: 12,
+                alignItems: 'center',
+                flexDirection: 'row',
+                justifyContent: 'center',
+              }}
+            >
+              {loading && (
+                <ActivityIndicator 
+                  size="small" 
+                  color={colors.textSecondary} 
+                  style={{ marginRight: 8 }} 
+                />
+              )}
+              <ThemedText style={{ 
+                fontSize: 16,
+                fontWeight: '600',
+                color: loading ? colors.textSecondary : 'white'
+              }}>
+                {loading ? 'Создаем...' : 'Создать событие'}
+              </ThemedText>
+            </Pressable>
+          </Animated.View>
+
+          {/* Список событий */}
+          <Animated.View entering={FadeInDown.duration(500).delay(400)}>
+            <ThemedText style={{ fontSize: 18, fontWeight: 'bold', color: colors.text, marginBottom: 16 }}>
+              Существующие события ({events.length})
+            </ThemedText>
+            
+            {events.length === 0 ? (
+              <View style={{
+                backgroundColor: colors.surface,
+                borderRadius: 12,
+                padding: 24,
+                alignItems: 'center',
+                elevation: 2,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
+              }}>
+                <Ionicons name="calendar-outline" size={48} color={colors.textSecondary} />
+                <ThemedText style={{ fontSize: 14, color: colors.textSecondary, marginTop: 8 }}>
+                  События пока не созданы
+                </ThemedText>
+              </View>
+            ) : (
+              <View style={{ gap: 8 }}>
+                {events.map((event) => (
+                  <View
+                    key={event.id}
+                    style={{
+                      backgroundColor: colors.surface,
+                      borderRadius: 12,
+                      padding: 16,
+                      elevation: 2,
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.1,
+                      shadowRadius: 4,
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'flex-start', flex: 1 }}>
+                        {event.image && (
+                          <Image
+                            source={{ uri: event.image }}
+                            style={{
+                              width: 60,
+                              height: 60,
+                              borderRadius: 8,
+                              marginRight: 12,
+                            }}
+                            resizeMode="cover"
+                          />
+                        )}
+                        <View style={{ flex: 1 }}>
+                          <ThemedText style={{ fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 4 }}>
+                            {event.title}
+                          </ThemedText>
+                          <ThemedText style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 4 }}>
+                            {event.description}
+                          </ThemedText>
+                          <ThemedText style={{ fontSize: 12, color: colors.textSecondary }}>
+                            📍 {event.location}
+                          </ThemedText>
+                          <ThemedText style={{ fontSize: 12, color: colors.textSecondary, marginTop: 4 }}>
+                            📅 {formatDate(event.created_at || event.date)} в {event.time}
+                          </ThemedText>
+                        </View>
+                      </View>
+                      <Pressable
+                        onPress={() => handleDeleteEvent(event.id, event.title)}
+                        style={{
+                          backgroundColor: '#FEE2E2',
+                          width: 32,
+                          height: 32,
+                          borderRadius: 16,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          marginLeft: 8,
+                        }}
+                      >
+                        <Ionicons name="trash-outline" size={16} color="#DC2626" />
+                      </Pressable>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+          </Animated.View>
+        </ScrollView>
+
+        {/* Модальное окно подтверждения удаления */}
+        <ConfirmationModal
+          isVisible={showDeleteConfirm}
+          title="Удалить событие?"
+          message={
+            eventToDelete 
+              ? `Вы уверены, что хотите удалить событие "${eventToDelete.title}"?\n\nЭто действие нельзя отменить!`
+              : ''
+          }
+          confirmText="Удалить"
+          cancelText="Отмена"
+          onConfirm={confirmDeleteEvent}
+          onCancel={() => {
+            setShowDeleteConfirm(false);
+            setEventToDelete(null);
+          }}
+          isDangerous={true}
+        />
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
