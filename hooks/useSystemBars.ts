@@ -89,6 +89,7 @@ export const useImmersiveMode = () => {
     if (Platform.OS !== 'android') return;
 
     let lastVisibility = 'hidden';
+    let checkInterval: ReturnType<typeof setInterval> | null = null;
     
     const handleNavigationVisibilityChange = async () => {
       try {
@@ -110,10 +111,19 @@ export const useImmersiveMode = () => {
     };
 
     // Уменьшаем частоту проверки до 500мс
-    const checkInterval = setInterval(handleNavigationVisibilityChange, 500);
+    checkInterval = setInterval(handleNavigationVisibilityChange, 500);
 
     return () => {
-      clearInterval(checkInterval);
+      if (checkInterval) {
+        clearInterval(checkInterval);
+        checkInterval = null;
+      }
+      // Очищаем все refs при размонтировании
+      if (autoHideTimer.current) {
+        clearTimeout(autoHideTimer.current);
+        autoHideTimer.current = null;
+      }
+      isImmersiveActive.current = false;
     };
   }, [scheduleAutoHide]);
 
@@ -122,17 +132,31 @@ export const useImmersiveMode = () => {
     if (Platform.OS !== 'android') return;
 
     const subscription = AppState.addEventListener('change', handleAppStateChange);
+    let initTimer: ReturnType<typeof setTimeout> | null = null;
     
     // Активируем immersive режим при запуске с задержкой
-    setTimeout(() => {
+    initTimer = setTimeout(() => {
       enableImmersiveMode();
+      initTimer = null;
     }, 1000);
 
     // Cleanup
     return () => {
-      subscription?.remove();
+      if (subscription?.remove) {
+        subscription.remove();
+      } else if ('removeEventListener' in AppState) {
+        // Fallback для старых версий React Native
+        (AppState as any).removeEventListener('change', handleAppStateChange);
+      }
+      
+      if (initTimer) {
+        clearTimeout(initTimer);
+        initTimer = null;
+      }
+      
       if (autoHideTimer.current) {
         clearTimeout(autoHideTimer.current);
+        autoHideTimer.current = null;
       }
     };
   }, [enableImmersiveMode, handleAppStateChange]);
