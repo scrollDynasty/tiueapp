@@ -4,13 +4,13 @@ import { router } from 'expo-router';
 import React from 'react';
 import { Dimensions, FlatList, Platform, Pressable, View } from 'react-native';
 import Animated, {
-    FadeInDown,
-    FadeInLeft,
-    FadeInUp,
-    SlideInRight,
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring
+  FadeInDown,
+  FadeInLeft,
+  FadeInUp,
+  SlideInRight,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 

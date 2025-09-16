@@ -12,12 +12,8 @@ export const loginUser = createAsyncThunk<
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await authApi.login(credentials);
-      console.log('[AUTH_SLICE] Login API response:', JSON.stringify(response, null, 2));
       
       if (response.success && response.data) {
-        if (__DEV__) {
-          console.log('[AUTH_SLICE] Login data token exists:', !!response.data.token);
-        }
         return response.data;
       } else {
         return rejectWithValue(response.error || 'Login failed');
@@ -47,19 +43,15 @@ export const checkAuthStatus = createAsyncThunk<
   'auth/checkStatus',
   async (_, { rejectWithValue }) => {
     try {
-      console.log('[AUTH_SLICE] Checking auth status...');
       const response = await authApi.getCurrentUser();
       if (response.success && response.data) {
-        console.log('[AUTH_SLICE] Auth status check successful:', response.data);
         return response.data;
       } else {
-        console.log('[AUTH_SLICE] Auth status check failed:', response.error);
         // Очищаем невалидный токен
         await authApi.clearStorage();
         return rejectWithValue('Not authenticated');
       }
     } catch (error) {
-      console.error('[AUTH_SLICE] Auth status check error:', error);
       // Очищаем токен при ошибке
       await authApi.clearStorage();
       return rejectWithValue('Failed to check auth status');
@@ -108,7 +100,6 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         state.isAuthenticated = true;
         state.error = null;
-        console.log('[AUTH_SLICE] Login successful, token:', action.payload.token.substring(0, 10) + '...');
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;

@@ -24,11 +24,8 @@ function ImageWithRetry({ uri, style, resizeMode }: { uri?: string; style?: any;
     setAttempt((s) => s + 1);
   };
 
+  // Убираем cache-busting для предотвращения дублирования запросов
   const getUriWithCacheBuster = (baseUri: string) => {
-    if (Platform.OS === 'web' && baseUri) {
-      const separator = baseUri.includes('?') ? '&' : '?';
-      return `${baseUri}${separator}_cb=${Date.now()}_${attempt}`;
-    }
     return baseUri;
   };
 
