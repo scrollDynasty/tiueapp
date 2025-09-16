@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { useResponsive } from '@/hooks/useResponsive';
 import { fetchEvents, toggleEventRegistration } from '@/store/slices/eventsSlice';
 import { Event } from '@/types';
+import { getImageUrl } from '@/utils/imageUtils';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -13,7 +14,7 @@ import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, TouchableOpac
 import Animated, { FadeInDown, FadeInUp, SlideInRight } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Cross-platform Image with retry and improved error logging
+// Cross-platform Image with retry
 function ImageWithRetry({ uri, style, resizeMode }: { uri?: string; style?: any; resizeMode?: any }) {
   const [attempt, setAttempt] = React.useState(0);
   const [failed, setFailed] = React.useState(false);
@@ -21,6 +22,14 @@ function ImageWithRetry({ uri, style, resizeMode }: { uri?: string; style?: any;
   const reload = () => {
     setFailed(false);
     setAttempt((s) => s + 1);
+  };
+
+  const getUriWithCacheBuster = (baseUri: string) => {
+    if (Platform.OS === 'web' && baseUri) {
+      const separator = baseUri.includes('?') ? '&' : '?';
+      return `${baseUri}${separator}_cb=${Date.now()}_${attempt}`;
+    }
+    return baseUri;
   };
 
   if (!uri) return null;
@@ -40,7 +49,7 @@ function ImageWithRetry({ uri, style, resizeMode }: { uri?: string; style?: any;
     return (
       <div>
         <img
-          src={uri}
+          src={getUriWithCacheBuster(uri)}
           key={`${uri}:${attempt}`}
           style={style}
           loading="eager"
@@ -48,9 +57,8 @@ function ImageWithRetry({ uri, style, resizeMode }: { uri?: string; style?: any;
           decoding="async"
           {...(widthAttr ? { width: widthAttr } : {})}
           {...(heightAttr ? { height: heightAttr } : {})}
-          onLoad={() => console.log('[IMG:web] loaded:', uri)}
-          onError={(e) => {
-            console.error('[IMG:web] failed to load:', uri, e);
+          onLoad={() => {}}
+          onError={() => {
             setFailed(true);
           }}
         />
@@ -67,17 +75,11 @@ function ImageWithRetry({ uri, style, resizeMode }: { uri?: string; style?: any;
     <>
       <Image
         key={`${uri}:${attempt}`}
-        source={{ uri }}
+        source={{ uri: getUriWithCacheBuster(uri) }}
         style={style}
         resizeMode={resizeMode}
-        onLoad={() => console.log('[IMG] loaded:', uri)}
-        onError={(err) => {
-          // err.nativeEvent may contain useful info — stringify it for clarity
-          try {
-            console.error('[IMG] failed to load:', uri, JSON.stringify(err.nativeEvent));
-          } catch (e) {
-            console.error('[IMG] failed to load (no nativeEvent):', uri, err);
-          }
+        onLoad={() => {}}
+        onError={() => {
           setFailed(true);
         }}
       />
@@ -149,19 +151,6 @@ export default function EventsScreen() {
     };
   }, [dispatch]);
 
-  // Диагностический лог: выводим URL изображений при обновлении списка событий
-  React.useEffect(() => {
-    if (events && events.length > 0) {
-      console.log('[EVENTS] Loaded events count:', events.length);
-      events.forEach((ev: Event) => {
-        try {
-          console.log('[EVENTS] image URL ->', ev.image);
-        } catch (err) {
-          console.warn('[EVENTS] error logging event image', err);
-        }
-      });
-    }
-  }, [events]);
   
   const filteredEvents = React.useMemo(() => {
     return events.filter((event: Event) => {
@@ -422,7 +411,7 @@ export default function EventsScreen() {
                               hitSlop={8}
                             >
                               <ImageWithRetry
-                                uri={event.image}
+                                uri={getImageUrl(event.image) || undefined}
                                 style={{
                                   width: '100%',
                                   height: isExtraSmallScreen ? 80 : isVerySmallScreen ? 100 : isSmallScreen ? 120 : 140,

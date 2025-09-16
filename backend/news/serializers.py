@@ -32,19 +32,24 @@ class NewsSerializer(serializers.ModelSerializer):
         """Переопределяем представление для возврата полного URL изображения"""
         data = super().to_representation(instance)
         if instance.image:
-            request = self.context.get('request')
-            if request:
-                # Получаем полный URL
-                full_url = request.build_absolute_uri(instance.image.url)
-                # Принудительно используем HTTPS для ngrok
-                if 'ngrok' in full_url and full_url.startswith('http://'):
-                    full_url = full_url.replace('http://', 'https://', 1)
-                data['image'] = full_url
-            else:
-                # Fallback если нет request в context
-                from django.conf import settings
-                base_url = getattr(settings, 'BASE_URL', 'http://localhost:8000')
-                data['image'] = f"{base_url}{instance.image.url}"
+            # Всегда используем BASE_URL из настроек (.env файла)
+            from django.conf import settings
+            base_url = getattr(settings, 'BASE_URL', 'http://localhost:8000')
+            
+            # Убираем лишний слеш если есть
+            base_url = base_url.rstrip('/')
+            image_url = instance.image.url
+            if not image_url.startswith('/'):
+                image_url = '/' + image_url
+                
+            full_url = f"{base_url}{image_url}"
+            
+            # Принудительно используем HTTPS для ngrok
+            if 'ngrok' in full_url and full_url.startswith('http://'):
+                full_url = full_url.replace('http://', 'https://', 1)
+                
+            data['image'] = full_url
+            print(f"📸 [NEWS] Generated image URL: {full_url}")
         return data
     
     def create(self, validated_data):
@@ -72,19 +77,24 @@ class EventSerializer(serializers.ModelSerializer):
         """Переопределяем представление для возврата полного URL изображения"""
         data = super().to_representation(instance)
         if instance.image:
-            request = self.context.get('request')
-            if request:
-                # Получаем полный URL
-                full_url = request.build_absolute_uri(instance.image.url)
-                # Принудительно используем HTTPS для ngrok
-                if 'ngrok' in full_url and full_url.startswith('http://'):
-                    full_url = full_url.replace('http://', 'https://', 1)
-                data['image'] = full_url
-            else:
-                # Fallback если нет request в context
-                from django.conf import settings
-                base_url = getattr(settings, 'BASE_URL', 'http://localhost:8000')
-                data['image'] = f"{base_url}{instance.image.url}"
+            # Всегда используем BASE_URL из настроек (.env файла)
+            from django.conf import settings
+            base_url = getattr(settings, 'BASE_URL', 'http://localhost:8000')
+            
+            # Убираем лишний слеш если есть
+            base_url = base_url.rstrip('/')
+            image_url = instance.image.url
+            if not image_url.startswith('/'):
+                image_url = '/' + image_url
+                
+            full_url = f"{base_url}{image_url}"
+            
+            # Принудительно используем HTTPS для ngrok
+            if 'ngrok' in full_url and full_url.startswith('http://'):
+                full_url = full_url.replace('http://', 'https://', 1)
+                
+            data['image'] = full_url
+            print(f"📸 [EVENT] Generated image URL: {full_url}")
         return data
     
     

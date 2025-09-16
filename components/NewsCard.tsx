@@ -2,6 +2,7 @@ import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive } from '@/hooks/useResponsive';
 import { formatDateYMD } from '@/utils/date';
+import { getImageUrl } from '@/utils/imageUtils';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
@@ -125,7 +126,7 @@ const NewsCardComponent = ({
         {image && (
           <View style={{ position: 'relative' }}>
             <Image
-              source={{ uri: image }}
+              source={{ uri: getImageUrl(image) || image }}
               style={{
                 width: '100%',
                 height: imageHeight,
@@ -133,6 +134,8 @@ const NewsCardComponent = ({
                 borderTopRightRadius: 20,
               }}
               resizeMode="cover"
+              onError={() => console.log(`❌ [NewsCard] Failed to load image: ${image}`)}
+              onLoad={() => console.log(`✅ [NewsCard] Successfully loaded image: ${image}`)}
             />
             <LinearGradient
               colors={['transparent', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.6)']}

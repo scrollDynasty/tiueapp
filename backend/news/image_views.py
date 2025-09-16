@@ -55,6 +55,9 @@ class ImageProxyView(View):
                 # Добавляем заголовки кэширования
                 response['Cache-Control'] = 'public, max-age=86400'  # 24 часа
                 
+                # Добавляем заголовок для обхода предупреждения ngrok
+                response['ngrok-skip-browser-warning'] = 'true'
+                
                 return response
                 
         except IOError:

@@ -30,11 +30,10 @@ urlpatterns = [
     # path('api/schedule/', include('schedule.urls')),
 ]
 
-# Serve media files (принудительно для всех режимов)
+# Serve media files через кастомный view с правильными MIME типами
+from tiuebackend.media_views import MediaServeView
 urlpatterns += [
-    re_path(r'^media/(?P<path>.*)$', serve, {
-        'document_root': settings.MEDIA_ROOT,
-    }),
+    re_path(r'^media/(?P<path>.*)$', MediaServeView.as_view()),
 ]
 
 # Media files обрабатываются выше через re_path

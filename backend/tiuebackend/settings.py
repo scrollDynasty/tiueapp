@@ -30,20 +30,22 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-ih8*8x#9kf=@0s7ry9$2u
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-# Настройки для ngrok и продакшн
-ALLOWED_HOSTS = [
+# Настройки для ngrok и продакшн - читаем из .env
+# Базовые хосты
+base_hosts = [
     'localhost',
     '127.0.0.1',
     '0.0.0.0',
-    '70d07b3756cb.ngrok-free.app',  # Ваш текущий ngrok домен
-    '*.ngrok-free.app',  # На случай если домен изменится
-    '*.ngrok.io',  # Старый формат ngrok
 ]
 
-# Добавляем дополнительные хосты из переменных окружения если есть
-additional_hosts = config('ALLOWED_HOSTS', default='').split(',')
-if additional_hosts and additional_hosts != ['']:
-    ALLOWED_HOSTS.extend(additional_hosts)
+# Читаем дополнительные хосты из .env файла
+env_hosts = config('ALLOWED_HOSTS', default='').split(',')
+env_hosts = [host.strip() for host in env_hosts if host.strip()]  # Убираем пустые строки
+
+# Объединяем все хосты
+ALLOWED_HOSTS = base_hosts + env_hosts
+
+print(f"🔧 ALLOWED_HOSTS: {ALLOWED_HOSTS}")  # Для отладки
 
 
 # Application definition
@@ -160,9 +162,16 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Создаем папки для медиафайлов при запуске
+import os
+media_folders = ['news', 'events']
+for folder in media_folders:
+    folder_path = os.path.join(MEDIA_ROOT, folder)
+    os.makedirs(folder_path, exist_ok=True)
+
 # Base URL for absolute image URLs (fallback)
 # Prefer explicit env var `BASE_URL`. Default set to current ngrok tunnel.
-BASE_URL = config('BASE_URL', default='https://70d07b3756cb.ngrok-free.app')  # Обновляйте с текущим ngrok URL
+BASE_URL = config('BASE_URL', default='https://1c8d3caab6e1.ngrok-free.app')  # Обновляйте с текущим ngrok URL
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

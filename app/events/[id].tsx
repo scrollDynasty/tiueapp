@@ -12,6 +12,7 @@ import { Spacing } from '@/constants/DesignTokens';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAppSelector } from '@/hooks/redux';
 import { useResponsive } from '@/hooks/useResponsive';
+import { getImageUrl } from '@/utils/imageUtils';
 
 export default function EventDetailScreen() {
   const { theme } = useTheme();
@@ -133,7 +134,7 @@ export default function EventDetailScreen() {
           <Animated.View entering={FadeInUp.duration(600)}>
             <Pressable onPress={() => setImageModalVisible(true)}>
               <Image
-                source={{ uri: event.image }}
+                source={{ uri: getImageUrl(event.image) || undefined }}
                 style={{
                   width: '100%',
                   height: isVerySmallScreen ? 200 : isSmallScreen ? 250 : 300,
