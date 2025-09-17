@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dimensions, Platform, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
@@ -25,8 +25,26 @@ export const ImmersiveContainer: React.FC<ImmersiveContainerProps> = ({
   };
 
   const getTopPadding = () => {
-    if (Platform.OS !== 'android') return insets.top;
-    return includeStatusBar ? Math.max(insets.top, 24) : 0;
+    if (Platform.OS === 'android') {
+      return includeStatusBar ? Math.max(insets.top, 24) : 0;
+    }
+    
+    // iOS - исправляем проблему с Dynamic Island
+    if (Platform.OS === 'ios') {
+      // Dynamic Island устройства (iPhone 14 Pro/Max и новее)
+      if (insets.top >= 55) {
+        console.log('🏝️ Dynamic Island detected in ImmersiveContainer:', insets.top);
+         return 0; // Минимальный отступ 10px для Dynamic Island
+      }
+      // Обычные устройства iOS с челкой
+      if (insets.top >= 44) {
+        return 0; // Минимальный отступ 10px для старых устройств
+      }
+      // Старые устройства iOS
+      return 0; // Минимальный отступ 10px для старых устройств
+    }
+    
+    return insets.top;
   };
 
   return (

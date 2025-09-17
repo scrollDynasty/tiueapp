@@ -75,19 +75,19 @@ export default function ExploreScreen() {
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       />
       
-      <View style={{ flex: 1, paddingTop: insets.top }}>
+      <View style={{ flex: 1 }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : horizontalPadding,
-            paddingBottom: Math.max(insets.bottom + (isVerySmallScreen ? 140 : isSmallScreen ? 120 : 100), 120),
+            paddingBottom: isVerySmallScreen ? 160 : isSmallScreen ? 140 : 120, // Увеличиваем отступ для новой высоты табов
           }}
         >
           {/* Современный заголовок в стиле главной страницы */}
           <Animated.View 
             entering={FadeInUp.duration(600).springify()}
             style={{ 
-              paddingTop: spacing.sm,
+              paddingTop: insets.top + 10, // Контент заголовка под Dynamic Island + 10px
               marginBottom: spacing.sm,
             }}
           >
@@ -127,6 +127,7 @@ export default function ExploreScreen() {
                 <ThemedText
                   style={{
                     fontSize: isVerySmallScreen ? fontSize.title + 2 : fontSize.title + 6,
+                    lineHeight: isVerySmallScreen ? 24 : 32, // Добавляем lineHeight чтобы текст не обрезался
                     fontWeight: '800',
                     color: colors.text,
                     letterSpacing: 0.5,

@@ -216,11 +216,14 @@ export default function EventsScreen() {
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       />
       
-      <View style={{ flex: 1, paddingTop: insets.top }}>
+      <View style={{ flex: 1 }}>
         {/* Современный Header */}
         <Animated.View 
           entering={FadeInUp.duration(600).springify()}
-          style={[styles.header, { paddingHorizontal: spacing.lg }]}
+          style={[styles.header, { 
+            paddingHorizontal: spacing.lg,
+            paddingTop: insets.top + 10 // Контент заголовка под Dynamic Island + 10px
+          }]}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <View style={{
@@ -232,6 +235,7 @@ export default function EventsScreen() {
             }} />
             <ThemedText style={[styles.title, { 
               fontSize: isExtraSmallScreen ? fontSize.title - 2 : isVerySmallScreen ? fontSize.title : isSmallScreen ? 24 : 28,
+              lineHeight: isExtraSmallScreen ? 20 : isVerySmallScreen ? 24 : isSmallScreen ? 30 : 34, // Добавляем lineHeight чтобы текст не обрезался
               letterSpacing: -0.5,
               color: colors.text,
             }]}>
@@ -346,7 +350,7 @@ export default function EventsScreen() {
           }]} 
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ 
-            paddingBottom: isVerySmallScreen ? spacing.xl * 2 : isSmallScreen ? spacing.xl : spacing.lg, 
+            paddingBottom: isVerySmallScreen ? 160 : isSmallScreen ? 140 : 120, // Увеличиваем отступ для новой высоты табов 
             paddingTop: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg 
           }}
         >

@@ -320,7 +320,7 @@ export default function HomeScreen() {
         }
         contentContainerStyle={{
           paddingHorizontal: horizontalPadding,
-          paddingBottom: Math.max(insets.bottom + (isExtraSmallScreen ? 80 : isVerySmallScreen ? 85 : 90), 100),
+          paddingBottom: isExtraSmallScreen ? 110 : isVerySmallScreen ? 115 : 120, // Увеличиваем отступ для новой высоты табов
         }}
       >
 
