@@ -95,7 +95,7 @@ export const DailyTipCard = React.memo(({ tip }: DailyTipCardProps) => {
             </View>
             <View style={styles.headerTextContainer}>
               <ThemedText style={styles.title}>
-                💡 Совет дня
+                Совет дня
               </ThemedText>
               <ThemedText style={styles.subtitle}>
                 Мотивация для успешного обучения

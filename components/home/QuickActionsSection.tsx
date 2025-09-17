@@ -33,7 +33,7 @@ export const QuickActionsSection = React.memo(({ userRole }: QuickActionsSection
           marginBottom: spacing.md,
         }}
       >
-        🚀 Быстрые действия
+        Быстрые действия
       </ThemedText>
       <View
         style={{

@@ -467,7 +467,7 @@ class ApiService {
         } catch (networkErr: any) {
           if (__DEV__) {
             console.error('🌐 createEvent(): network layer failure', networkErr?.message || networkErr);
-            console.log('💡 Hint: If using ngrok, ensure tunnel is active and device can reach it (same Wi-Fi, not asleep).');
+            console.log('Hint: If using ngrok, ensure tunnel is active and device can reach it (same Wi-Fi, not asleep).');
             console.log('↩️ Fallback: try create WITHOUT image');
           }
           try {

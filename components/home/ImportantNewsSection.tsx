@@ -66,7 +66,7 @@ export const ImportantNewsSection = React.memo(({ news }: ImportantNewsSectionPr
     <Animated.View entering={SlideInRight.delay(500)} style={styles.container}>
       <View style={styles.header}>
         <ThemedText style={styles.title}>
-          ⚡ Важные новости
+          Важные новости
         </ThemedText>
         <Pressable
           style={styles.viewAllButton}

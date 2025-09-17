@@ -66,11 +66,11 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
   // Показать диалог выбора темы
   const showThemeSelector = React.useCallback(() => {
     Alert.alert(
-      '🎨 Выберите тему',
+      'Выберите тему',
       'Какую тему вы хотите использовать?',
       [
         { 
-          text: '☀️ Светлая', 
+          text: 'Светлая', 
           onPress: () => {
             setTheme('light');
           }
@@ -319,7 +319,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           marginBottom: Spacing.m,
           marginLeft: 4,
         }}>
-          📊 Успеваемость
+          Успеваемость
         </ThemedText>
         
         <SettingsItem
@@ -359,7 +359,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           marginBottom: Spacing.m,
           marginLeft: 4,
         }}>
-          ⚙️ Настройки
+          Настройки
         </ThemedText>
         
         <SettingsItem
@@ -505,7 +505,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 color: isDarkMode ? '#F1F5F9' : '#374151',
                 marginBottom: Spacing.m,
               }}>
-                📱 Общие настройки
+                Общие настройки
               </ThemedText>
 
               <SettingsItem

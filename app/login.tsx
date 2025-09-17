@@ -1,4 +1,5 @@
 import { LoadingAnimation } from '@/components/LoadingAnimation';
+import { SplashScreen } from '@/components/SplashScreen';
 import { getThemeColors } from '@/constants/Colors';
 import { Colors, Spacing } from '@/constants/DesignTokens';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -9,6 +10,7 @@ import { LoginCredentials } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
@@ -44,9 +46,14 @@ export default function LoginScreen() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const [showSplash, setShowSplash] = useState(true);
 
   const toggleShowPassword = React.useCallback(() => {
     setShowPassword(prev => !prev);
+  }, []);
+
+  const handleSplashFinish = React.useCallback(() => {
+    setShowSplash(false);
   }, []);
   const [showErrorMessage, setShowErrorMessage] = useState(false);
   
@@ -205,6 +212,11 @@ export default function LoginScreen() {
       { rotate: `${themeButtonRotation.value}deg` }
     ],
   }));
+
+  // Показываем SplashScreen в начале
+  if (showSplash) {
+    return <SplashScreen onAnimationFinish={handleSplashFinish} />;
+  }
 
   return (
     <View style={styles.container}>

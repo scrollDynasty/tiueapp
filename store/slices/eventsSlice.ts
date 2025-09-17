@@ -203,7 +203,7 @@ const eventsSlice = createSlice({
           // Создаем полностью новый массив для обеспечения реактивности
           state.items = [...filteredItems];
           const afterCount = state.items.length;
-          console.log(`📊 Events count: ${beforeCount} → ${afterCount} (removed: ${beforeCount - afterCount})`);
+          console.log(`Events count: ${beforeCount} → ${afterCount} (removed: ${beforeCount - afterCount})`);
           
           if (beforeCount === afterCount) {
             console.log('⚠️  WARNING: No events were removed! Check ID matching logic.');
