@@ -8,10 +8,10 @@ import {
   useSharedValue,
   withSpring
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Animation, Spacing } from '../constants/DesignTokens';
 import { useResponsive } from '../hooks/useResponsive';
 import { ThemedText } from './ThemedText';
-
 interface HeaderProps {
   userName: string;
   avatarUrl?: string;
@@ -31,6 +31,7 @@ export function AnimatedHeader({
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const bellScale = useSharedValue(1);
+  const insets = useSafeAreaInsets();
 
   const handleBellPress = () => {
     'worklet';
@@ -65,7 +66,7 @@ export function AnimatedHeader({
           justifyContent: 'space-between',
           alignItems: 'center',
           paddingHorizontal: Spacing.l,
-          paddingTop: Spacing.xl,
+          paddingTop: Math.max(insets.top + Spacing.m, Spacing.xl),
           paddingBottom: Spacing.m,
         }}
       >

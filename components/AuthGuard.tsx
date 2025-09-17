@@ -60,7 +60,8 @@ export default function AuthGuard({ children }: AuthGuardProps) {
       initializingRef.current = false;
       setIsInitializing(false);
     }
-  }, [dispatch]);
+  }, [dispatch, isAuthenticated]);
+
 
   useEffect(() => {
     // Запускаем только один раз при первой загрузке
@@ -80,6 +81,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
       router.replace('/login');
     }
   }, [isAuthenticated, isInitializing, loading, isPublicRoute]);
+
 
   // Для публичных маршрутов всегда показываем контент
   if (isPublicRoute) {

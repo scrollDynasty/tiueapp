@@ -9,7 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp, SlideInDown } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface ScheduleItem {
   time: string;
@@ -236,6 +236,7 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
 export default function ScheduleScreen() {
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
+  const insets = useSafeAreaInsets();
   const { isSmallScreen, spacing, isVerySmallScreen } = useResponsive();
   const [selectedDay, setSelectedDay] = React.useState<string>('Понедельник');
   const { user } = useAppSelector((state) => state.auth);
@@ -320,7 +321,7 @@ export default function ScheduleScreen() {
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       />
       
-      <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ flex: 1, paddingTop: insets.top }}>
         {/* Современный заголовок */}
         <Animated.View 
           entering={FadeInUp.duration(600).springify()}
@@ -440,7 +441,7 @@ export default function ScheduleScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
-            paddingBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : 100,
+            paddingBottom: Math.max(insets.bottom + (isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : 100), 120),
             paddingTop: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : 100,
           }}
         >
@@ -532,7 +533,7 @@ export default function ScheduleScreen() {
             </Animated.View>
           )}
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }

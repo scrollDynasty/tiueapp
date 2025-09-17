@@ -14,6 +14,7 @@ import { formatDateYMD } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import React from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -23,7 +24,6 @@ import Animated, {
   useAnimatedScrollHandler,
   useSharedValue
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
@@ -34,6 +34,7 @@ export default function HomeScreen() {
   const scrollY = useSharedValue(0);
   const [refreshing, setRefreshing] = React.useState(false);
   const [showNotifications, setShowNotifications] = React.useState(false);
+  const insets = useSafeAreaInsets();
   const { 
     horizontalPadding, 
     cardGap, 
@@ -295,13 +296,12 @@ export default function HomeScreen() {
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       />
       
-      <SafeAreaView style={{ flex: 1 }}>
-        <AnimatedHeader 
-          userName={user?.first_name || user?.username || 'Пользователь'}
-          notificationCount={0}
-          onAvatarPress={() => router.push('/(tabs)/profile')}
-          onNotificationPress={() => setShowNotifications(prev => !prev)}
-        />
+      <AnimatedHeader 
+        userName={user?.first_name || user?.username || 'Пользователь'}
+        notificationCount={0}
+        onAvatarPress={() => router.push('/(tabs)/profile')}
+        onNotificationPress={() => setShowNotifications(prev => !prev)}
+      />
 
       {showNotifications && (
         <NotificationModal
@@ -320,7 +320,7 @@ export default function HomeScreen() {
         }
         contentContainerStyle={{
           paddingHorizontal: horizontalPadding,
-          paddingBottom: isExtraSmallScreen ? 80 : isVerySmallScreen ? 85 : 90,
+          paddingBottom: Math.max(insets.bottom + (isExtraSmallScreen ? 80 : isVerySmallScreen ? 85 : 90), 100),
         }}
       >
 
@@ -1006,7 +1006,6 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
       </AnimatedScrollView>
-      </SafeAreaView>
     </View>
   );
 }
