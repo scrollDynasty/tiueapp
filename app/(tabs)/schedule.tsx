@@ -76,18 +76,18 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
         padding: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
         marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
         overflow: 'hidden',
-        shadowColor: isDarkMode ? '#000' : '#000',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: isDarkMode ? 0.4 : 0.12,
-        shadowRadius: 20,
-        elevation: isDarkMode ? 12 : 8,
+        shadowColor: colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 6,
       }}
     >
-      {/* Градиентный фон карточки */}
+      {/* Современный фон карточки */}
       <LinearGradient
         colors={isDarkMode 
-          ? ['rgba(30,41,59,0.9)', 'rgba(51,65,85,0.8)', 'rgba(71,85,105,0.7)']
-          : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)', 'rgba(241,245,249,0.7)']
+          ? [colors.surface, colors.surface]
+          : [colors.surface, colors.surface]
         }
         style={{
           position: 'absolute',
@@ -97,7 +97,7 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
           bottom: 0,
           borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
           borderWidth: 1,
-          borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+          borderColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
         }}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -237,7 +237,7 @@ export default function ScheduleScreen() {
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const insets = useSafeAreaInsets();
-  const { isSmallScreen, spacing, isVerySmallScreen } = useResponsive();
+  const { isSmallScreen, spacing, isVerySmallScreen, fontSize } = useResponsive();
   const [selectedDay, setSelectedDay] = React.useState<string>('Понедельник');
   const { user } = useAppSelector((state) => state.auth);
 
@@ -322,50 +322,70 @@ export default function ScheduleScreen() {
       />
       
       <View style={{ flex: 1 }}>
-        {/* Современный заголовок */}
+        {/* Современный заголовок в стиле главной страницы */}
         <Animated.View 
           entering={FadeInUp.duration(600).springify()}
           style={{ 
-            paddingHorizontal: Spacing.l, 
             paddingTop: insets.top + 10, // Контент заголовка под Dynamic Island + 10px
-            paddingBottom: Spacing.l,
+            marginBottom: spacing.sm,
+            paddingHorizontal: Spacing.l,
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.s }}>
-            <View style={{
-              width: 4,
-              height: 32,
-              backgroundColor: colors.primary,
-              borderRadius: 2,
-              marginRight: Spacing.s
-            }} />
-            <ThemedText
+          <View style={{ 
+            flexDirection: 'row', 
+            alignItems: 'center', 
+            marginBottom: spacing.md,
+            paddingBottom: spacing.sm,
+            borderBottomWidth: 1,
+            borderBottomColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
+          }}>
+            <LinearGradient
+              colors={[`${colors.primary}20`, `${colors.primary}10`]}
               style={{
-                fontSize: 28,
-                lineHeight: 34, // Добавляем lineHeight чтобы текст не обрезался
-                color: colors.text,
-                letterSpacing: -0.5,
+                width: isVerySmallScreen ? 48 : 56,
+                height: isVerySmallScreen ? 48 : 56,
+                borderRadius: isVerySmallScreen ? 24 : 28,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginRight: spacing.md,
+                borderWidth: 1,
+                borderColor: `${colors.primary}30`,
+                shadowColor: colors.primary,
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.2,
+                shadowRadius: 8,
+                elevation: 6,
               }}
             >
-              Расписание
-            </ThemedText>
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: Spacing.l }}>
-            <Ionicons 
-              name={user?.role === 'admin' ? 'settings-outline' : user?.role === 'professor' ? 'person-outline' : 'school-outline'} 
-              size={16} 
-              color={colors.textSecondary} 
-              style={{ marginRight: 8 }}
-            />
-            <ThemedText
-              style={{
-                fontSize: 16,
-                color: colors.textSecondary,
-                lineHeight: 24,
-              }}
-            >
-              {getUserGroupInfo()}
-            </ThemedText>
+              <Ionicons 
+                name="calendar" 
+                size={isVerySmallScreen ? 24 : 28} 
+                color={colors.primary} 
+              />
+            </LinearGradient>
+            <View style={{ flex: 1 }}>
+              <ThemedText
+                style={{
+                  fontSize: isVerySmallScreen ? fontSize.title + 2 : fontSize.title + 6,
+                  lineHeight: isVerySmallScreen ? 24 : 32,
+                  fontWeight: '800',
+                  color: colors.text,
+                  letterSpacing: 0.5,
+                  marginBottom: 4,
+                }}
+              >
+                Расписание
+              </ThemedText>
+              <ThemedText
+                style={{
+                  fontSize: fontSize.small,
+                  color: colors.textSecondary,
+                  fontWeight: '500',
+                }}
+              >
+                {getUserGroupInfo()}
+              </ThemedText>
+            </View>
           </View>
         </Animated.View>
 
@@ -374,8 +394,8 @@ export default function ScheduleScreen() {
           entering={SlideInDown.delay(200).duration(800).springify()}
           style={{ 
             paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l, 
-            marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.xl,
-            marginTop: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.l 
+            marginBottom: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : spacing.sm,
+            marginTop: 0 
           }}
         >
           <ScrollView 
@@ -395,19 +415,17 @@ export default function ScheduleScreen() {
                     borderRadius: isVerySmallScreen ? 14 : isSmallScreen ? 16 : 18,
                     marginRight: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
                     overflow: 'hidden',
-                    shadowColor: selectedDay === day ? colors.primary : (isDarkMode ? '#000' : '#000'),
-                    shadowOffset: { width: 0, height: selectedDay === day ? 8 : 4 },
-                    shadowOpacity: selectedDay === day ? 0.3 : (isDarkMode ? 0.4 : 0.08),
-                    shadowRadius: selectedDay === day ? 16 : 8,
+                    shadowColor: selectedDay === day ? colors.primary : colors.primary,
+                    shadowOffset: { width: 0, height: selectedDay === day ? 6 : 2 },
+                    shadowOpacity: selectedDay === day ? 0.25 : 0.08,
+                    shadowRadius: selectedDay === day ? 12 : 6,
                     elevation: selectedDay === day ? 8 : 4,
                   }}
                 >
                   <LinearGradient
                     colors={selectedDay === day 
-                      ? [colors.primary, colors.primary + 'DD']
-                      : isDarkMode 
-                        ? ['rgba(30,41,59,0.8)', 'rgba(51,65,85,0.6)']
-                        : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)']
+                      ? [colors.primary, colors.primary + 'E6']
+                      : [colors.surface, colors.surface]
                     }
                     style={{
                       paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l + 2,
@@ -416,7 +434,7 @@ export default function ScheduleScreen() {
                       borderWidth: 1,
                       borderColor: selectedDay === day 
                         ? colors.primary + '40'
-                        : isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
+                        : isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
                     }}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
@@ -444,7 +462,7 @@ export default function ScheduleScreen() {
           contentContainerStyle={{
             paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
             paddingBottom: isVerySmallScreen ? 130 : isSmallScreen ? 120 : 120, // Увеличиваем отступ для новой высоты табов
-            paddingTop: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : 100,
+            paddingTop: 0, // Убираем лишний отступ
           }}
         >
           {currentSchedule.length > 0 ? (
