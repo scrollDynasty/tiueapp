@@ -1,5 +1,4 @@
 import { LoadingAnimation } from '@/components/LoadingAnimation';
-import { SplashScreen } from '@/components/SplashScreen';
 import { getThemeColors } from '@/constants/Colors';
 import { Colors, Spacing } from '@/constants/DesignTokens';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -46,15 +45,11 @@ export default function LoginScreen() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
-  const [showSplash, setShowSplash] = useState(true);
 
   const toggleShowPassword = React.useCallback(() => {
     setShowPassword(prev => !prev);
   }, []);
 
-  const handleSplashFinish = React.useCallback(() => {
-    setShowSplash(false);
-  }, []);
   const [showErrorMessage, setShowErrorMessage] = useState(false);
   
   const dispatch = useAppDispatch();
@@ -213,10 +208,6 @@ export default function LoginScreen() {
     ],
   }));
 
-  // Показываем SplashScreen в начале
-  if (showSplash) {
-    return <SplashScreen onAnimationFinish={handleSplashFinish} />;
-  }
 
   return (
     <View style={styles.container}>

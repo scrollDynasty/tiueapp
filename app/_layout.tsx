@@ -11,6 +11,7 @@ import { Provider } from 'react-redux';
 
 import AuthGuard from '@/components/AuthGuard';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { SplashScreen } from '@/components/SplashScreen';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useImmersiveMode } from '@/hooks/useSystemBars';
@@ -20,6 +21,7 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+  const [showSplash, setShowSplash] = React.useState(true);
   
   const { enableImmersiveMode, reactivateImmersiveMode } = useImmersiveMode();
 
@@ -40,8 +42,11 @@ export default function RootLayout() {
     };
   }, [enableImmersiveMode, reactivateImmersiveMode]);
 
+  const handleSplashFinish = React.useCallback(() => {
+    setShowSplash(false);
+  }, []);
+
   if (!loaded) {
-    // Async font loading only occurs in development.
     return null;
   }
 
@@ -50,6 +55,9 @@ export default function RootLayout() {
       <Provider store={store}>
         <ThemeProvider>
           <SafeAreaProvider>
+            {showSplash ? (
+              <SplashScreen onAnimationFinish={handleSplashFinish} />
+            ) : (
             <View style={styles.container}>
               <StatusBar 
                 style="light" 
@@ -78,6 +86,7 @@ export default function RootLayout() {
                 </AuthGuard>
               </ErrorBoundary>
             </View>
+            )}
           </SafeAreaProvider>
         </ThemeProvider>
       </Provider>

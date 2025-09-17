@@ -12,7 +12,7 @@ import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp, SlideInRight } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Cross-platform Image with retry
 function ImageWithRetry({ uri, style, resizeMode }: { uri?: string; style?: any; resizeMode?: any }) {
@@ -102,6 +102,7 @@ export default function EventsScreen() {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const colors = getThemeColors(isDarkMode);
+  const insets = useSafeAreaInsets();
   const { isSmallScreen, spacing, fontSize, isVerySmallScreen, isExtraSmallScreen } = useResponsive();
   const dispatch = useAppDispatch();
   
@@ -215,7 +216,7 @@ export default function EventsScreen() {
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       />
       
-      <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ flex: 1, paddingTop: insets.top }}>
         {/* Современный Header */}
         <Animated.View 
           entering={FadeInUp.duration(600).springify()}
@@ -675,7 +676,7 @@ export default function EventsScreen() {
             )}
           </Animated.View>
         </ScrollView>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }
