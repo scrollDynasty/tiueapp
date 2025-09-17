@@ -366,11 +366,11 @@ export default function EventsScreen() {
                     marginBottom: spacing.md,
                     padding: 0,
                     overflow: 'hidden',
-                    shadowColor: isDarkMode ? '#000' : '#000',
-                    shadowOffset: { width: 0, height: 8 },
-                    shadowOpacity: isDarkMode ? 0.4 : 0.12,
-                    shadowRadius: 20,
-                    elevation: isDarkMode ? 12 : 8,
+                    shadowColor: colors.primary,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 8,
+                    elevation: 6,
                     // Исправлена минимальная высота для лучшей адаптивности
                     minHeight: isExtraSmallScreen ? 280 : isVerySmallScreen ? 300 : isSmallScreen ? 350 : 420,
                     // Добавлены защитные стили
@@ -379,24 +379,19 @@ export default function EventsScreen() {
                   }]}
                 >
                   <Pressable onPress={() => handleEventPress(event.id)} style={{ flex: 1 }}>
-                    {/* Градиентный фон карточки */}
-                    <LinearGradient
-                      colors={isDarkMode 
-                        ? ['rgba(30,41,59,0.9)', 'rgba(51,65,85,0.8)', 'rgba(71,85,105,0.7)']
-                        : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)', 'rgba(241,245,249,0.7)']
-                      }
+                    {/* Современный фон карточки */}
+                    <View
                       style={{
                         position: 'absolute',
                         top: 0,
                         left: 0,
                         right: 0,
                         bottom: 0,
+                        backgroundColor: colors.surface,
                         borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
                         borderWidth: 1,
-                        borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
+                        borderColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
                       }}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 1 }}
                     />
                     
                     {/* Содержимое карточки в flex контейнере */}
@@ -615,30 +610,25 @@ export default function EventsScreen() {
                   alignItems: 'center',
                   marginTop: spacing.lg,
                   overflow: 'hidden',
-                  shadowColor: isDarkMode ? '#000' : '#000',
-                  shadowOffset: { width: 0, height: 8 },
-                  shadowOpacity: isDarkMode ? 0.4 : 0.12,
-                  shadowRadius: 20,
-                  elevation: isDarkMode ? 12 : 8,
+                  shadowColor: colors.primary,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 8,
+                  elevation: 6,
                 }}
               >
-                <LinearGradient
-                  colors={isDarkMode 
-                    ? ['rgba(30,41,59,0.8)', 'rgba(51,65,85,0.6)', 'rgba(71,85,105,0.4)']
-                    : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)', 'rgba(241,245,249,0.7)']
-                  }
+                <View
                   style={{
                     position: 'absolute',
                     top: 0,
                     left: 0,
                     right: 0,
                     bottom: 0,
+                    backgroundColor: colors.surface,
                     borderRadius: isSmallScreen ? 20 : 24,
                     borderWidth: 1,
-                    borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
+                    borderColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
                   }}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
                 />
                 
                 <LinearGradient
