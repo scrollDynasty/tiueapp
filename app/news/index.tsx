@@ -163,7 +163,7 @@ export default function AllNewsScreen() {
                 fontSize: isVerySmallScreen ? fontSize.title : 28,
                 marginBottom: 4
               }}>
-                📰 University News
+                University News
               </ThemedText>
               <View style={{
                 flexDirection: 'row',
@@ -249,7 +249,7 @@ export default function AllNewsScreen() {
               marginBottom: spacing.sm,
               textAlign: 'center',
             }}>
-              📰 No News Yet
+              No News Yet
             </ThemedText>
             <ThemedText style={{ 
               ...Typography.body, 

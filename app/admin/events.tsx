@@ -612,10 +612,10 @@ export default function EventsManagementScreen() {
                             {event.description}
                           </ThemedText>
                           <ThemedText style={{ fontSize: 12, color: colors.textSecondary }}>
-                            📍 {event.location}
+                            {event.location}
                           </ThemedText>
                           <ThemedText style={{ fontSize: 12, color: colors.textSecondary, marginTop: 4 }}>
-                            📅 {formatDate(event.created_at || event.date)} в {event.time}
+                            {formatDate(event.created_at || event.date)} в {event.time}
                           </ThemedText>
                         </View>
                       </View>

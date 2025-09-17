@@ -23,9 +23,11 @@ interface EventItem {
 interface EventsCardProps {
   events: EventItem[];
   onEventPress?: (eventId: string | number) => void;
+  containerStyle?: object;
+  horizontalPadding?: number;
 }
 
-export const EventsCard: React.FC<EventsCardProps> = ({ events, onEventPress }) => {
+export const EventsCard: React.FC<EventsCardProps> = ({ events, onEventPress, containerStyle, horizontalPadding = 16 }) => {
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const { fontSize, spacing, isExtraSmallScreen, isVerySmallScreen } = useResponsive();
@@ -53,13 +55,14 @@ export const EventsCard: React.FC<EventsCardProps> = ({ events, onEventPress }) 
 
   const styles = StyleSheet.create({
     container: {
-      marginBottom: spacing.lg,
+      paddingHorizontal: horizontalPadding,
+      marginBottom: spacing.xl,
+      ...containerStyle,
     },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: spacing.md,
-      paddingHorizontal: isExtraSmallScreen ? 4 : 0,
     },
     headerIcon: {
       width: isExtraSmallScreen ? 28 : isVerySmallScreen ? 30 : 32,
@@ -250,7 +253,7 @@ export const EventsCard: React.FC<EventsCardProps> = ({ events, onEventPress }) 
           <View style={styles.headerIcon}>
             <Ionicons name="calendar" size={isExtraSmallScreen ? 14 : 16} color={colors.primary} />
           </View>
-          <ThemedText style={styles.headerTitle}>📅 События</ThemedText>
+          <ThemedText style={styles.headerTitle}>События</ThemedText>
         </View>
         
         <View style={styles.emptyState}>
@@ -272,7 +275,7 @@ export const EventsCard: React.FC<EventsCardProps> = ({ events, onEventPress }) 
         <View style={styles.headerIcon}>
           <Ionicons name="calendar" size={isExtraSmallScreen ? 14 : 16} color={colors.primary} />
         </View>
-        <ThemedText style={styles.headerTitle}>📅 События</ThemedText>
+        <ThemedText style={styles.headerTitle}>События</ThemedText>
         <TouchableOpacity style={styles.viewAllButton}>
           <ThemedText style={styles.viewAllText}>Все</ThemedText>
         </TouchableOpacity>
@@ -323,7 +326,7 @@ export const EventsCard: React.FC<EventsCardProps> = ({ events, onEventPress }) 
                         </ThemedText>
                         {(item.location || item.time) && (
                           <ThemedText style={styles.eventSubInfo} numberOfLines={1}>
-                            {item.location && `📍 ${item.location}`}
+                            {item.location && `${item.location}`}
                             {item.location && item.time && ' • '}
                             {item.time && `🕐 ${item.time}`}
                           </ThemedText>
@@ -353,7 +356,7 @@ export const EventsCard: React.FC<EventsCardProps> = ({ events, onEventPress }) 
                       </ThemedText>
                       {item.location && (
                         <ThemedText style={styles.noImageLocation} numberOfLines={1}>
-                          📍 {item.location}
+                          {item.location}
                         </ThemedText>
                       )}
                       {item.time && (

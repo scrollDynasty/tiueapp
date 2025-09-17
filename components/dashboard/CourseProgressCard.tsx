@@ -17,11 +17,15 @@ interface Course {
 interface CourseProgressCardProps {
   courses: Course[];
   onCoursePress?: (courseId: number) => void;
+  containerStyle?: object;
+  horizontalPadding?: number;
 }
 
 export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({ 
   courses, 
-  onCoursePress 
+  onCoursePress,
+  containerStyle,
+  horizontalPadding = 16
 }) => {
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
@@ -35,7 +39,9 @@ export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
 
   const styles = StyleSheet.create({
     container: {
-      margin: 16,
+      paddingHorizontal: horizontalPadding,
+      marginBottom: 24,
+      ...containerStyle,
     },
     header: {
       flexDirection: 'row',
@@ -70,22 +76,23 @@ export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
       color: '#8B5CF6',
     },
     coursesContainer: {
-      gap: 12,
+      gap: 16,
     },
     courseCard: {
-      borderRadius: 16,
+      borderRadius: 20,
       backgroundColor: colors.surface,
-      elevation: 3,
+      elevation: 4,
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.12,
+      shadowRadius: 6,
       overflow: 'hidden',
       borderWidth: 1,
-      borderColor: '#8B5CF6' + '10',
+      borderColor: '#8B5CF6' + '15',
+      marginHorizontal: 2, // Небольшой отступ для тени
     },
     courseContent: {
-      padding: 16,
+      padding: 20,
     },
     courseHeader: {
       flexDirection: 'row',
@@ -167,7 +174,7 @@ export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
           <View style={styles.headerIcon}>
             <Ionicons name="book" size={20} color="#FFFFFF" />
           </View>
-          <ThemedText style={styles.headerTitle}>📚 Курсы</ThemedText>
+          <ThemedText style={styles.headerTitle}>Курсы</ThemedText>
         </View>
         
         <View style={styles.emptyState}>
@@ -189,7 +196,7 @@ export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
         <View style={styles.headerIcon}>
           <Ionicons name="book" size={20} color="#FFFFFF" />
         </View>
-        <ThemedText style={styles.headerTitle}>📚 Курсы</ThemedText>
+        <ThemedText style={styles.headerTitle}>Курсы</ThemedText>
         <TouchableOpacity style={styles.viewAllButton}>
           <ThemedText style={styles.viewAllText}>Все</ThemedText>
         </TouchableOpacity>
@@ -222,7 +229,7 @@ export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
 
                   {course.instructor && (
                     <ThemedText style={styles.instructor} numberOfLines={1}>
-                      👨‍🏫 {course.instructor}
+                      {course.instructor}
                     </ThemedText>
                   )}
 
@@ -243,7 +250,7 @@ export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
 
                   {course.nextClass && (
                     <ThemedText style={styles.nextClass}>
-                      📅 Следующая лекция: {course.nextClass}
+                      Следующая лекция: {course.nextClass}
                     </ThemedText>
                   )}
                 </View>

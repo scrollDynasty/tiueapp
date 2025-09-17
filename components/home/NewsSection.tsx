@@ -103,7 +103,7 @@ export const NewsSection = React.memo(({ news }: NewsSectionProps) => {
     <Animated.View entering={SlideInRight.delay(600)} style={styles.container}>
       <View style={styles.header}>
         <ThemedText style={styles.title}>
-          📰 Последние новости
+          Последние новости
         </ThemedText>
         <View style={styles.counter}>
           <ThemedText style={styles.counterText}>

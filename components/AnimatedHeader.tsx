@@ -73,8 +73,8 @@ export function AnimatedHeader({
         <View 
           style={{ 
             flex: 1, 
-            paddingVertical: 16,
             paddingRight: 20,
+            justifyContent: 'center',
           }}
         >
           <View
@@ -126,7 +126,6 @@ export function AnimatedHeader({
         <View style={{ 
           flexDirection: 'row', 
           alignItems: 'center',
-          paddingTop: 8,
         }}>
         {/* Колокольчик с счётчиком */}
         <Pressable

@@ -1,7 +1,6 @@
 import { ActionCard } from '@/components/ActionCard';
 import { AnimatedHeader } from '@/components/AnimatedHeader';
 import { CustomRefreshControl } from '@/components/CustomRefreshControl';
-import { NewsCard } from '@/components/NewsCard';
 import { NotificationModal } from '@/components/NotificationModal';
 import { ThemedText } from '@/components/ThemedText';
 import { CircularChart, CourseProgressCard, EventsCard } from '@/components/dashboard';
@@ -330,13 +329,13 @@ export default function HomeScreen() {
           entering={FadeInDown.delay(300)}
           style={{
             marginBottom: spacing.lg,
+            paddingHorizontal: horizontalPadding,
           }}
         >
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
             marginBottom: spacing.md,
-            paddingHorizontal: isExtraSmallScreen ? 4 : 0,
           }}>
             <View style={{
               width: isExtraSmallScreen ? 28 : isVerySmallScreen ? 30 : 32,
@@ -354,7 +353,7 @@ export default function HomeScreen() {
               fontWeight: '600',
               color: colors.text,
             }}>
-              📊 Статистика
+              Статистика
             </ThemedText>
           </View>
           
@@ -390,6 +389,7 @@ export default function HomeScreen() {
           entering={FadeInDown.delay(300)}
           style={{
             marginBottom: spacing.xl,
+            paddingHorizontal: horizontalPadding,
           }}
         >
           <ThemedText
@@ -401,7 +401,7 @@ export default function HomeScreen() {
               fontFamily: 'Inter',
             }}
           >
-            🎨 Быстрые действия
+            Быстрые действия
           </ThemedText>
           <View
             style={{
@@ -418,7 +418,7 @@ export default function HomeScreen() {
                   icon="people-outline"
                   onPress={() => router.push('/admin/users')}
                   style={{ 
-                    width: (width - horizontalPadding * 2) / 2 - cardGap / 2, 
+                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2, 
                     height: cardHeight,
                     marginBottom: cardGap,
                   }}
@@ -428,7 +428,7 @@ export default function HomeScreen() {
                   icon="newspaper-outline"
                   onPress={() => router.push('/admin/news')}
                   style={{ 
-                    width: (width - horizontalPadding * 2) / 2 - cardGap / 2, 
+                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2, 
                     height: cardHeight,
                     marginBottom: cardGap,
                   }}
@@ -438,7 +438,7 @@ export default function HomeScreen() {
                   icon="calendar-outline"
                   onPress={() => router.push('/admin/events')}
                   style={{ 
-                    width: (width - horizontalPadding * 2) / 2 - cardGap / 2, 
+                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2, 
                     height: cardHeight,
                     marginBottom: cardGap,
                   }}
@@ -448,7 +448,7 @@ export default function HomeScreen() {
                   icon="analytics-outline"
                   onPress={() => router.push('/(tabs)/profile')}
                   style={{ 
-                    width: (width - horizontalPadding * 2) / 2 - cardGap / 2, 
+                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2, 
                     height: cardHeight,
                     marginBottom: cardGap,
                   }}
@@ -461,7 +461,7 @@ export default function HomeScreen() {
                   icon="book-outline"
                   onPress={() => router.push('/(tabs)/explore')}
                   style={{ 
-                    width: (width - horizontalPadding * 2) / 2 - cardGap / 2, 
+                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2, 
                     height: cardHeight,
                     marginBottom: cardGap,
                   }}
@@ -471,7 +471,7 @@ export default function HomeScreen() {
                   icon="time-outline"
                   onPress={() => router.push('/(tabs)/schedule')}
                   style={{ 
-                    width: (width - horizontalPadding * 2) / 2 - cardGap / 2, 
+                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2, 
                     height: cardHeight,
                     marginBottom: cardGap,
                   }}
@@ -481,7 +481,7 @@ export default function HomeScreen() {
                   icon="list-outline"
                   onPress={() => router.push('/(tabs)/explore')}
                   style={{ 
-                    width: (width - horizontalPadding * 2) / 2 - cardGap / 2, 
+                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2, 
                     height: cardHeight,
                     marginBottom: cardGap,
                   }}
@@ -491,7 +491,7 @@ export default function HomeScreen() {
                   icon="analytics-outline"
                   onPress={() => router.push('/(tabs)/profile')}
                   style={{ 
-                    width: (width - horizontalPadding * 2) / 2 - cardGap / 2, 
+                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2, 
                     height: cardHeight,
                     marginBottom: cardGap,
                   }}
@@ -512,6 +512,7 @@ export default function HomeScreen() {
             time: event.time
           }))}
           onEventPress={(eventId: string | number) => router.push(`/events/${eventId}` as any)}
+          horizontalPadding={horizontalPadding}
         />
 
         {/* Красивые диаграммы успеваемости */}
@@ -519,13 +520,13 @@ export default function HomeScreen() {
           entering={FadeInDown.delay(500)}
           style={{
             marginBottom: spacing.xl,
+            paddingHorizontal: horizontalPadding,
           }}
         >
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
             marginBottom: spacing.md,
-            paddingHorizontal: isExtraSmallScreen ? 4 : 0,
           }}>
             <View style={{
               width: isExtraSmallScreen ? 28 : isVerySmallScreen ? 30 : 32,
@@ -543,7 +544,7 @@ export default function HomeScreen() {
               fontWeight: '600',
               color: colors.text,
             }}>
-              📈 Академическая успеваемость
+              Академическая успеваемость
             </ThemedText>
           </View>
           
@@ -581,13 +582,16 @@ export default function HomeScreen() {
             { id: 4, name: 'Физика', progress: 0.45, instructor: 'Профессор Козлов', nextClass: 'Понедельник в 12:00' },
           ]}
           onCoursePress={(courseId: number) => console.log('Course pressed:', courseId)}
+          horizontalPadding={horizontalPadding}
+          containerStyle={{ marginBottom: spacing.xl }}
         />
 
         {/* Секция новостей с новым дизайном */}
         <Animated.View 
           entering={FadeInDown.delay(600)}
           style={{
-            marginBottom: 32,
+            marginBottom: spacing.xl,
+            paddingHorizontal: horizontalPadding,
           }}
         >
           <View style={{
@@ -611,7 +615,7 @@ export default function HomeScreen() {
               fontWeight: '600',
               color: colors.text,
             }}>
-              📰 Последние новости
+              Последние новости
             </ThemedText>
             <View style={{ flex: 1 }} />
             <View style={{
@@ -688,7 +692,7 @@ export default function HomeScreen() {
                         color: '#3B82F6',
                         fontWeight: '500',
                       }}>
-                        📅 {formatDateYMD(news.date)}
+                        {formatDateYMD(news.date)}
                       </ThemedText>
                     </View>
                   </View>
@@ -729,137 +733,102 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
 
-        <Animated.View entering={SlideInRight.delay(600)}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }}>
-            <ThemedText
-              style={{
-                fontSize: fontSize.title,
-                lineHeight: isVerySmallScreen ? 22 : 24,
-                color: isDarkMode ? colors.text : '#1E293B',
-                fontFamily: 'Inter',
-              }}
-            >
-              📰 Последние новости
-            </ThemedText>
-            <View style={{
-              backgroundColor: isDarkMode ? `${colors.primary}20` : '#ffffffff',
-              paddingHorizontal: spacing.sm,
-              paddingVertical: spacing.xs,
-              borderRadius: 12,
-            }}>
-              <ThemedText style={{
-                fontSize: fontSize.small - 1,
-                color: isDarkMode ? colors.primary : '#0369A1',
-              }}>
-                {newsData.length} новостей
-              </ThemedText>
-            </View>
-          </View>
-
-          <View style={{ gap: spacing.sm }}>
-            {newsData.length > 0 ? (
-              newsData.slice(0, 5).map((news, index) => (
-                <NewsCard
-                  key={news.id}
-                  title={news.title}
-                  subtitle={news.subtitle}
-                  date={news.date}
-                  image={news.image}
-                  events={news.events || []}
-                  icon={news.icon}
-                  index={index}
-                  onPress={() => router.push(`/news/${news.id}`)}
-                />
-              ))
-            ) : (
-              <View style={{
-                backgroundColor: colors.backgroundSecondary,
-                borderRadius: 16,
-                padding: spacing.lg,
-                alignItems: 'center',
-                borderWidth: 2,
-                borderColor: colors.border,
-                borderStyle: 'dashed',
-              }}>
-                <View style={{
-                  backgroundColor: colors.border,
-                  width: isVerySmallScreen ? 48 : 60,
-                  height: isVerySmallScreen ? 48 : 60,
-                  borderRadius: isVerySmallScreen ? 24 : 30,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginBottom: spacing.md,
-                }}>
-                  <Ionicons name="newspaper-outline" size={isVerySmallScreen ? 22 : 28} color={colors.textSecondary} />
-                </View>
-                <ThemedText style={{
-                  fontSize: fontSize.body,
-                  color: isDarkMode ? colors.text : '#475569',
-                  textAlign: 'center',
-                  marginBottom: spacing.xs,
-                }}>
-                  Новостей пока нет
-                </ThemedText>
-                <ThemedText style={{
-                  fontSize: fontSize.small,
-                  color: isDarkMode ? colors.textSecondary : '#94A3B8',
-                  textAlign: 'center',
-                  lineHeight: 20,
-                }}>
-                </ThemedText>
-              </View>
-            )}
-          </View>
-        </Animated.View>
 
         <Animated.View 
           entering={FadeInDown.delay(700)}
           style={{
-            marginTop: spacing.lg,
-            borderRadius: 20,
-            overflow: 'hidden',
+            marginTop: spacing.xl,
+            paddingHorizontal: horizontalPadding,
+            marginBottom: spacing.lg,
           }}
         >
           <LinearGradient
-            colors={isDarkMode ? ['#3B0764', '#2B6CB0'] : ['#667eea', '#764ba2']}
+            colors={isDarkMode 
+              ? [`${colors.primary}40`, `${colors.primary}60`] 
+              : ['#6366F1', '#8B5CF6']
+            }
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={{ borderRadius: 20 }}
+            style={{ 
+              borderRadius: 20,
+              shadowColor: colors.primary,
+              shadowOffset: { width: 0, height: 8 },
+              shadowOpacity: 0.25,
+              shadowRadius: 16,
+              elevation: 8,
+            }}
           >
             <View style={{
               backgroundColor: 'transparent',
-              padding: spacing.lg,
+              padding: spacing.xl,
               borderRadius: 20,
             }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md }}>
-                <View style={{
-                  backgroundColor: isDarkMode ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255,255,255,0.12)',
-                  width: isVerySmallScreen ? 40 : 48,
-                  height: isVerySmallScreen ? 40 : 48,
-                  borderRadius: isVerySmallScreen ? 20 : 24,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginRight: spacing.md,
-                }}>
-                  <Ionicons name="bulb" size={isVerySmallScreen ? 20 : 24} color={isDarkMode ? colors.primary : "#FFFFFF"} />
-                </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg }}>
+                <LinearGradient
+                  colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
+                  style={{
+                    width: isVerySmallScreen ? 48 : 56,
+                    height: isVerySmallScreen ? 48 : 56,
+                    borderRadius: isVerySmallScreen ? 24 : 28,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginRight: spacing.md,
+                    borderWidth: 1,
+                    borderColor: 'rgba(255,255,255,0.2)',
+                  }}
+                >
+                  <Ionicons 
+                    name="diamond" 
+                    size={isVerySmallScreen ? 24 : 28} 
+                    color="#FFFFFF" 
+                  />
+                </LinearGradient>
                 <View style={{ flex: 1 }}>
                   <ThemedText style={{
-                    fontSize: fontSize.body,
-                    color: isDarkMode ? colors.text : '#FFFFFF',
-                    marginBottom: 4,
+                    fontSize: isVerySmallScreen ? fontSize.title : fontSize.title + 2,
+                    fontWeight: '700',
+                    color: '#FFFFFF',
+                    marginBottom: 6,
+                    letterSpacing: 0.5,
                   }}>
                     Совет дня
                   </ThemedText>
                   <ThemedText style={{
                     fontSize: fontSize.small,
-                    color: isDarkMode ? colors.textSecondary : '#C7D2FE',
+                    color: 'rgba(255,255,255,0.8)',
                   }}>
-                    Полезная информация для студентов
+                    Мотивация и полезные советы
                   </ThemedText>
                 </View>
               </View>
-              <ThemedText style={[styles.quoteText, { color: isDarkMode ? colors.text : '#FFFFFF' }]}>&quot;Стремитесь не к успеху, а к ценностям, которые он дает.&quot;</ThemedText>
+              <View style={{
+                backgroundColor: 'rgba(255,255,255,0.1)',
+                borderRadius: 16,
+                padding: spacing.md,
+                borderLeftWidth: 4,
+                borderLeftColor: 'rgba(255,255,255,0.3)',
+              }}>
+                <ThemedText style={{
+                  fontSize: fontSize.body,
+                  fontWeight: '500',
+                  color: '#FFFFFF',
+                  lineHeight: 24,
+                  fontStyle: 'italic',
+                }}>
+                  "Стремитесь не к успеху, а к ценностям, которые он дает."
+                </ThemedText>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm }}>
+                  <Ionicons name="star" size={16} color="rgba(255,255,255,0.7)" />
+                  <ThemedText style={{
+                    fontSize: fontSize.small,
+                    color: 'rgba(255,255,255,0.7)',
+                    marginLeft: spacing.xs,
+                    fontWeight: '500',
+                  }}>
+                    Мотивация дня
+                  </ThemedText>
+                </View>
+              </View>
             </View>
           </LinearGradient>
         </Animated.View>
@@ -868,82 +837,172 @@ export default function HomeScreen() {
           entering={FadeInDown.delay(800)}
           style={{
             marginTop: spacing.lg,
-            backgroundColor: colors.surface,
-            borderRadius: 16,
-            padding: spacing.md,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: isDarkMode ? 0.15 : 0.08,
-            shadowRadius: 12,
-            elevation: 6,
+            paddingHorizontal: horizontalPadding,
+            marginBottom: spacing.xl,
           }}
         >
-          <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+          <View style={{
+            backgroundColor: colors.surface,
+            borderRadius: 20,
+            padding: spacing.lg,
+            shadowColor: colors.primary,
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: isDarkMode ? 0.2 : 0.1,
+            shadowRadius: 16,
+            elevation: 8,
+            borderWidth: 1,
+            borderColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
+          }}
+        >
+          {/* Заголовок секции */}
+          <View style={{ 
+            flexDirection: 'row', 
+            alignItems: 'center', 
+            marginBottom: spacing.lg,
+            paddingBottom: spacing.md,
+            borderBottomWidth: 1,
+            borderBottomColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
+          }}>
+            <LinearGradient
+              colors={[`${colors.primary}20`, `${colors.primary}10`]}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginRight: spacing.md,
+                borderWidth: 1,
+                borderColor: `${colors.primary}30`,
+              }}
+            >
+              <Ionicons name="apps" size={20} color={colors.primary} />
+            </LinearGradient>
+            <ThemedText style={{
+              fontSize: fontSize.title,
+              fontWeight: '700',
+              color: colors.text,
+              letterSpacing: 0.5,
+            }}>
+              Быстрые действия
+            </ThemedText>
+          </View>
+
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <Pressable 
-              style={{ alignItems: 'center' }}
+              style={{ 
+                alignItems: 'center',
+                flex: 1,
+                marginHorizontal: spacing.xs,
+              }}
               onPress={() => {
                 alert('Помощь\n\nДля получения помощи обратитесь к администратору или в службу поддержки университета.\n\nТелефон: +7 (xxx) xxx-xx-xx\nEmail: support@university.edu');
               }}
             >
-              <View style={{
-                backgroundColor: isDarkMode ? `${colors.error}25` : '#FEE2E2',
-                width: isVerySmallScreen ? 36 : 40,
-                height: isVerySmallScreen ? 36 : 40,
-                borderRadius: isVerySmallScreen ? 18 : 20,
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginBottom: spacing.xs,
+              <LinearGradient
+                colors={['#F59E0B', '#EF4444']}
+                style={{
+                  width: isVerySmallScreen ? 48 : 56,
+                  height: isVerySmallScreen ? 48 : 56,
+                  borderRadius: isVerySmallScreen ? 24 : 28,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginBottom: spacing.sm,
+                  shadowColor: '#F59E0B',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 8,
+                  elevation: 6,
+                }}
+              >
+                <Ionicons name="help-buoy" size={isVerySmallScreen ? 22 : 26} color="#FFFFFF" />
+              </LinearGradient>
+              <ThemedText style={{ 
+                fontSize: fontSize.small, 
+                color: colors.text,
+                fontWeight: '600',
+                textAlign: 'center',
               }}>
-                <Ionicons name="help-circle" size={isVerySmallScreen ? 18 : 20} color={colors.error} />
-              </View>
-              <ThemedText style={{ fontSize: fontSize.small, color: colors.textSecondary }}>
                 Помощь
               </ThemedText>
             </Pressable>
             
             <Pressable 
-              style={{ alignItems: 'center' }}
+              style={{ 
+                alignItems: 'center',
+                flex: 1,
+                marginHorizontal: spacing.xs,
+              }}
               onPress={() => {
                 router.push('/(tabs)/events');
               }}
             >
-              <View style={{
-                backgroundColor: isDarkMode ? `${colors.primary}25` : '#DBEAFE',
-                width: isVerySmallScreen ? 36 : 40,
-                height: isVerySmallScreen ? 36 : 40,
-                borderRadius: isVerySmallScreen ? 18 : 20,
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginBottom: spacing.xs,
+              <LinearGradient
+                colors={[colors.primary, '#8B5CF6']}
+                style={{
+                  width: isVerySmallScreen ? 48 : 56,
+                  height: isVerySmallScreen ? 48 : 56,
+                  borderRadius: isVerySmallScreen ? 24 : 28,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginBottom: spacing.sm,
+                  shadowColor: colors.primary,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 8,
+                  elevation: 6,
+                }}
+              >
+                <Ionicons name="calendar" size={isVerySmallScreen ? 22 : 26} color="#FFFFFF" />
+              </LinearGradient>
+              <ThemedText style={{ 
+                fontSize: fontSize.small, 
+                color: colors.text,
+                fontWeight: '600',
+                textAlign: 'center',
               }}>
-                <Ionicons name="chatbubble" size={isVerySmallScreen ? 18 : 20} color={colors.primary} />
-              </View>
-              <ThemedText style={{ fontSize: fontSize.small, color: isDarkMode ? colors.textSecondary : '#64748B' }}>
                 События
               </ThemedText>
             </Pressable>
             
             <Pressable 
-              style={{ alignItems: 'center' }}
+              style={{ 
+                alignItems: 'center',
+                flex: 1,
+                marginHorizontal: spacing.xs,
+              }}
               onPress={() => {
                 router.push('/(tabs)/profile');
               }}
             >
-              <View style={{
-                backgroundColor: isDarkMode ? `${colors.success}25` : '#D1FAE5',
-                width: isVerySmallScreen ? 36 : 40,
-                height: isVerySmallScreen ? 36 : 40,
-                borderRadius: isVerySmallScreen ? 18 : 20,
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginBottom: spacing.xs,
+              <LinearGradient
+                colors={['#10B981', '#059669']}
+                style={{
+                  width: isVerySmallScreen ? 48 : 56,
+                  height: isVerySmallScreen ? 48 : 56,
+                  borderRadius: isVerySmallScreen ? 24 : 28,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginBottom: spacing.sm,
+                  shadowColor: '#10B981',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 8,
+                  elevation: 6,
+                }}
+              >
+                <Ionicons name="person-circle" size={isVerySmallScreen ? 22 : 26} color="#FFFFFF" />
+              </LinearGradient>
+              <ThemedText style={{ 
+                fontSize: fontSize.small, 
+                color: colors.text,
+                fontWeight: '600',
+                textAlign: 'center',
               }}>
-                <Ionicons name="settings" size={isVerySmallScreen ? 18 : 20} color={colors.success} />
-              </View>
-              <ThemedText style={{ fontSize: fontSize.small, color: colors.textSecondary }}>
-                Настройки
+                Профиль
               </ThemedText>
             </Pressable>
+          </View>
           </View>
         </Animated.View>
       </AnimatedScrollView>

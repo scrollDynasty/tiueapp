@@ -40,7 +40,7 @@ export const UpcomingEventsSection = React.memo(({ events }: UpcomingEventsSecti
             fontFamily: 'Inter',
           }}
         >
-          📅 Предстоящие события
+          Предстоящие события
         </ThemedText>
         <Pressable
           style={{
