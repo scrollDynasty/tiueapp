@@ -127,7 +127,7 @@ export const TYPOGRAPHY = {
   },
 } as const;
 
-// Современные тени для разных платформ
+// Современные тени для разных платформ - оптимизированы для Android
 export const SHADOWS = {
   small: {
     // Для web используем boxShadow
@@ -135,7 +135,13 @@ export const SHADOWS = {
       web: {
         boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
       },
+      android: {
+        // Минимальные тени для Android
+        elevation: 2,
+        shadowColor: 'transparent', // Убираем iOS тени на Android
+      },
       default: {
+        // iOS - оставляем красивые тени
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -149,7 +155,13 @@ export const SHADOWS = {
       web: {
         boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.15)',
       },
+      android: {
+        // Умеренные тени для Android
+        elevation: 3,
+        shadowColor: 'transparent',
+      },
       default: {
+        // iOS - красивые тени
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
@@ -163,7 +175,13 @@ export const SHADOWS = {
       web: {
         boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.2)',
       },
+      android: {
+        // Средние тени для Android
+        elevation: 4,
+        shadowColor: 'transparent',
+      },
       default: {
+        // iOS - красивые тени
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.2,

@@ -4,7 +4,7 @@ import { hp, LAYOUT, SHADOWS, SIZES, SPACING, TYPOGRAPHY, wp } from '@/styles/gl
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface QuickActionProps {
   title: string;
@@ -37,7 +37,8 @@ export function QuickAction({ title, icon, gradient, onPress }: QuickActionProps
     { backgroundColor: gradient ? 'transparent' : colors.card }
   ];
 
-  if (gradient) {
+  if (gradient && Platform.OS !== 'android') {
+    // На Android убираем градиенты - используем обычный вид
     return (
       <Pressable 
         onPress={onPress}
@@ -77,7 +78,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     flex: 1,
     minHeight: hp(14),
-    ...SHADOWS.medium,
+    // Условные тени - только для iOS, на Android минимальные
+    ...Platform.select({
+      android: {
+        elevation: 2, // Минимальная тень на Android
+        shadowColor: 'transparent',
+      },
+      ios: SHADOWS.medium, // Красивые тени на iOS
+      default: SHADOWS.medium,
+    }),
   },
   
   gradient: {

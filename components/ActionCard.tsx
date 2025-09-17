@@ -3,8 +3,9 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Pressable, ViewStyle } from 'react-native';
+import { Platform, Pressable, ViewStyle } from 'react-native';
 import Animated, {
   interpolate,
   runOnJS,
@@ -20,11 +21,20 @@ interface ActionCardProps {
   icon: keyof typeof Ionicons.glyphMap;
   onPress: () => void;
   style?: ViewStyle;
+  gradientColors?: readonly [string, string, ...string[]];
+  iconColor?: string;
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
+export function ActionCard({ 
+  title, 
+  icon, 
+  onPress, 
+  style, 
+  gradientColors = ['#3B82F6', '#8B5CF6'],
+  iconColor = '#FFFFFF' 
+}: ActionCardProps) {
   const scale = useSharedValue(1);
   const pressed = useSharedValue(0);
   const hovered = useSharedValue(0);
@@ -73,19 +83,15 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
     const shadowOpacity = interpolate(
       hovered.value,
       [0, 1],
-      [0.05, 0.08]
+      [Platform.OS === 'android' ? 0 : 0.05, Platform.OS === 'android' ? 0 : 0.08]
     );
 
     return {
       transform: [{ scale: scale.value }],
       shadowOpacity,
-      borderColor: pressed.value > 0.5 ? colors.primary : colors.border,
-    };
-  });
-
-  const backgroundStyle = useAnimatedStyle(() => {
-    return {
-      backgroundColor: pressed.value > 0.5 ? colors.backgroundSecondary : colors.surface,
+      borderColor: Platform.OS === 'android' 
+        ? colors.border // На Android всегда нейтральная граница
+        : (pressed.value > 0.5 ? colors.primary : colors.border), // iOS - анимация
     };
   });
 
@@ -116,35 +122,85 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
           height: isSmall ? 110 : 130,
           borderRadius: borderRadius.lg,
           borderWidth: 1,
-          shadowColor: '#000',
-          shadowOffset: {
-            width: 0,
-            height: isSmall ? 4 : 6,
-          },
-          shadowRadius: isSmall ? 6 : 10,
-          elevation: isSmall ? 4 : 8,
+          // Оптимизированные тени для платформ
+          ...Platform.select({
+            android: {
+              elevation: isSmall ? 2 : 3,
+              shadowColor: 'transparent',
+            },
+            ios: {
+              shadowColor: '#000',
+              shadowOffset: {
+                width: 0,
+                height: isSmall ? 4 : 6,
+              },
+              shadowOpacity: 0.1,
+              shadowRadius: isSmall ? 6 : 10,
+              elevation: isSmall ? 4 : 8,
+            },
+            default: {
+              shadowColor: '#000',
+              shadowOffset: {
+                width: 0,
+                height: isSmall ? 4 : 6,
+              },
+              shadowOpacity: 0.1,
+              shadowRadius: isSmall ? 6 : 10,
+              elevation: isSmall ? 4 : 8,
+            },
+          }),
         },
         animatedStyle,
         style,
       ]}
     >
-      <Animated.View
-        style={[
-          {
-            flex: 1,
-            padding: isSmall ? spacing.md : spacing.lg,
+      {/* Фон карточки */}
+      {Platform.OS === 'android' ? (
+        // Android - простой фон
+        <Animated.View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: colors.surface,
             borderRadius: borderRadius.lg,
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-          },
-          backgroundStyle,
-        ]}
+          }}
+        />
+      ) : (
+        // iOS - красивый градиент
+        <LinearGradient
+          colors={gradientColors ?? ['#3B82F6', '#8B5CF6'] as const}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderRadius: borderRadius.lg,
+          }}
+        />
+      )}
+
+      <Animated.View
+        style={{
+          flex: 1,
+          padding: isSmall ? spacing.md : spacing.lg,
+          borderRadius: borderRadius.lg,
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          overflow: 'hidden',
+        }}
       >
+        {/* Контент карточки */}
         <Animated.View style={iconStyle}>
           <Ionicons 
             name={icon} 
             size={isSmall ? 20 : 24} 
-            color={colors.primary}
+            color={Platform.OS === 'android' ? colors.primary : iconColor}
           />
         </Animated.View>
         
@@ -152,10 +208,11 @@ export function ActionCard({ title, icon, onPress, style }: ActionCardProps) {
           style={{
             fontSize: typography.xs,
             lineHeight: typography.xs * 1.3,
-            color: colors.textSecondary,
+            color: Platform.OS === 'android' ? colors.textSecondary : '#FFFFFF',
             letterSpacing: 0.3,
             textTransform: 'uppercase',
             textAlign: 'left',
+            fontWeight: '600',
           }}
           numberOfLines={2}
         >

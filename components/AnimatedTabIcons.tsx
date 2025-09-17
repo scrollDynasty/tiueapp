@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 
 interface AnimatedTabIconProps {
   name: keyof typeof Ionicons.glyphMap;
@@ -9,19 +9,26 @@ interface AnimatedTabIconProps {
 }
 
 export function AnimatedTabIcon({ name, focused, onPress }: AnimatedTabIconProps) {
+  // Еще более компактные размеры для Android
+  const iconSize = Platform.OS === 'android' ? 20 : 26;
+  const containerHeight = Platform.OS === 'android' ? 32 : 44;
+  const containerWidth = Platform.OS === 'android' ? 32 : 44;
+  const indicatorWidth = Platform.OS === 'android' ? 18 : 24;
+  const indicatorHeight = Platform.OS === 'android' ? 2 : 3;
+
   return (
     <View style={{ 
       alignItems: 'center', 
       justifyContent: 'center', 
-      height: 44, 
-      width: 44,
+      height: containerHeight, 
+      width: containerWidth,
       // Добавляем больше области нажатия
-      minWidth: 44,
-      minHeight: 44
+      minWidth: containerWidth,
+      minHeight: containerHeight
     }}>
       <Ionicons
         name={name}
-        size={26} // Увеличиваем размер иконок
+        size={iconSize}
         color={focused ? '#007BFF' : '#6B7280'}
       />
       
@@ -29,11 +36,11 @@ export function AnimatedTabIcon({ name, focused, onPress }: AnimatedTabIconProps
       {focused && (
         <View
           style={{
-            height: 3,
-            width: 24,
+            height: indicatorHeight,
+            width: indicatorWidth,
             backgroundColor: '#007BFF',
-            borderRadius: 2,
-            marginTop: 2,
+            borderRadius: indicatorHeight / 2,
+            marginTop: Platform.OS === 'android' ? 1 : 2,
           }}
         />
       )}

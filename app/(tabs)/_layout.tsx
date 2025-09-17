@@ -33,13 +33,24 @@ export default function TabLayout() {
       backgroundColor: colors.surface,
       borderTopWidth: 1,
       borderTopColor: colors.border,
-      height: isVerySmallScreen ? 85 : 95, // Увеличиваем высоту как в Instagram
-      paddingBottom: insets.bottom + (isVerySmallScreen ? 12 : 16), // Добавляем отступ снизу + insets.bottom
-      paddingTop: isVerySmallScreen ? 12 : 16, // Увеличиваем отступ сверху
+      // Ультра компактная высота для Android
+      height: Platform.OS === 'android' 
+        ? (isVerySmallScreen ? 50 : 58) 
+        : (isVerySmallScreen ? 85 : 95),
+      // Правильные отступы снизу - убираем insets для Android полностью
+      paddingBottom: Platform.OS === 'android'
+        ? (isVerySmallScreen ? 4 : 6) // Минимальные внутренние отступы
+        : insets.bottom + (isVerySmallScreen ? 12 : 16),
+      paddingTop: Platform.OS === 'android'
+        ? (isVerySmallScreen ? 3 : 4) // Минимальные отступы сверху
+        : (isVerySmallScreen ? 12 : 16),
       position: 'absolute' as const,
+      // ПРИНУДИТЕЛЬНО убираем все отступы снизу для Android
       bottom: 0,
       left: 0,
       right: 0,
+      // Убираем margin bottom для Android
+      marginBottom: Platform.OS === 'android' ? 0 : undefined,
       elevation: isDarkMode ? 8 : 0,
       shadowOpacity: isDarkMode ? 0.3 : 0,
       shadowColor: '#000',
@@ -50,7 +61,7 @@ export default function TabLayout() {
   }), [isVerySmallScreen, colors, isDarkMode, insets.bottom]);
   return (
     <AuthGuard>
-      <ImmersiveContainer backgroundColor={colors.background} includeNavigationBar={true}>
+      <ImmersiveContainer backgroundColor={colors.background} includeNavigationBar={Platform.OS === 'android'}>
       <Tabs screenOptions={screenOptions}>
       <Tabs.Screen
         name="index"

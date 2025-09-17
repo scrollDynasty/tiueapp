@@ -1,7 +1,15 @@
+import AuthGuard from '@/components/AuthGuard';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { SplashScreen } from '@/components/SplashScreen';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { useImmersiveMode } from '@/hooks/useSystemBars';
 import { store } from '@/store';
 import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
+import * as ExpoSplashScreen from 'expo-splash-screen';
+
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
 import { Platform, StatusBar as RNStatusBar, StyleSheet, View } from 'react-native';
@@ -9,12 +17,8 @@ import 'react-native-reanimated';
 import { initialWindowMetrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 
-import AuthGuard from '@/components/AuthGuard';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { SplashScreen } from '@/components/SplashScreen';
-import { ThemeProvider } from '@/contexts/ThemeContext';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { useImmersiveMode } from '@/hooks/useSystemBars';
+// Предотвращаем автоматическое скрытие нативного splash screen
+ExpoSplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -36,18 +40,20 @@ export default function RootLayout() {
       enableImmersiveMode();
     }, 1000);
 
-    // Дополнительная переактивация через 3 секунды (на случай если что-то пошло не так)
-    const backupTimer = setTimeout(() => {
-      reactivateImmersiveMode();
-    }, 3000);
+    // Отключаем переактивацию - оставляем immersive режим постоянно активным
+    // const backupTimer = setTimeout(() => {
+    //   reactivateImmersiveMode();
+    // }, 3000);
 
     return () => {
       clearTimeout(timer);
-      clearTimeout(backupTimer);
+      // clearTimeout(backupTimer); // Больше не используется
     };
   }, [enableImmersiveMode, reactivateImmersiveMode, colorScheme]);
 
-  const handleSplashFinish = React.useCallback(() => {
+  const handleSplashFinish = React.useCallback(async () => {
+    // Скрываем нативный splash screen когда заканчивается кастомный
+    await ExpoSplashScreen.hideAsync();
     setShowSplash(false);
   }, []);
 

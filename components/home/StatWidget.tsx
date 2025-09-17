@@ -3,7 +3,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ThemedText } from '../ThemedText';
 
@@ -21,20 +21,38 @@ export const StatWidget = React.memo(({ icon, title, value, color }: StatWidgetP
 
   const containerStyle = React.useMemo(() => ({
     backgroundColor: isDarkMode ? colors.surfaceSecondary : colors.surface,
-    borderRadius: borderRadius.lg,
-    padding: spacing.sm,
+    borderRadius: borderRadius.md,
+    padding: isSmall ? spacing.xs : spacing.sm,
     flex: 1,
-    marginHorizontal: spacing.xs,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: isSmall ? 2 : 4 },
-    shadowOpacity: isDarkMode ? 0.15 : 0.06,
-    shadowRadius: isSmall ? 8 : 12,
-    elevation: isSmall ? 3 : 6,
-    borderLeftWidth: 3,
+    marginHorizontal: spacing.xs / 2,
+    // Оптимизированные тени для платформ
+    ...Platform.select({
+      android: {
+        elevation: isSmall ? 1 : 2,
+        shadowColor: 'transparent',
+      },
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: isSmall ? 1 : 2 },
+        shadowOpacity: isDarkMode ? 0.12 : 0.04,
+        shadowRadius: isSmall ? 4 : 8,
+        elevation: isSmall ? 2 : 4,
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: isSmall ? 1 : 2 },
+        shadowOpacity: isDarkMode ? 0.12 : 0.04,
+        shadowRadius: isSmall ? 4 : 8,
+        elevation: isSmall ? 2 : 4,
+      },
+    }),
+    borderLeftWidth: 2,
     borderLeftColor: color,
     borderWidth: isDarkMode ? 1 : 0,
     borderColor: isDarkMode ? colors.border : 'transparent',
-    minHeight: isSmall ? 70 : 85,
+    minHeight: isSmall ? 65 : 80,
+    maxWidth: isSmall ? '32%' as const : undefined, // Ограничиваем ширину для предотвращения переноса
+    alignSelf: 'stretch' as const,
   }), [isDarkMode, colors, isSmall, color, spacing, borderRadius]);
 
   const headerStyle = React.useMemo(() => ({ 
@@ -56,18 +74,25 @@ export const StatWidget = React.memo(({ icon, title, value, color }: StatWidgetP
   }), [isDarkMode, color, isSmall, spacing, borderRadius]);
 
   const titleStyle = React.useMemo(() => ({
-    fontSize: typography.xs,
+    fontSize: isSmall ? typography.xs - 1 : typography.xs,
     color: colors.textSecondary,
     textTransform: 'uppercase' as const,
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
     fontWeight: '500' as const,
-  }), [colors.textSecondary, typography]);
+    textAlign: 'center' as const,
+    lineHeight: isSmall ? 12 : 14,
+    numberOfLines: 1,
+    flexShrink: 1,
+  }), [colors.textSecondary, typography, isSmall]);
 
   const valueStyle = React.useMemo(() => ({
-    fontSize: isSmall ? typography.lg : typography.xl,
-    fontWeight: '600' as const,
+    fontSize: isSmall ? typography.md : typography.lg,
+    fontWeight: '700' as const,
     color: colors.text,
     textAlign: 'center' as const,
+    lineHeight: isSmall ? typography.md + 2 : typography.lg + 2,
+    numberOfLines: 1,
+    flexShrink: 1,
   }), [isSmall, colors.text, typography]);
 
   return (
@@ -77,14 +102,34 @@ export const StatWidget = React.memo(({ icon, title, value, color }: StatWidgetP
           <Ionicons name={icon} size={isSmall ? 14 : 16} color={color} />
         </View>
         {!isSmall && (
-          <ThemedText style={titleStyle}>
+          <ThemedText 
+            style={titleStyle}
+            numberOfLines={1}
+            adjustsFontSizeToFit={true}
+            minimumFontScale={0.8}
+          >
             {title}
           </ThemedText>
         )}
       </View>
-      <ThemedText style={valueStyle}>
+      <ThemedText 
+        style={valueStyle}
+        numberOfLines={1}
+        adjustsFontSizeToFit={true}
+        minimumFontScale={0.7}
+      >
         {value}
       </ThemedText>
+      {isSmall && (
+        <ThemedText 
+          style={[titleStyle, { marginTop: 2 }]}
+          numberOfLines={1}
+          adjustsFontSizeToFit={true}
+          minimumFontScale={0.6}
+        >
+          {title}
+        </ThemedText>
+      )}
     </Animated.View>
   );
 });

@@ -21,24 +21,58 @@ export const useImmersiveMode = () => {
         autoHideTimer.current = null;
       }
 
-      // Используем react-native-system-navigation-bar для максимальной совместимости
-      await SystemNavigationBar.immersive();
+      // Пробуем разные методы скрытия навигационной панели
+      try {
+        // Метод 1: react-native-system-navigation-bar
+        if (SystemNavigationBar && SystemNavigationBar.immersive) {
+          await SystemNavigationBar.immersive();
+          console.log('✅ SystemNavigationBar.immersive успешно');
+        } else {
+          console.log('⚠️ SystemNavigationBar.immersive недоступен');
+        }
+      } catch (systemNavError) {
+        console.log('⚠️ SystemNavigationBar ошибка:', systemNavError);
+      }
       
-      // Дополнительно используем expo-navigation-bar
-      await NavigationBar.setVisibilityAsync('hidden');
+      try {
+        // Метод 2: expo-navigation-bar
+        await NavigationBar.setVisibilityAsync('hidden');
+        console.log('✅ NavigationBar.setVisibilityAsync успешно');
+      } catch (expoNavError) {
+        console.log('⚠️ NavigationBar ошибка:', expoNavError);
+      }
+      
+      try {
+        // Метод 3: Дополнительные настройки
+        if (SystemNavigationBar && SystemNavigationBar.navigationHide) {
+          await SystemNavigationBar.navigationHide();
+          console.log('✅ navigationHide успешно');
+        }
+      } catch (hiddenError) {
+        console.log('⚠️ navigationHide ошибка:', hiddenError);
+      }
       
       // Настраиваем статус бар
       StatusBar.setStatusBarStyle('light');
       
       isImmersiveActive.current = true;
     } catch (error) {
-      console.warn('❌ Ошибка активации immersive режима:', error);
+      console.warn('❌ Общая ошибка активации immersive режима:', error);
       
-      // Fallback для старых версий Android
+      // Fallback - пробуем только expo-navigation-bar
       try {
         await NavigationBar.setVisibilityAsync('hidden');
+        console.log('✅ Fallback NavigationBar успешно');
       } catch (fallbackError) {
         console.warn('❌ Fallback также не сработал:', fallbackError);
+        // Последний fallback - устанавливаем позицию
+        try {
+          await NavigationBar.setPositionAsync('absolute');
+          await NavigationBar.setBackgroundColorAsync('#00000000');
+          console.log('✅ Последний fallback успешно');
+        } catch (finalError) {
+          console.warn('❌ Все методы не сработали:', finalError);
+        }
       }
     }
   }, []);
@@ -65,8 +99,8 @@ export const useImmersiveMode = () => {
       
       isImmersiveActive.current = false;
       
-      // Запускаем таймер автоскрытия
-      scheduleAutoHide();
+      // НЕ запускаем таймер автоскрытия - оставляем панель скрытой постоянно
+      // scheduleAutoHide();
     } catch (error) {
       console.warn('❌ Ошибка деактивации immersive режима:', error);
     }
@@ -100,9 +134,9 @@ export const useImmersiveMode = () => {
           lastVisibility = visibility;
           
           if (visibility === 'visible' && isImmersiveActive.current) {
-            // Навигация стала видимой - запускаем таймер автоскрытия
+            // Навигация стала видимой - НЕ запускаем автоскрытие, оставляем как есть
             isImmersiveActive.current = false;
-            scheduleAutoHide();
+            // scheduleAutoHide(); // Отключено для постоянного immersive режима
           }
         }
       } catch (error) {
@@ -164,7 +198,7 @@ export const useImmersiveMode = () => {
   return {
     enableImmersiveMode,
     disableImmersiveMode,
-    reactivateImmersiveMode: scheduleAutoHide,
+    reactivateImmersiveMode: () => {}, // Отключено - не перезапускаем автоскрытие
     isImmersiveActive: isImmersiveActive.current,
   };
 };
