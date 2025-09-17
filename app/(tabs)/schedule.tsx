@@ -321,13 +321,14 @@ export default function ScheduleScreen() {
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       />
       
-      <View style={{ flex: 1, paddingTop: insets.top }}>
+      <View style={{ flex: 1 }}>
         {/* Современный заголовок */}
         <Animated.View 
           entering={FadeInUp.duration(600).springify()}
           style={{ 
             paddingHorizontal: Spacing.l, 
-            paddingVertical: Spacing.l,
+            paddingTop: insets.top + 10, // Контент заголовка под Dynamic Island + 10px
+            paddingBottom: Spacing.l,
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.s }}>
@@ -341,6 +342,7 @@ export default function ScheduleScreen() {
             <ThemedText
               style={{
                 fontSize: 28,
+                lineHeight: 34, // Добавляем lineHeight чтобы текст не обрезался
                 color: colors.text,
                 letterSpacing: -0.5,
               }}
@@ -441,7 +443,7 @@ export default function ScheduleScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
-            paddingBottom: Math.max(insets.bottom + (isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : 100), 120),
+            paddingBottom: isVerySmallScreen ? 130 : isSmallScreen ? 120 : 120, // Увеличиваем отступ для новой высоты табов
             paddingTop: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : 100,
           }}
         >

@@ -97,6 +97,7 @@ export const AdminProfile = React.memo(({ user, onLogout }: AdminProfileProps) =
                 color: 'white',
                 marginBottom: 4,
                 fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? 20 : 22,
+                lineHeight: isVerySmallScreen ? 20 : isSmallScreen ? 26 : 28, // Добавляем lineHeight
               }}
             >
               {displayInfo.name}

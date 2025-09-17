@@ -4,9 +4,9 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, StatusBar as RNStatusBar, StyleSheet, View } from 'react-native';
 import 'react-native-reanimated';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { initialWindowMetrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 
 import AuthGuard from '@/components/AuthGuard';
@@ -26,6 +26,11 @@ export default function RootLayout() {
   const { enableImmersiveMode, reactivateImmersiveMode } = useImmersiveMode();
 
   useEffect(() => {
+    // Настраиваем StatusBar для iOS
+    if (Platform.OS === 'ios') {
+      RNStatusBar.setBarStyle(colorScheme === 'dark' ? 'light-content' : 'dark-content', true);
+    }
+    
     // Дополнительная активация immersive режима после загрузки приложения
     const timer = setTimeout(() => {
       enableImmersiveMode();
@@ -40,7 +45,7 @@ export default function RootLayout() {
       clearTimeout(timer);
       clearTimeout(backupTimer);
     };
-  }, [enableImmersiveMode, reactivateImmersiveMode]);
+  }, [enableImmersiveMode, reactivateImmersiveMode, colorScheme]);
 
   const handleSplashFinish = React.useCallback(() => {
     setShowSplash(false);
@@ -54,16 +59,15 @@ export default function RootLayout() {
     <ErrorBoundary>
       <Provider store={store}>
         <ThemeProvider>
-          <SafeAreaProvider>
+          <SafeAreaProvider initialMetrics={initialWindowMetrics}>
             {showSplash ? (
               <SplashScreen onAnimationFinish={handleSplashFinish} />
             ) : (
             <View style={styles.container}>
               <StatusBar 
-                style="light" 
-                translucent={true}
+                style={colorScheme === 'dark' ? 'light' : 'dark'}
                 backgroundColor="transparent"
-                hidden={Platform.OS === 'android'}
+                translucent={true}
               />
               <ErrorBoundary onError={(error, errorInfo) => {
                 // В продакшене можно отправить в систему мониторинга

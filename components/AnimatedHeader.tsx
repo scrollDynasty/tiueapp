@@ -33,6 +33,9 @@ export function AnimatedHeader({
   const bellScale = useSharedValue(1);
   const insets = useSafeAreaInsets();
 
+
+
+
   const handleBellPress = () => {
     'worklet';
     bellScale.value = withSpring(1.2, Animation.spring, () => {
@@ -66,7 +69,7 @@ export function AnimatedHeader({
           justifyContent: 'space-between',
           alignItems: 'center',
           paddingHorizontal: Spacing.l,
-          paddingTop: Math.max(insets.top + Spacing.m, Spacing.xl),
+          paddingTop: insets.top + 10, // Весь контент заголовка под Dynamic Island + 10px
           paddingBottom: Spacing.m,
         }}
       >
@@ -88,7 +91,12 @@ export function AnimatedHeader({
             }}
           >
             {/* Красивый заголовок TIUE */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isVerySmallScreen ? 6 : 8 }}>
+            <View style={{ 
+              flexDirection: 'row', 
+              alignItems: 'center', 
+              marginBottom: isVerySmallScreen ? 6 : 8,
+              marginTop: 5 // Небольшой отступ сверху чтобы текст не обрезался
+            }}>
               <View style={{
                 backgroundColor: colors.primary + '20',
                 width: isVerySmallScreen ? 32 : 36,
@@ -112,6 +120,7 @@ export function AnimatedHeader({
               <ThemedText
                 style={{
                   fontSize: isVerySmallScreen ? 28 : 36,
+                  lineHeight: isVerySmallScreen ? 34 : 42, // Добавляем lineHeight чтобы текст не обрезался
                   fontWeight: '800',
                   color: colors.text,
                   letterSpacing: isVerySmallScreen ? 3 : 4,

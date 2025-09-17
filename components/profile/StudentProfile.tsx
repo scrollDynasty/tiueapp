@@ -190,11 +190,12 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
             
             <View style={{ flex: 1 }}>
               <ThemedText
-                style={{
-                  fontSize: 20,
-                  color: isDarkMode ? '#FFFFFF' : '#1E293B',
-                  marginBottom: 4,
-                }}
+              style={{
+                fontSize: 20,
+                lineHeight: 26, // Добавляем lineHeight чтобы текст не обрезался
+                color: isDarkMode ? '#FFFFFF' : '#1E293B',
+                marginBottom: 4,
+              }}
               >
                 {displayInfo.name}
               </ThemedText>

@@ -84,13 +84,13 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         style={{ backgroundColor: colors.background }}
         contentContainerStyle={{
           paddingHorizontal: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg,
-          paddingBottom: Math.max(insets.bottom + (isVerySmallScreen ? 120 : isSmallScreen ? 130 : 140), 140),
+          paddingBottom: isVerySmallScreen ? 140 : isSmallScreen ? 150 : 160, // Увеличиваем отступ для новой высоты табов
           paddingTop: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : spacing.md,
         }}
       >

@@ -1,13 +1,14 @@
 import { Tabs } from 'expo-router';
 import React, { useMemo } from 'react';
-import { useWindowDimensions } from 'react-native';
+import { Platform, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
-    EventsTabIcon,
-    HomeTabIcon,
-    ScheduleTabIcon,
-    SearchTabIcon,
-    SettingsTabIcon
+  EventsTabIcon,
+  HomeTabIcon,
+  ScheduleTabIcon,
+  SearchTabIcon,
+  SettingsTabIcon
 } from '@/components/AnimatedTabIcons';
 import AuthGuard from '@/components/AuthGuard';
 import { ImmersiveContainer } from '@/components/ImmersiveContainer';
@@ -18,7 +19,11 @@ export default function TabLayout() {
   const { width } = useWindowDimensions();
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
+  const insets = useSafeAreaInsets();
   const isVerySmallScreen = width < 470;
+  
+  // Фикс для Dynamic Island - добавляем отступ сверху
+  const topPadding = Platform.OS === 'ios' && insets.top >= 59 ? 10 : 0;
   
   const screenOptions = useMemo(() => ({
     tabBarActiveTintColor: colors.primary,
@@ -28,9 +33,9 @@ export default function TabLayout() {
       backgroundColor: colors.surface,
       borderTopWidth: 1,
       borderTopColor: colors.border,
-      height: isVerySmallScreen ? 65 : 75,
-      paddingBottom: isVerySmallScreen ? 8 : 12,
-      paddingTop: isVerySmallScreen ? 8 : 12,
+      height: isVerySmallScreen ? 85 : 95, // Увеличиваем высоту как в Instagram
+      paddingBottom: insets.bottom + (isVerySmallScreen ? 12 : 16), // Добавляем отступ снизу + insets.bottom
+      paddingTop: isVerySmallScreen ? 12 : 16, // Увеличиваем отступ сверху
       position: 'absolute' as const,
       bottom: 0,
       left: 0,
@@ -42,7 +47,7 @@ export default function TabLayout() {
       shadowRadius: 8,
       zIndex: 1000,
     },
-  }), [isVerySmallScreen, colors, isDarkMode]);
+  }), [isVerySmallScreen, colors, isDarkMode, insets.bottom]);
   return (
     <AuthGuard>
       <ImmersiveContainer backgroundColor={colors.background} includeNavigationBar={true}>
