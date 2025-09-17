@@ -96,10 +96,10 @@ const NewsCardComponent = ({
           backgroundColor: 'transparent',
           ...Platform.select({
             ios: {
-              shadowColor: isDarkMode ? '#000' : '#000',
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: isDarkMode ? 0.4 : 0.15,
-              shadowRadius: 16,
+              shadowColor: colors.primary,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
             },
             android: {
               elevation: 12,
@@ -110,18 +110,13 @@ const NewsCardComponent = ({
         style,
       ]}
     >
-      <LinearGradient
-        colors={isDarkMode 
-          ? ['rgba(30,41,59,0.95)', 'rgba(51,65,85,0.90)', 'rgba(71,85,105,0.85)']
-          : ['rgba(255,255,255,0.95)', 'rgba(248,250,252,0.90)', 'rgba(241,245,249,0.85)']
-        }
+      <View
         style={{
+          backgroundColor: colors.surface,
           borderRadius: 20,
           borderWidth: 1,
-          borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+          borderColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
         }}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
       >
         {image && (
           <View style={{ position: 'relative' }}>
@@ -333,7 +328,7 @@ const NewsCardComponent = ({
             </View>
           )}
         </View>
-      </LinearGradient>
+      </View>
     </AnimatedPressable>
   );
 }

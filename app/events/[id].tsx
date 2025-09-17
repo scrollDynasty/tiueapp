@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Modal, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/ThemedText';
 import { getThemeColors } from '@/constants/Colors';
@@ -24,6 +24,7 @@ export default function EventDetailScreen() {
   const [loading, setLoading] = useState(true);
   const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
   const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   
   const eventId = React.useMemo(() => {
     return Array.isArray(id) ? id[0] : id;
@@ -135,36 +136,36 @@ export default function EventDetailScreen() {
   // Функции для категорий больше не нужны в новом дизайне
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* 1. Хэдер с заголовком */}
-      <SafeAreaView style={{ backgroundColor: '#FFFFFF' }}>
-        <View style={{
+      <SafeAreaView style={{ backgroundColor: colors.surface }}>
+       <View style={{
           flexDirection: 'row',
           alignItems: 'center',
-          paddingHorizontal: 16,
+          paddingHorizontal: spacing.md,
           paddingVertical: 12,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: colors.surface,
           borderBottomWidth: 1,
-          borderBottomColor: '#E2E8F0',
+          borderBottomColor: colors.border,
         }}>
           <Pressable
             onPress={() => router.back()}
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: '#F8FAFC',
+              width: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
+              height: isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
+              borderRadius: isVerySmallScreen ? 18 : isSmallScreen ? 20 : 22,
+              backgroundColor: colors.backgroundSecondary,
               justifyContent: 'center',
               alignItems: 'center',
-              marginRight: 16,
+              marginRight: spacing.md,
             }}
           >
-            <Ionicons name="arrow-back" size={24} color="#1E3A8A" />
+            <Ionicons name="arrow-back" size={isVerySmallScreen ? 18 : isSmallScreen ? 20 : 24} color={colors.text} />
           </Pressable>
           <ThemedText style={{
             fontSize: 20,
             fontWeight: 'bold',
-            color: '#1E3A8A',
+            color: colors.text,
           }}>
             Event Details
           </ThemedText>
@@ -453,7 +454,7 @@ export default function EventDetailScreen() {
                 onPress={() => setImageModalVisible(false)}
                 style={{
                   position: 'absolute',
-                  top: Platform.OS === 'ios' ? 0 : (isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : 16),
+                  top: Platform.OS === 'ios' ? insets.top + 20 : (isVerySmallScreen ? spacing.lg : isSmallScreen ? spacing.xl : 40),
                   right: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : 16,
                   backgroundColor: 'rgba(0,0,0,0.5)',
                   borderRadius: 20,

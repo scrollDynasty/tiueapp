@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Modal, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/ThemedText';
 import { getThemeColors } from '@/constants/Colors';
@@ -25,6 +25,7 @@ export default function NewsDetailScreen() {
   const [loading, setLoading] = useState(true);
   const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
   const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   // Динамическая высота изображения, которая обновляется при изменении размера окна/экрана
   const baseImageHeight = (isVerySmallScreen ? 0.3 : isSmallScreen ? 0.35 : 0.4) * viewportHeight;
   const imageHeight = Math.max(180, Math.min(baseImageHeight, 520));
@@ -481,7 +482,8 @@ export default function NewsDetailScreen() {
                 flexDirection: 'row',
                 justifyContent: 'space-between',
                 paddingHorizontal: spacing.md,
-                paddingVertical: spacing.sm,
+                paddingTop: spacing.lg, // Увеличиваем отступ сверху
+                paddingBottom: spacing.sm,
               }}>
                 <Pressable
                   onPress={() => setImageModalVisible(false)}
