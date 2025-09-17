@@ -80,7 +80,9 @@ export default function ExploreScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : horizontalPadding,
-            paddingBottom: isVerySmallScreen ? 160 : isSmallScreen ? 140 : 120, // Увеличиваем отступ для новой высоты табов
+            paddingBottom: Platform.OS === 'android'
+              ? (isVerySmallScreen ? 80 : isSmallScreen ? 85 : 90) + Math.max(insets.bottom, 0) // Компактные + insets для Android
+              : (isVerySmallScreen ? 160 : isSmallScreen ? 140 : 120), // Обычные для iOS
           }}
         >
           {/* Современный заголовок в стиле главной страницы */}
@@ -110,11 +112,11 @@ export default function ExploreScreen() {
                   marginRight: spacing.md,
                   borderWidth: 1,
                   borderColor: `${colors.primary}30`,
-                  shadowColor: colors.primary,
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 8,
-                  elevation: 6,
+                  shadowColor: Platform.OS === 'android' ? 'transparent' : colors.primary,
+                  shadowOffset: { width: 0, height: Platform.OS === 'android' ? 0 : 4 },
+                  shadowOpacity: Platform.OS === 'android' ? 0 : 0.2,
+                  shadowRadius: Platform.OS === 'android' ? 0 : 8,
+                  elevation: Platform.OS === 'android' ? 1 : 6,
                 }}
               >
                 <Ionicons 
@@ -158,11 +160,11 @@ export default function ExploreScreen() {
               paddingHorizontal: spacing.lg,
               paddingVertical: spacing.md,
               marginBottom: spacing.md,
-              shadowColor: colors.primary,
-              shadowOffset: { width: 0, height: 6 },
-              shadowOpacity: isDarkMode ? 0.2 : 0.1,
-              shadowRadius: 16,
-              elevation: 8,
+              shadowColor: Platform.OS === 'android' ? 'transparent' : colors.primary,
+              shadowOffset: { width: 0, height: Platform.OS === 'android' ? 2 : 6 },
+              shadowOpacity: Platform.OS === 'android' ? 0 : (isDarkMode ? 0.2 : 0.1),
+              shadowRadius: Platform.OS === 'android' ? 0 : 16,
+              elevation: Platform.OS === 'android' ? 2 : 8,
               borderWidth: 1,
               borderColor: focusedInput === 'search' 
                 ? `${colors.primary}40` 
@@ -267,11 +269,11 @@ export default function ExploreScreen() {
                       borderRadius: 16,
                       marginBottom: spacing.sm,
                       overflow: 'hidden',
-                      shadowColor: category.color,
-                      shadowOffset: { width: 0, height: 6 },
-                      shadowOpacity: 0.25,
-                      shadowRadius: 12,
-                      elevation: 8,
+                      shadowColor: Platform.OS === 'android' ? 'transparent' : category.color,
+                      shadowOffset: { width: 0, height: Platform.OS === 'android' ? 2 : 6 },
+                      shadowOpacity: Platform.OS === 'android' ? 0 : 0.25,
+                      shadowRadius: Platform.OS === 'android' ? 0 : 12,
+                      elevation: Platform.OS === 'android' ? 2 : 8,
                     }}
                   >
                     {/* Градиентный фон карточки в стиле главной страницы */}
@@ -320,11 +322,11 @@ export default function ExploreScreen() {
                           justifyContent: 'center',
                           marginBottom: isVerySmallScreen ? 0 : spacing.sm,
                           marginRight: isVerySmallScreen ? spacing.sm : 0,
-                          shadowColor: category.color,
-                          shadowOffset: { width: 0, height: 4 },
-                          shadowOpacity: 0.3,
-                          shadowRadius: 8,
-                          elevation: 6,
+                          shadowColor: Platform.OS === 'android' ? 'transparent' : category.color,
+                          shadowOffset: { width: 0, height: Platform.OS === 'android' ? 0 : 4 },
+                          shadowOpacity: Platform.OS === 'android' ? 0 : 0.3,
+                          shadowRadius: Platform.OS === 'android' ? 0 : 8,
+                          elevation: Platform.OS === 'android' ? 1 : 6,
                         }}
                       >
                         <Ionicons 
@@ -438,11 +440,11 @@ export default function ExploreScreen() {
                       padding: isVerySmallScreen ? spacing.sm : spacing.md,
                       borderWidth: 1,
                       borderColor: isDarkMode ? `${colors.primary}15` : 'rgba(99, 102, 241, 0.08)',
-                      shadowColor: item.color,
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 4,
-                      elevation: 2,
+                      shadowColor: Platform.OS === 'android' ? 'transparent' : item.color,
+                      shadowOffset: { width: 0, height: Platform.OS === 'android' ? 0 : 2 },
+                      shadowOpacity: Platform.OS === 'android' ? 0 : 0.1,
+                      shadowRadius: Platform.OS === 'android' ? 0 : 4,
+                      elevation: Platform.OS === 'android' ? 1 : 2,
                     }}
                   >
                     <LinearGradient
@@ -454,11 +456,11 @@ export default function ExploreScreen() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         marginRight: spacing.md,
-                        shadowColor: item.color,
-                        shadowOffset: { width: 0, height: 3 },
-                        shadowOpacity: 0.3,
-                        shadowRadius: 6,
-                        elevation: 4,
+                        shadowColor: Platform.OS === 'android' ? 'transparent' : item.color,
+                        shadowOffset: { width: 0, height: Platform.OS === 'android' ? 0 : 3 },
+                        shadowOpacity: Platform.OS === 'android' ? 0 : 0.3,
+                        shadowRadius: Platform.OS === 'android' ? 0 : 6,
+                        elevation: Platform.OS === 'android' ? 1 : 4,
                       }}
                     >
                       <Ionicons 

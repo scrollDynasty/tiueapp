@@ -4,7 +4,7 @@ import { useResponsive } from '@/hooks/useResponsive';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ThemedText } from '../ThemedText';
 
@@ -24,11 +24,27 @@ export const DailyTipCard = React.memo(({ tip }: DailyTipCardProps) => {
       marginTop: spacing.lg,
       borderRadius: borderRadius.xl,
       overflow: 'hidden',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: isDarkMode ? 0.3 : 0.15,
-      shadowRadius: 16,
-      elevation: 12,
+      // Оптимизированные тени для платформ
+      ...Platform.select({
+        android: {
+          elevation: 3,
+          shadowColor: 'transparent',
+        },
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: isDarkMode ? 0.3 : 0.15,
+          shadowRadius: 16,
+          elevation: 12,
+        },
+        default: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: isDarkMode ? 0.3 : 0.15,
+          shadowRadius: 16,
+          elevation: 12,
+        },
+      }),
     },
     content: {
       padding: spacing.lg,

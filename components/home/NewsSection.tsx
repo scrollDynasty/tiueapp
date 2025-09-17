@@ -4,7 +4,7 @@ import { useResponsive } from '@/hooks/useResponsive';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import Animated, { SlideInRight } from 'react-native-reanimated';
 import { NewsCard } from '../NewsCard';
 import { ThemedText } from '../ThemedText';
@@ -67,11 +67,27 @@ export const NewsSection = React.memo(({ news }: NewsSectionProps) => {
       borderRadius: borderRadius.lg,
       padding: spacing.lg,
       alignItems: 'center',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: isDarkMode ? 0.15 : 0.08,
-      shadowRadius: 12,
-      elevation: 6,
+      // Оптимизированные тени для платформ
+      ...Platform.select({
+        android: {
+          elevation: 2,
+          shadowColor: 'transparent',
+        },
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: isDarkMode ? 0.15 : 0.08,
+          shadowRadius: 12,
+          elevation: 6,
+        },
+        default: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: isDarkMode ? 0.15 : 0.08,
+          shadowRadius: 12,
+          elevation: 6,
+        },
+      }),
       borderWidth: 1,
       borderColor: isDarkMode ? colors.border : 'transparent',
     },

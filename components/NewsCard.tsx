@@ -102,7 +102,7 @@ const NewsCardComponent = ({
               shadowRadius: 8,
             },
             android: {
-              elevation: 12,
+              elevation: 3, // Уменьшаем с 12 до 3
             },
           }),
         },

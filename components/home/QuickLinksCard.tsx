@@ -4,7 +4,7 @@ import { useResponsive } from '@/hooks/useResponsive';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ThemedText } from '../ThemedText';
 
@@ -45,11 +45,27 @@ export const QuickLinksCard = React.memo(() => {
       backgroundColor: colors.surface,
       borderRadius: borderRadius.lg,
       padding: spacing.md,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: isDarkMode ? 0.15 : 0.08,
-      shadowRadius: 12,
-      elevation: 6,
+      // Оптимизированные тени для платформ
+      ...Platform.select({
+        android: {
+          elevation: 2,
+          shadowColor: 'transparent',
+        },
+        ios: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: isDarkMode ? 0.15 : 0.08,
+          shadowRadius: 12,
+          elevation: 6,
+        },
+        default: {
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: isDarkMode ? 0.15 : 0.08,
+          shadowRadius: 12,
+          elevation: 6,
+        },
+      }),
       borderWidth: 1,
       borderColor: isDarkMode ? colors.border : 'transparent',
     },
@@ -98,12 +114,16 @@ export const QuickLinksCard = React.memo(() => {
           >
             <View style={[
               styles.iconContainer,
-              { backgroundColor: isDarkMode ? `${link.color}25` : `${link.color}15` }
+              { 
+                backgroundColor: Platform.OS === 'android' 
+                  ? colors.backgroundSecondary // Нейтральный фон на Android
+                  : (isDarkMode ? `${link.color}25` : `${link.color}15`) // Цветной на iOS
+              }
             ]}>
               <Ionicons 
                 name={link.icon} 
                 size={isSmall ? 20 : 22} 
-                color={link.color} 
+                color={Platform.OS === 'android' ? colors.textSecondary : link.color} // Нейтральные иконки на Android
               />
             </View>
             <ThemedText style={styles.linkLabel}>

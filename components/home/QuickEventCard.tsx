@@ -4,7 +4,7 @@ import { useResponsive } from '@/hooks/useResponsive';
 import { formatDateYMD } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import Animated, { SlideInRight } from 'react-native-reanimated';
 import { ThemedText } from '../ThemedText';
 
@@ -31,11 +31,27 @@ export const QuickEventCard = React.memo(({ event, index }: QuickEventCardProps)
     borderRadius: 12,
     padding: isVerySmallScreen ? spacing.sm : spacing.md,
     marginBottom: spacing.sm,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 4,
+    // Оптимизированные тени для платформ
+    ...Platform.select({
+      android: {
+        elevation: 2,
+        shadowColor: 'transparent',
+      },
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+        elevation: 4,
+      },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+        elevation: 4,
+      },
+    }),
     borderLeftWidth: 3,
     borderLeftColor: colors.primary,
   }), [colors, isVerySmallScreen, spacing]);

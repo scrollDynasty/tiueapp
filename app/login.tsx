@@ -273,7 +273,7 @@ export default function LoginScreen() {
                   styles.inputLabel, 
                   { 
                     color: themeColors.text,
-                    fontSize: isSmallScreen ? fontSize.small : 14
+                    fontSize: isSmallScreen ? 11 : 12
                   }
                 ]}>Email</Text>
                 <View style={[
@@ -281,7 +281,7 @@ export default function LoginScreen() {
                   { 
                     backgroundColor: themeColors.surface,
                     borderColor: themeColors.border,
-                    height: isSmallScreen ? 48 : 56,
+                    height: isSmallScreen ? 44 : 52,
                     paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md
                   },
                   focusedInput === 'email' && {
@@ -301,7 +301,7 @@ export default function LoginScreen() {
                       backgroundColor: 'transparent',
                       borderColor: 'transparent',
                       color: themeColors.text,
-                      fontSize: isSmallScreen ? fontSize.body : 16
+                      fontSize: isSmallScreen ? fontSize.small : 14
                     }]}
                     placeholder="your.email@university.uz"
                     placeholderTextColor={themeColors.textSecondary}
@@ -329,7 +329,7 @@ export default function LoginScreen() {
                   styles.inputLabel, 
                   { 
                     color: themeColors.text,
-                    fontSize: isSmallScreen ? fontSize.small : 14
+                    fontSize: isSmallScreen ? 11 : 12
                   }
                 ]}>Пароль</Text>
                 <View style={[
@@ -337,7 +337,7 @@ export default function LoginScreen() {
                   { 
                     backgroundColor: themeColors.surface,
                     borderColor: themeColors.border,
-                    height: isSmallScreen ? 48 : 56,
+                    height: isSmallScreen ? 44 : 52,
                     paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md
                   },
                   focusedInput === 'password' && {
@@ -357,7 +357,7 @@ export default function LoginScreen() {
                       backgroundColor: 'transparent',
                       borderColor: 'transparent',
                       color: themeColors.text,
-                      fontSize: isSmallScreen ? fontSize.body : 16,
+                      fontSize: isSmallScreen ? fontSize.small : 14,
                       paddingRight: isSmallScreen ? 50 : 60, // Увеличиваем отступ справа для кнопки глазика
                     }]}
                     placeholder="Введите ваш пароль"
@@ -504,6 +504,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: '100%',
+    ...(Platform.OS === 'android' && {
+      paddingVertical: Spacing.m, // Уменьшенные отступы для Android
+    }),
   },
   
   // Основная форма адаптированная под тему
@@ -512,9 +515,9 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     backgroundColor: 'rgba(255,255,255,0.95)',
     borderRadius: 20,
-    paddingHorizontal: Spacing.l,
-    paddingVertical: Spacing.xl,
-    marginTop: Spacing.l,
+    paddingHorizontal: Platform.OS === 'android' ? Spacing.m : Spacing.l,
+    paddingVertical: Platform.OS === 'android' ? Spacing.l : Spacing.xl,
+    marginTop: Platform.OS === 'android' ? Spacing.m : Spacing.l,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.1,

@@ -26,7 +26,8 @@ export const ImmersiveContainer: React.FC<ImmersiveContainerProps> = ({
 
   const getTopPadding = () => {
     if (Platform.OS === 'android') {
-      return includeStatusBar ? Math.max(insets.top, 24) : 0;
+      // Для Android минимизируем отступы - используем только статус бар если нужен
+      return includeStatusBar ? Math.max(insets.top, 0) : 0;
     }
     
     // iOS - исправляем проблему с Dynamic Island

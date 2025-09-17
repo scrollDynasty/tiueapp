@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React from 'react';
-import { ScrollView, View } from 'react-native';
+import { Platform, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ConfirmationModal } from '@/components/ConfirmationModal';
@@ -90,7 +90,9 @@ export default function ProfileScreen() {
         style={{ backgroundColor: colors.background }}
         contentContainerStyle={{
           paddingHorizontal: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg,
-          paddingBottom: isVerySmallScreen ? 140 : isSmallScreen ? 150 : 160, // Увеличиваем отступ для новой высоты табов
+          paddingBottom: Platform.OS === 'android'
+            ? (isVerySmallScreen ? 80 : isSmallScreen ? 85 : 90) // Компактные отступы для Android
+            : (isVerySmallScreen ? 140 : isSmallScreen ? 150 : 160), // Обычные для iOS
           paddingTop: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : spacing.md,
         }}
       >
