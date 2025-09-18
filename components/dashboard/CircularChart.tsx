@@ -50,10 +50,18 @@ export const CircularChart: React.FC<CircularChartProps> = ({
 
   const formatValue = () => {
     if (maxValue === 5 || maxValue === 4) {
-      // GPA формат
+      // GPA формат (из 5 или 4)
       return value.toFixed(1);
+    } else if (maxValue === 100) {
+      // Для GPA из 100 показываем как число, не процент
+      if (title.includes('балл') || title.includes('GPA')) {
+        return Math.round(value).toString();
+      } else {
+        // Для других показателей (посещаемость) - процент
+        return `${Math.round(value)}%`;
+      }
     } else {
-      // Процент формат
+      // Процент формат для других случаев
       return `${Math.round(value)}%`;
     }
   };
