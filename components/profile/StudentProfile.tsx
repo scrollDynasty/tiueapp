@@ -47,12 +47,20 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
     return 'СТ';
   }, []);
   
-  const displayInfo = React.useMemo(() => ({
-    name: `${user.first_name} ${user.last_name}`.trim() || user.username,
-    subtitle: user.student?.group?.name ? `Группа ${user.student.group.name} • ${user.student.course || 1} курс` : 'Студент',
-    roleColor: '#2563eb',
-    initials: getInitials(user.first_name, user.last_name, user.username)
-  }), [user.first_name, user.last_name, user.username, user.student, getInitials]);
+  const displayInfo = React.useMemo(() => {
+    // Используем данные из LDAP профиля если они есть
+    const ldapProfile = user.ldap_profile;
+    const name = ldapProfile?.full_name || `${user.first_name} ${user.last_name}`.trim() || user.username;
+    const groupName = ldapProfile?.group || user.student?.group?.name;
+    const course = user.student?.course || 1;
+    
+    return {
+      name,
+      subtitle: groupName ? `Группа ${groupName} • ${course} курс` : 'Студент',
+      roleColor: '#2563eb',
+      initials: getInitials(user.first_name, user.last_name, user.username)
+    };
+  }, [user.first_name, user.last_name, user.username, user.student, user.ldap_profile, getInitials]);
 
   // Получить название текущей темы для отображения
   const getThemeDisplayName = React.useCallback(() => {
@@ -312,8 +320,141 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
         </View>
       </Animated.View>
 
+      {/* Информация из LDAP профиля */}
+      {user.ldap_profile && (
+        <Animated.View entering={FadeInDown.duration(500).delay(150)} style={{ marginTop: Spacing.l }}>
+          <ThemedText style={{ 
+            fontSize: 18, 
+            color: isDarkMode ? '#FFFFFF' : '#1E293B',
+            marginBottom: Spacing.m,
+            marginLeft: 4,
+          }}>
+            Информация о студенте
+          </ThemedText>
+          
+          <View style={{
+            borderRadius: 16,
+            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
+            borderWidth: 1,
+            borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
+            padding: Spacing.m,
+          }}>
+            {/* Основная информация */}
+            {user.ldap_profile.jshr && (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
+                  JSHR:
+                </ThemedText>
+                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500' }}>
+                  {user.ldap_profile.jshr}
+                </ThemedText>
+              </View>
+            )}
+            
+            {user.ldap_profile.birthday && (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
+                  Дата рождения:
+                </ThemedText>
+                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500' }}>
+                  {user.ldap_profile.birthday}
+                </ThemedText>
+              </View>
+            )}
+            
+            {user.ldap_profile.phone && (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
+                  Телефон:
+                </ThemedText>
+                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500' }}>
+                  {user.ldap_profile.phone}
+                </ThemedText>
+              </View>
+            )}
+            
+            {user.ldap_profile.yonalishCon && (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
+                  Специальность:
+                </ThemedText>
+                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500', textAlign: 'right', flex: 1, marginLeft: 8 }}>
+                  {user.ldap_profile.yonalishCon}
+                </ThemedText>
+              </View>
+            )}
+            
+            {user.ldap_profile.degree && (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
+                  Степень:
+                </ThemedText>
+                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500' }}>
+                  {user.ldap_profile.degree}
+                </ThemedText>
+              </View>
+            )}
+            
+            {user.ldap_profile.talim && (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
+                  Форма обучения:
+                </ThemedText>
+                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500', textAlign: 'right', flex: 1, marginLeft: 8 }}>
+                  {user.ldap_profile.talim}
+                </ThemedText>
+              </View>
+            )}
+            
+            {user.ldap_profile.talimcon && (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
+                  Язык обучения:
+                </ThemedText>
+                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500' }}>
+                  {user.ldap_profile.talimcon}
+                </ThemedText>
+              </View>
+            )}
+            
+            {user.ldap_profile.length && (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
+                  Длительность:
+                </ThemedText>
+                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500' }}>
+                  {user.ldap_profile.length}
+                </ThemedText>
+              </View>
+            )}
+            
+            {user.ldap_profile.admdate && (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
+                  Дата поступления:
+                </ThemedText>
+                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500', textAlign: 'right', flex: 1, marginLeft: 8 }}>
+                  {user.ldap_profile.admdate}
+                </ThemedText>
+              </View>
+            )}
+            
+            {user.ldap_profile.yearofgraduation && (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
+                  Год окончания:
+                </ThemedText>
+                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500' }}>
+                  {user.ldap_profile.yearofgraduation}
+                </ThemedText>
+              </View>
+            )}
+          </View>
+        </Animated.View>
+      )}
+
       {/* Успеваемость */}
-      <Animated.View entering={FadeInDown.duration(500).delay(200)}>
+      <Animated.View entering={FadeInDown.duration(500).delay(200)} style={{ marginTop: Spacing.l }}>
         <ThemedText style={{ 
           fontSize: 18, 
           color: isDarkMode ? '#FFFFFF' : '#000000', 

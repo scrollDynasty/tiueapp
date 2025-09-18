@@ -1,0 +1,420 @@
+{
+	"info": {
+		"_postman_id": "ed9d4cb4-f8fa-41b5-afbc-6fd426f58d91",
+		"name": "Students mobile API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1911901"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\":\"U22312\",\r\n    \"password\":\"rustam312\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/mobile/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"mobile",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Refresh",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"refresh_token\":{{token}}\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/mobile/refresh",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"mobile",
+						"refresh"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Moodle img",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7Im1pZCI6MjEyOSwidWlkIjoidTIyMzEyIn0sImlhdCI6MTc1ODE4MjE1NSwiZXhwIjoxNzU4MTgzMDU1fQ.IWY5jJ4GI1cxDyLrt9F1I0hwpwGKVhbM3_Bdk5kYI_k",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/mobile/img",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"mobile",
+						"img"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Data student profile",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7Im1pZCI6MjEyOSwidWlkIjoidTIyMzEyIn0sImlhdCI6MTc1ODE4MjE1NSwiZXhwIjoxNzU4MTgzMDU1fQ.IWY5jJ4GI1cxDyLrt9F1I0hwpwGKVhbM3_Bdk5kYI_k",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/mobile/data-student-profile",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"mobile",
+						"data-student-profile"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Response data student profile",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/mobile/data-student-profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"mobile",
+								"data-student-profile"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "X-Powered-By",
+							"value": "SITUEDU"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "391"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"187-3EWkC8lGhm5YzoyQIcqKCmwA6qg\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 18 Sep 2025 08:38:30 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"jshr\": \"51403056520010\",\n    \"email\": \"U22312@tiue.uz\",\n    \"group\": \"RB22-01\",\n    \"phone\": \"+998997924540\",\n    \"talim\": \"Kunduzgi / Очная / Fulltime\",\n    \"degree\": \"Bakalavr / Bachelor\",\n    \"length\": \"3 yil / years\",\n    \"admdate\": \"\",\n    \"birthday\": \"14.03.2005\",\n    \"talimcon\": \"Русский\",\n    \"full_name\": \"KARIMOV RUSTAM ZAFAROVICH\",\n    \"department\": \"RB 22-01\",\n    \"yonalishCon\": \"Biznes Boshqaruvi\",\n    \"yearofgraduation\": \"2025 yil / year\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Active course list",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/mobile/active-course-list?lang=en&page=1&pageSize=10&skip=0&take=10",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"mobile",
+						"active-course-list"
+					],
+					"query": [
+						{
+							"key": "lang",
+							"value": "en"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pageSize",
+							"value": "10"
+						},
+						{
+							"key": "skip",
+							"value": "0"
+						},
+						{
+							"key": "take",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Response active course",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/mobile/active-course-list",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"mobile",
+								"active-course-list"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "X-Powered-By",
+							"value": "SITUEDU"
+						},
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Content-Length",
+							"value": "7055"
+						},
+						{
+							"key": "ETag",
+							"value": "W/\"1b8f-sHp0ekyeYstJV1fcUF2AyYqwRvE\""
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 18 Sep 2025 07:59:05 GMT"
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"count\": 28,\n    \"data\": [\n        {\n            \"course_id\": \"107\",\n            \"course_name\": \"Академическое письмо и исследовательские навыки\",\n            \"course_shortname\": \"BFBMRAWL0122\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=107\",\n            \"category_name\": \"1-semestr / 1st semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"109\",\n            \"course_name\": \"Основы математики\",\n            \"course_shortname\": \"BFBMRFMA0122\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=109\",\n            \"category_name\": \"1-semestr / 1st semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"110\",\n            \"course_name\": \"Руководство и управление командами\",\n            \"course_shortname\": \"BFBMRLMT0122\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=110\",\n            \"category_name\": \"1-semestr / 1st semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"108\",\n            \"course_name\": \"Хозяйственная деятельность организаций\",\n            \"course_shortname\": \"BFBMRBOP0122\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=108\",\n            \"category_name\": \"1-semestr / 1st semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"111\",\n            \"course_name\": \"Деятельность бизнеса на мировом рынке\",\n            \"course_shortname\": \"BFBMROGC0222\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=111\",\n            \"category_name\": \"2-semestr / 2nd semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"112\",\n            \"course_name\": \"Финансы и бухгалтерский учет\",\n            \"course_shortname\": \"BFBMRFAR0222\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=112\",\n            \"category_name\": \"2-semestr / 2nd semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"113\",\n            \"course_name\": \"Бизнес-Коммуникации \",\n            \"course_shortname\": \"BFBMRCBU0222\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=113\",\n            \"category_name\": \"2-semestr / 2nd semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"114\",\n            \"course_name\": \"Cтартап аклелерация\",\n            \"course_shortname\": \"BFBMRSAK0222\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=114\",\n            \"category_name\": \"2-semestr / 2nd semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"115\",\n            \"course_name\": \"Педагогика и педагогические технологии\",\n            \"course_shortname\": \"BFBMRPPT0222\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=115\",\n            \"category_name\": \"2-semestr / 2nd semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"116\",\n            \"course_name\": \"Введение в Маркетинг\",\n            \"course_shortname\": \"BFBMRIMA0222\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=116\",\n            \"category_name\": \"2-semestr / 2nd semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"607\",\n            \"course_name\": \"Управление Персоналом\",\n            \"course_shortname\": \"BFBMRHRM0322\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=607\",\n            \"category_name\": \"3-semestr / 3rd semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"608\",\n            \"course_name\": \"Управление Проектами\",\n            \"course_shortname\": \"BFBMRPME0322\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=608\",\n            \"category_name\": \"3-semestr / 3rd semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"609\",\n            \"course_name\": \"Бухгалтерский Учет для Менеджеров и приниятие решений\",\n            \"course_shortname\": \"BFBMRMAD0322\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=609\",\n            \"category_name\": \"3-semestr / 3rd semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"699\",\n            \"course_name\": \"Теория вероятностей и математическая статистика\",\n            \"course_shortname\": \"BFBMRTPM0322\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=699\",\n            \"category_name\": \"3-semestr / 3rd semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"613\",\n            \"course_name\": \"Законы бизнеса для менежеров\",\n            \"course_shortname\": \"BFBMRBLM0422\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=613\",\n            \"category_name\": \"4-semester / 4th semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"612\",\n            \"course_name\": \"Маркетинг для менеджеров\",\n            \"course_shortname\": \"BFBMRMMA0422\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=612\",\n            \"category_name\": \"4-semester / 4th semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"614\",\n            \"course_name\": \"Деловая Этика\",\n            \"course_shortname\": \"BFBMRBET0422\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=614\",\n            \"category_name\": \"4-semester / 4th semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"615\",\n            \"course_name\": \"Бизнес стартап; Концепция выхода на рынок\",\n            \"course_shortname\": \"BFBMRBSC0422\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=615\",\n            \"category_name\": \"4-semester / 4th semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"682\",\n            \"course_name\": \"Педагогика и психология\",\n            \"course_shortname\": \"BFBMRPPS0422\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=682\",\n            \"category_name\": \"4-semester / 4th semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"1121\",\n            \"course_name\": \"Принятие финансовых решений\",\n            \"course_shortname\": \"BFBMRFDM0522\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=1121\",\n            \"category_name\": \"5-semestr / 5th semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"1123\",\n            \"course_name\": \"Управление бизнес-информацией и анализ данных\",\n            \"course_shortname\": \"BFBMRBIM0522\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=1123\",\n            \"category_name\": \"5-semestr / 5th semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"1229\",\n            \"course_name\": \"Стратегическое управление человеческими ресурсами\",\n            \"course_shortname\": \"BFBMRSHR0522\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=1229\",\n            \"category_name\": \"5-semestr / 5th semester\",\n            \"status\": \"current\"\n        },\n        {\n            \"course_id\": \"1120\",\n            \"course_name\": \"Управление процессами\",\n            \"course_shortname\": \"BFBMROMA0522\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=1120\",\n            \"category_name\": \"5-semestr / 5th semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"1128\",\n            \"course_name\": \"Учебно-производственная практика\",\n            \"course_shortname\": \"BFBMRSPR0622\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=1128\",\n            \"category_name\": \"6-semester / 6th semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"1352\",\n            \"course_name\": \"Деловая практика, основанная на принципах устойчивого развития\",\n            \"course_shortname\": \"BFBMRSBP0622\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=1352\",\n            \"category_name\": \"6-semester / 6th semester\",\n            \"status\": \"current\"\n        },\n        {\n            \"course_id\": \"1124\",\n            \"course_name\": \"Проект по исследованию бизнеса\",\n            \"course_shortname\": \"BFBMRBRP0622\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=1124\",\n            \"category_name\": \"6-semester / 6th semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"1125\",\n            \"course_name\": \"Лидерство и управление персоналом\",\n            \"course_shortname\": \"BFBMRLPM0622\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=1125\",\n            \"category_name\": \"6-semester / 6th semester\",\n            \"status\": \"past\"\n        },\n        {\n            \"course_id\": \"1127\",\n            \"course_name\": \"Цифровой маркетинг и электронная коммерция\",\n            \"course_shortname\": \"BFBMRDME0622\",\n            \"course_url\": \"https://lms.tiue.uz/course/view.php?id=1127\",\n            \"category_name\": \"6-semester / 6th semester\",\n            \"status\": \"past\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "Course grades list",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7Im1pZCI6MjEyOSwidWlkIjoidTIyMzEyIn0sImlhdCI6MTc1ODE4MjE1NSwiZXhwIjoxNzU4MTgzMDU1fQ.IWY5jJ4GI1cxDyLrt9F1I0hwpwGKVhbM3_Bdk5kYI_k",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/mobile/course-grades-list",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"mobile",
+						"course-grades-list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Course failed list",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7Im1pZCI6MjEyOSwidWlkIjoidTIyMzEyIn0sImlhdCI6MTc1ODE4MjE1NSwiZXhwIjoxNzU4MTgzMDU1fQ.IWY5jJ4GI1cxDyLrt9F1I0hwpwGKVhbM3_Bdk5kYI_k",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/mobile/course-failed-list",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"mobile",
+						"course-failed-list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Course attendance list",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7Im1pZCI6MjEyOSwidWlkIjoidTIyMzEyIn0sImlhdCI6MTc1ODE4MjE1NSwiZXhwIjoxNzU4MTgzMDU1fQ.IWY5jJ4GI1cxDyLrt9F1I0hwpwGKVhbM3_Bdk5kYI_k",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/mobile/course-attendance-list",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"mobile",
+						"course-attendance-list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Messages list",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/mobile/messages-list",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"mobile",
+						"messages-list"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": ""
+		},
+		{
+			"key": "token",
+			"value": ""
+		}
+	]
+}

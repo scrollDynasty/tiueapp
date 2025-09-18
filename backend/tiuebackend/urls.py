@@ -23,11 +23,13 @@ import os
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # LDAP авторизация - основной источник аутентификации
     path('api/auth/', include('authentication.urls')),
+    # Остальные endpoints для совместимости и локальных данных
     path('api/', include('news.urls')),
     path('api/users/', include('users.urls')),
-    # path('api/groups/', include('groups.urls')),
-    # path('api/schedule/', include('schedule.urls')),
+    path('api/groups/', include('groups.urls')),
+    path('api/schedule/', include('schedule.urls')),
 ]
 
 # Serve media files через кастомный view с правильными MIME типами
