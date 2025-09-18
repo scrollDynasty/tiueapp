@@ -34,7 +34,6 @@ export const ImmersiveContainer: React.FC<ImmersiveContainerProps> = ({
     if (Platform.OS === 'ios') {
       // Dynamic Island устройства (iPhone 14 Pro/Max и новее)
       if (insets.top >= 55) {
-        console.log('🏝️ Dynamic Island detected in ImmersiveContainer:', insets.top);
          return 0; // Минимальный отступ 10px для Dynamic Island
       }
       // Обычные устройства iOS с челкой

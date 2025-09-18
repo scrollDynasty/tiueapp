@@ -262,9 +262,7 @@ export default function ScheduleScreen() {
     }
     
     try {
-      if (__DEV__) {
-        console.log('📅 Starting to fetch schedule...');
-      }
+
       setScheduleLoading(true);
       
       const response = await authApi.getSchedule();

@@ -118,11 +118,9 @@ export const getFallbackImageUrl = (originalUrl: string): string | null => {
  */
 export const useImageErrorHandler = () => {
   const handleImageError = (imageUrl: string, onFallback?: (fallbackUrl: string) => void) => {
-    console.log(`⚠️ [ImageUtils] Image failed to load: ${imageUrl}`);
     
     const fallbackUrl = getFallbackImageUrl(imageUrl);
     if (fallbackUrl && onFallback) {
-      console.log(`🔄 [ImageUtils] Trying fallback: ${fallbackUrl}`);
       onFallback(fallbackUrl);
     }
   };

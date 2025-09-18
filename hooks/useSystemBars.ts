@@ -26,30 +26,23 @@ export const useImmersiveMode = () => {
         // Метод 1: react-native-system-navigation-bar
         if (SystemNavigationBar && SystemNavigationBar.immersive) {
           await SystemNavigationBar.immersive();
-          console.log('✅ SystemNavigationBar.immersive успешно');
         } else {
-          console.log('⚠️ SystemNavigationBar.immersive недоступен');
         }
       } catch (systemNavError) {
-        console.log('⚠️ SystemNavigationBar ошибка:', systemNavError);
       }
       
       try {
         // Метод 2: expo-navigation-bar
         await NavigationBar.setVisibilityAsync('hidden');
-        console.log('✅ NavigationBar.setVisibilityAsync успешно');
       } catch (expoNavError) {
-        console.log('⚠️ NavigationBar ошибка:', expoNavError);
       }
       
       try {
         // Метод 3: Дополнительные настройки
         if (SystemNavigationBar && SystemNavigationBar.navigationHide) {
           await SystemNavigationBar.navigationHide();
-          console.log('✅ navigationHide успешно');
         }
       } catch (hiddenError) {
-        console.log('⚠️ navigationHide ошибка:', hiddenError);
       }
       
       // Настраиваем статус бар
@@ -57,19 +50,16 @@ export const useImmersiveMode = () => {
       
       isImmersiveActive.current = true;
     } catch (error) {
-      console.warn('❌ Общая ошибка активации immersive режима:', error);
       
       // Fallback - пробуем только expo-navigation-bar
       try {
         await NavigationBar.setVisibilityAsync('hidden');
-        console.log('✅ Fallback NavigationBar успешно');
       } catch (fallbackError) {
         console.warn('❌ Fallback также не сработал:', fallbackError);
         // Последний fallback - устанавливаем позицию
         try {
           await NavigationBar.setPositionAsync('absolute');
           await NavigationBar.setBackgroundColorAsync('#00000000');
-          console.log('✅ Последний fallback успешно');
         } catch (finalError) {
           console.warn('❌ Все методы не сработали:', finalError);
         }

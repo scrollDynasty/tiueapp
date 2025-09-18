@@ -33,10 +33,6 @@ class LDAPAuthService {
       this.refreshToken = refresh;
       
       if (isDebugMode()) {
-        console.log('🔑 LDAP tokens initialized:', {
-          hasAccess: !!this.accessToken,
-          hasRefresh: !!this.refreshToken
-        });
       }
     } catch (error) {
       if (isDebugMode()) {
@@ -50,9 +46,7 @@ class LDAPAuthService {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     try {
-      if (isDebugMode()) {
-        console.log('🌐 LDAP API Request:', { url, method: options.method || 'GET' });
-      }
+
 
       const response = await fetch(url, {
         ...options,
@@ -75,9 +69,6 @@ class LDAPAuthService {
         };
       }
 
-      if (isDebugMode()) {
-        console.log('✅ LDAP API Success:', { status: response.status });
-      }
 
       return {
         success: true,
@@ -159,16 +150,10 @@ class LDAPAuthService {
 
   private async refreshAccessToken(): Promise<string | null> {
     if (!this.refreshToken) {
-      if (isDebugMode()) {
-        console.log('❌ No refresh token available');
-      }
       return null;
     }
 
     try {
-      if (isDebugMode()) {
-        console.log('🔄 Refreshing access token...');
-      }
 
       const refreshData: LDAPRefreshRequest = {
         refresh_token: this.refreshToken,
@@ -193,9 +178,6 @@ class LDAPAuthService {
         
         await AsyncStorage.setItem('ldap_access_token', this.accessToken);
         
-        if (isDebugMode()) {
-          console.log('✅ Tokens refreshed successfully');
-        }
         
         return this.accessToken;
       } else {
@@ -219,9 +201,6 @@ class LDAPAuthService {
 
   async login(credentials: LoginCredentials): Promise<ApiResponse<LDAPLoginResponse>> {
     try {
-      if (isDebugMode()) {
-        console.log('🔐 LDAP Login attempt for user:', credentials.username);
-      }
 
       const response = await this.makeRequest<LDAPLoginResponse>(
         getLDAPEndpoint('LOGIN'),
@@ -241,9 +220,6 @@ class LDAPAuthService {
           AsyncStorage.setItem('ldap_refresh_token', this.refreshToken),
         ]);
 
-        if (isDebugMode()) {
-          console.log('✅ LDAP login successful, tokens saved');
-        }
       }
 
       return response;
@@ -259,9 +235,7 @@ class LDAPAuthService {
   }
 
   async logout(): Promise<void> {
-    if (isDebugMode()) {
-      console.log('🚪 LDAP logout');
-    }
+
 
     await this.clearTokens();
   }
@@ -277,9 +251,6 @@ class LDAPAuthService {
         AsyncStorage.removeItem('ldap_refresh_token'),
       ]);
       
-      if (isDebugMode()) {
-        console.log('🧹 LDAP tokens cleared');
-      }
     } catch (error) {
       if (isDebugMode()) {
         console.error('❌ Failed to clear tokens:', error);

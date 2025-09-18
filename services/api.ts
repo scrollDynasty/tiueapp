@@ -15,9 +15,6 @@ class ApiService {
       token = await AsyncStorage.getItem('authToken');
     }
     
-    if (__DEV__) {
-      console.log('🔑 [API] Token found:', token ? `${token.substring(0, 10)}...` : 'No token');
-    }
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -27,9 +24,6 @@ class ApiService {
       headers.Authorization = `Bearer ${token}`;  // Используем Bearer для LDAP токенов
     }
     
-    if (__DEV__) {
-      console.log('🔑 [API] Headers:', headers);
-    }
     return headers;
   }
 
@@ -61,7 +55,6 @@ class ApiService {
         // Если получили 401 ошибку, токен истек - очищаем хранилище
         if (response.status === 401) {
           if (__DEV__) {
-            console.log('🔑 Token expired, clearing storage');
           }
           await this.clearStorage();
           return {
@@ -174,9 +167,6 @@ class ApiService {
         AsyncStorage.setItem('ldap_refresh_token', refresh_token),
       ]);
 
-      if (__DEV__) {
-        console.log('✅ LDAP login successful for user:', user.username);
-      }
 
       return {
         success: true,
@@ -233,16 +223,11 @@ class ApiService {
     this.clearUserCache();
     this.clearDashboardCache();
     
-    if (__DEV__) {
-      console.log('✅ All tokens and caches cleared successfully');
-    }
   }
 
   // Добавляем функцию для принудительной очистки storage
   async clearStorage(): Promise<void> {
-    if (__DEV__) {
-      console.log('🧹 Clearing all auth tokens');
-    }
+
     await Promise.all([
       AsyncStorage.removeItem('authToken'),
       AsyncStorage.removeItem('ldap_access_token'),
@@ -253,9 +238,6 @@ class ApiService {
     this.clearUserCache();
     this.clearDashboardCache();
     
-    if (__DEV__) {
-      console.log('✅ All auth tokens cleared');
-    }
   }
 
   // Кешируем запрос текущего пользователя для предотвращения дублирования
@@ -267,23 +249,15 @@ class ApiService {
     // Проверяем кеш
     if (this.currentUserCache && 
         Date.now() - this.currentUserCache.timestamp < this.CACHE_DURATION) {
-      if (__DEV__) {
-        console.log('👤 getCurrentUser: returning cached result');
-      }
       return this.currentUserCache.data;
     }
 
     // Если уже есть активный запрос, возвращаем его
     if (this.currentUserPromise) {
-      if (__DEV__) {
-        console.log('👤 getCurrentUser: reusing existing promise');
-      }
+
       return this.currentUserPromise;
     }
 
-    if (__DEV__) {
-      console.log('👤 Getting current user from LDAP...');
-    }
 
     // Создаем новый запрос к LDAP API
     this.currentUserPromise = this.getLDAPCurrentUser()
@@ -296,9 +270,6 @@ class ApiService {
           };
         }
         
-        if (__DEV__) {
-          console.log('👤 getCurrentUser result:', result.success ? 'Success' : `Failed: ${result.error}`);
-        }
         
         return result;
       })
@@ -396,9 +367,7 @@ class ApiService {
   clearUserCache(): void {
     this.currentUserCache = null;
     this.currentUserPromise = null;
-    if (__DEV__) {
-      console.log('👤 User cache cleared');
-    }
+
   }
 
   // User management (admin only)
@@ -552,13 +521,6 @@ class ApiService {
       const token = await AsyncStorage.getItem('authToken');
       const url = `${API_BASE_URL}/events/`;
 
-      // Log intent
-      if (__DEV__) {
-        console.log('🆕 createEvent(): preparing payload', {
-          hasImage: !!eventData.image,
-          title: eventData?.title,
-        });
-      }
 
       if (eventData.image) {
         const formData = new FormData();
@@ -573,9 +535,7 @@ class ApiService {
         }
 
         let imageUri = eventData.image.uri;
-        if (__DEV__) {
-          console.log('🖼 createEvent(): image object', eventData.image);
-        }
+
         if (!imageUri) {
           if (__DEV__) {
             console.warn('⚠️ createEvent(): image object missing uri');
@@ -583,9 +543,6 @@ class ApiService {
         } else if (imageUri.startsWith('/')) {
           // Normalize plain path to file:// for Android
             imageUri = 'file://' + imageUri;
-            if (__DEV__) {
-              console.log('🛠 createEvent(): normalized uri ->', imageUri);
-            }
         }
 
         const now = new Date();
@@ -600,13 +557,6 @@ class ApiService {
         
         // Добавляем файл в FormData
         formData.append('image', imageFile);
-        if (__DEV__) {
-          console.log('📤 createEvent(): added image object', { name: filename, uri: imageUri });
-        }
-
-        if (__DEV__) {
-          console.log('📤 createEvent(): sending multipart request', { url });
-        }
 
         let apiResponse: Response;
         try {
@@ -620,8 +570,6 @@ class ApiService {
         } catch (networkErr: any) {
           if (__DEV__) {
             console.error('🌐 createEvent(): network layer failure', networkErr?.message || networkErr);
-            console.log('Hint: If using ngrok, ensure tunnel is active and device can reach it (same Wi-Fi, not asleep).');
-            console.log('↩️ Fallback: try create WITHOUT image');
           }
           try {
             const fallback = await this.request<any>('/events/', {
@@ -664,9 +612,6 @@ class ApiService {
           return { success: false, error: data?.error || data?.message || `HTTP ${apiResponse.status}` };
         }
 
-        if (__DEV__) {
-          console.log('✅ createEvent(): success (multipart)');
-        }
         return { success: true, data: data?.data || data };
       } else {
         return this.request<any>('/events/', {
@@ -692,9 +637,6 @@ class ApiService {
 
   async deleteEvent(eventId: string): Promise<ApiResponse<void>> {
     try {
-      if (__DEV__) {
-        console.log('🔧 API deleteEvent: Starting delete for ID:', eventId);
-      }
       
       const token = await AsyncStorage.getItem('authToken');
       const headers: Record<string, string> = {};
@@ -705,48 +647,29 @@ class ApiService {
       
       const url = `${API_BASE_URL}/events/${eventId}/`;
       
-      if (__DEV__) {
-        console.log('🔧 API deleteEvent: Making request to:', url);
-        console.log('🔧 API deleteEvent: Headers:', headers);
-      }
       
       const response = await fetch(url, {
         method: 'DELETE',
         headers: headers,
       });
 
-      if (__DEV__) {
-        console.log('🔧 API deleteEvent: Response status:', response.status);
-        console.log('🔧 API deleteEvent: Response ok:', response.ok);
-      }
 
       // DELETE возвращает 204 без контента, поэтому не парсим JSON
       if (response.ok) {
-        if (__DEV__) {
-          console.log('🔧 API deleteEvent: Success, returning');
-        }
         return {
           success: true,
           data: undefined as any,
         };
       } else {
-        if (__DEV__) {
-          console.log('🔧 API deleteEvent: Response not ok, trying to parse error');
-        }
         // Только если есть ошибка, пытаемся парсить JSON
         try {
           const data = await response.json();
-          if (__DEV__) {
-            console.log('🔧 API deleteEvent: Error data:', data);
-          }
           return {
             success: false,
             error: data.error || data.message || `HTTP ${response.status}`,
           };
         } catch (parseError) {
-          if (__DEV__) {
-            console.log('🔧 API deleteEvent: Failed to parse error JSON:', parseError);
-          }
+
           return {
             success: false,
             error: `HTTP ${response.status}`,
@@ -754,9 +677,6 @@ class ApiService {
         }
       }
     } catch (error) {
-      if (__DEV__) {
-        console.log('🔧 API deleteEvent: Caught exception:', error);
-      }
       return {
         success: false,
         error: 'Network error occurred',
@@ -780,23 +700,14 @@ class ApiService {
     // Проверяем кеш
     if (this.dashboardCache && 
         Date.now() - this.dashboardCache.timestamp < this.DASHBOARD_CACHE_DURATION) {
-      if (__DEV__) {
-        console.log('📋 getDashboard: returning cached result');
-      }
       return this.dashboardCache.data;
     }
 
     // Если уже есть активный запрос, возвращаем его
     if (this.dashboardPromise) {
-      if (__DEV__) {
-        console.log('📋 getDashboard: reusing existing promise');
-      }
       return this.dashboardPromise;
     }
 
-    if (__DEV__) {
-      console.log('📋 Getting dashboard data...');
-    }
 
     // Создаем новый запрос
     this.dashboardPromise = this.request('/users/dashboard/')
@@ -809,9 +720,6 @@ class ApiService {
           };
         }
         
-        if (__DEV__) {
-          console.log('📋 getDashboard result:', result.success ? 'Success' : `Failed: ${result.error}`);
-        }
         
         return result;
       })
@@ -827,20 +735,11 @@ class ApiService {
   clearDashboardCache(): void {
     this.dashboardCache = null;
     this.dashboardPromise = null;
-    if (__DEV__) {
-      console.log('📋 Dashboard cache cleared');
-    }
   }
 
   // LDAP методы для получения данных
   async getGrades(): Promise<ApiResponse<any[]>> {
-    if (__DEV__) {
-      console.log('🎓 [API] Getting grades...');
-    }
     const result = await this.request<any[]>('/auth/grades/');
-    if (__DEV__) {
-      console.log('🎓 [API] Grades result:', result);
-    }
     return result;
   }
 

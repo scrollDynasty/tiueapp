@@ -129,16 +129,6 @@ const NewsCardComponent = ({
                 borderTopRightRadius: 20,
               }}
               resizeMode="cover"
-              onError={() => {
-                if (__DEV__) {
-                  console.log(`❌ [NewsCard] Failed to load image: ${image}`);
-                }
-              }}
-              onLoad={() => {
-                if (__DEV__) {
-                  console.log(`✅ [NewsCard] Successfully loaded image: ${image}`);
-                }
-              }}
             />
             <LinearGradient
               colors={['transparent', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.6)']}
