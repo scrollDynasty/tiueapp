@@ -92,8 +92,13 @@ export default function LoginScreen() {
   useEffect(() => {
     if (error) {
       setShowErrorMessage(true);
-      // Также показываем алерт для критических ошибок
-      Alert.alert('Ошибка входа', error, [
+      // Показываем разные сообщения в зависимости от типа ошибки
+      const title = error.includes('Сессия истекла') ? 'Сессия истекла' : 'Ошибка входа';
+      const message = error.includes('Сессия истекла') 
+        ? 'Ваша сессия истекла. Пожалуйста, войдите в систему заново.' 
+        : error;
+      
+      Alert.alert(title, message, [
         { text: 'OK', onPress: () => {
             dispatch(clearError());
             setShowErrorMessage(false);
