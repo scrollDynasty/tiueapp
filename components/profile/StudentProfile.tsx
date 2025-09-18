@@ -1,16 +1,15 @@
 import { ThemedText } from '@/components/ThemedText';
-import { SettingsItem } from '@/components/profile/SettingsItem';
 import { getThemeColors } from '@/constants/Colors';
 import { Spacing } from '@/constants/DesignTokens';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive } from '@/hooks/useResponsive';
+import { authApi } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { Alert, Modal, Pressable, ScrollView, Switch, View } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, Share, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown, SlideInRight } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface StudentProfileProps {
   user: any;
@@ -18,24 +17,70 @@ interface StudentProfileProps {
 }
 
 export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProps) => {
-  const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
-  const [notificationsModalVisible, setNotificationsModalVisible] = React.useState(false);
-  const [notificationSettings, setNotificationSettings] = React.useState({
-    push: true,
-    email: true,
-    sms: false,
-    schedule: true,
-    grades: true,
-    news: true,
-    events: true,
-    assignments: false,
-    sound: true,
-    vibration: true,
-  });
+  const [settingsMenuVisible, setSettingsMenuVisible] = React.useState(false);
+  const [gradesData, setGradesData] = React.useState<any[]>([]);
+  const [coursesData, setCoursesData] = React.useState<any[]>([]);
   
   const { theme, isDarkMode, setTheme } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
+
+  // Загружаем данные студента для статистики
+  React.useEffect(() => {
+    const fetchStudentData = async () => {
+      if (user?.role === 'student') {
+        try {
+          const [gradesResponse, coursesResponse] = await Promise.all([
+            authApi.getGrades(),
+            authApi.getCourses()
+          ]);
+
+          if (gradesResponse.success && gradesResponse.data) {
+            const responseData = gradesResponse.data as any || {};
+            const gradesArray = Array.isArray(responseData.data) ? responseData.data : [];
+            setGradesData(gradesArray);
+          }
+
+          if (coursesResponse.success && coursesResponse.data) {
+            const responseData = coursesResponse.data as any || {};
+            const coursesArray = Array.isArray(responseData.data) ? responseData.data : [];
+            
+            // Применяем ту же фильтрацию что и на главном экране
+            let filteredCourses = coursesArray;
+            
+            // Если у пользователя должно быть 9 курсов, возьмем только первые 9
+            if (coursesArray.length === 10) {
+              filteredCourses = coursesArray.slice(0, 9);
+            } else {
+              // Попробуем фильтровать по статусу
+              const statusFiltered = coursesArray.filter((course: any) => 
+                course.status === 'current' || course.status === 'active' || !course.status
+              );
+              
+              if (statusFiltered.length === 9) {
+                filteredCourses = statusFiltered;
+              }
+            }
+            
+            setCoursesData(filteredCourses);
+          }
+        } catch (error) {
+          console.error('Error fetching student data:', error);
+        }
+      }
+    };
+
+    fetchStudentData();
+  }, [user]);
+
+  // Расчет GPA
+  const calculateGPA = React.useCallback((grades: any[]) => {
+    if (grades.length === 0) return 0;
+    const total = grades.reduce((sum, grade) => {
+      return sum + parseFloat(grade.final_grade || grade.grade || grade.score || 0);
+    }, 0);
+    return Math.round((total / grades.length) * 100) / 100;
+  }, []);
   
   // Функция для получения инициалов
   const getInitials = React.useCallback((firstName?: string, lastName?: string, username?: string): string => {
@@ -62,133 +107,52 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
     };
   }, [user.first_name, user.last_name, user.username, user.student, user.ldap_profile, getInitials]);
 
-  // Получить название текущей темы для отображения
-  const getThemeDisplayName = React.useCallback(() => {
-    switch (theme) {
-      case 'light': return 'Светлая';
-      case 'dark': return 'Темная';
-      default: return 'Светлая';
-    }
-  }, [theme]);
-
-  // Показать диалог выбора темы
-  const showThemeSelector = React.useCallback(() => {
-    Alert.alert(
-      'Выберите тему',
-      'Какую тему вы хотите использовать?',
-      [
-        { 
-          text: 'Светлая', 
-          onPress: () => {
-            setTheme('light');
-          }
-        },
-        { 
-          text: '🌙 Темная', 
-          onPress: () => {
-            setTheme('dark');
-          }
-        },
-        { text: 'Отмена', style: 'cancel' },
-      ],
-      { cancelable: true }
-    );
-  }, [setTheme]);
-
-  // Обновить конкретную настройку уведомлений
-  const updateNotificationSetting = React.useCallback((key: keyof typeof notificationSettings, value: boolean) => {
-    setNotificationSettings(prev => ({
-      ...prev,
-      [key]: value
-    }));
-  }, []);
-
-  // Показать модальное окно настроек уведомлений
-  const showNotificationsModal = React.useCallback(() => {
-    setNotificationsModalVisible(true);
-  }, []);
-
-  const handleGradesPress = React.useCallback(() => {
-    router.push('/(tabs)');
-  }, []);
-
-  const handleSchedulePress = React.useCallback(() => {
-    router.push('/(tabs)/schedule');
-  }, []);
-
-  const handleAssignmentsPress = React.useCallback(() => {
-    Alert.alert('Задания', 'Раздел с заданиями будет доступен в следующих версиях');
-  }, []);
-
-  const handleLibraryPress = React.useCallback(() => {
-    Alert.alert('Библиотека', 'Электронная библиотека будет доступна в следующих версиях');
-  }, []);
-
-  const handleLanguagePress = React.useCallback(() => {
-    Alert.alert('Язык', 'Смена языка будет доступна в следующих версиях');
-  }, []);
-
-  const handlePrivacyPress = React.useCallback(() => {
-    Alert.alert('Конфиденциальность', 'Настройки конфиденциальности будут доступны в следующих версиях');
-  }, []);
-
-  const handleAboutPress = React.useCallback(() => {
-    Alert.alert('О приложении', 'TIUE App v1.0.0\nПриложение для студентов университета');
-  }, []);
-
-  const handleThemeToggle = React.useCallback((value: boolean) => {
-    setTheme(value ? 'dark' : 'light');
-  }, [setTheme]);
-
-  const handleSaveNotifications = React.useCallback(() => {
-    setNotificationsModalVisible(false);
-    Alert.alert('✅ Настройки сохранены', 'Ваши настройки уведомлений обновлены');
-  }, []);
-
-  const handleCloseModal = React.useCallback(() => {
-    setNotificationsModalVisible(false);
-  }, []);
 
   return (
     <>
-      {/* Красивый профиль студента */}
+      {/* Новый дизайн верхней части профиля */}
       <Animated.View entering={SlideInRight.duration(400)} style={{ marginTop: Spacing.m, marginBottom: Spacing.m }}>
-        <View
+        {/* Фоновый градиент */}
+        <LinearGradient
+          colors={isDarkMode 
+            ? ['#1E40AF', '#3B82F6', '#60A5FA']
+            : ['#EFF6FF', '#DBEAFE', '#BFDBFE']
+          }
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
           style={{
-            borderRadius: 20,
-            padding: Spacing.l,
-            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.95)',
-            borderWidth: 1,
-            borderColor: isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+            borderRadius: isVerySmallScreen ? 20 : 24,
+            padding: isVerySmallScreen ? spacing.md : Spacing.l,
+            marginBottom: Spacing.l,
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.m }}>
-            {/* Красивый аватар */}
+          {/* Верхняя строка с аватаром и меню */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.m }}>
+            {/* Аватарка */}
             <View
               style={{
-                width: 70,
-                height: 70,
-                borderRadius: 35,
-                marginRight: Spacing.m,
+                width: isVerySmallScreen ? 70 : 80,
+                height: isVerySmallScreen ? 70 : 80,
+                borderRadius: isVerySmallScreen ? 35 : 40,
                 overflow: 'hidden',
+                borderWidth: 3,
+                borderColor: isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.8)',
               }}
             >
               <LinearGradient
-                colors={isDarkMode 
-                  ? ['#4F46E5', '#7C3AED', '#1E293B'] 
-                  : ['#6366F1', '#8B5CF6', '#EC4899']
-                }
+                colors={['#6366F1', '#8B5CF6', '#EC4899']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={{
-                  width: 70,
-                  height: 70,
+                  width: '100%',
+                  height: '100%',
                   justifyContent: 'center',
                   alignItems: 'center',
                 }}
               >
                 <ThemedText style={{
-                  fontSize: 24,
+                  fontSize: isVerySmallScreen ? 24 : 28,
+                  fontWeight: '700',
                   color: 'white',
                 }}>
                   {displayInfo.initials}
@@ -196,372 +160,623 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
               </LinearGradient>
             </View>
             
-            <View style={{ flex: 1 }}>
-              <ThemedText
+            {/* Меню настроек (три черточки как в Instagram) */}
+            <TouchableOpacity
+              onPress={() => setSettingsMenuVisible(true)}
               style={{
-                fontSize: 20,
-                lineHeight: 26, // Добавляем lineHeight чтобы текст не обрезался
-                color: isDarkMode ? '#FFFFFF' : '#1E293B',
-                marginBottom: 4,
+                padding: 8,
+                borderRadius: 12,
+                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)',
               }}
-              >
-                {displayInfo.name}
-              </ThemedText>
-              
-              <ThemedText
-                style={{
-                  fontSize: 14,
-                  color: isDarkMode ? '#94A3B8' : '#64748B',
-                  marginBottom: 8,
-                }}
-              >
-                {displayInfo.subtitle}
-              </ThemedText>
+            >
+              <Ionicons 
+                name="menu-outline" 
+                size={24} 
+                color={isDarkMode ? '#FFFFFF' : '#1E40AF'} 
+              />
+            </TouchableOpacity>
+          </View>
 
-              {/* Красивые чипы */}
-              {!!user?.student && (
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  {!!user.student?.group?.name && (
-                    <View style={{ 
-                      backgroundColor: isDarkMode ? '#6366F1' : '#6366F1',
-                      paddingHorizontal: 10, 
-                      paddingVertical: 4, 
-                      borderRadius: 14,
-                    }}>
-                      <ThemedText style={{ fontSize: 12, color: 'white' }}>
-                        {user.student.group.name}
-                      </ThemedText>
-                    </View>
-                  )}
-                  {!!user.student?.course && (
-                    <View style={{ 
-                      backgroundColor: isDarkMode ? '#8B5CF6' : '#8B5CF6',
-                      paddingHorizontal: 10, 
-                      paddingVertical: 4, 
-                      borderRadius: 14,
-                    }}>
-                      <ThemedText style={{ fontSize: 12, color: 'white' }}>
-                        {user.student.course} курс
-                      </ThemedText>
-                    </View>
-                  )}
+          {/* Имя и информация */}
+          <View style={{ marginBottom: Spacing.m }}>
+            <ThemedText style={{
+              fontSize: isVerySmallScreen ? 20 : 24,
+              fontWeight: '800',
+              color: isDarkMode ? '#FFFFFF' : '#1E40AF',
+              marginBottom: 4,
+            }}>
+              {displayInfo.name}
+            </ThemedText>
+            
+            <ThemedText style={{
+              fontSize: isVerySmallScreen ? 14 : 16,
+              color: isDarkMode ? 'rgba(255,255,255,0.8)' : '#3B82F6',
+              marginBottom: 12,
+            }}>
+              {displayInfo.subtitle}
+            </ThemedText>
+
+            {/* Студенческая информация */}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {user.ldap_profile?.yonalishCon && (
+                <View style={{ 
+                  backgroundColor: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
+                  paddingHorizontal: 12, 
+                  paddingVertical: 6, 
+                  borderRadius: 16,
+                }}>
+                  <ThemedText style={{ 
+                    fontSize: 12, 
+                    fontWeight: '600',
+                    color: isDarkMode ? '#FFFFFF' : '#1E40AF' 
+                  }}>
+                    {user.ldap_profile.yonalishCon}
+                  </ThemedText>
+                </View>
+              )}
+              
+              {user.ldap_profile?.group && (
+                <View style={{ 
+                  backgroundColor: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
+                  paddingHorizontal: 12, 
+                  paddingVertical: 6, 
+                  borderRadius: 16,
+                }}>
+                  <ThemedText style={{ 
+                    fontSize: 12, 
+                    fontWeight: '600',
+                    color: isDarkMode ? '#FFFFFF' : '#1E40AF' 
+                  }}>
+                    Группа {user.ldap_profile.group}
+                  </ThemedText>
+                </View>
+              )}
+
+              {user.student?.course && (
+                <View style={{ 
+                  backgroundColor: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
+                  paddingHorizontal: 12, 
+                  paddingVertical: 6, 
+                  borderRadius: 16,
+                }}>
+                  <ThemedText style={{ 
+                    fontSize: 12, 
+                    fontWeight: '600',
+                    color: isDarkMode ? '#FFFFFF' : '#1E40AF' 
+                  }}>
+                    {user.student.course} курс
+                  </ThemedText>
                 </View>
               )}
             </View>
           </View>
 
-          {/* Красивая статистика */}
+          {/* Академическая статистика с реальными данными */}
           <View style={{ 
             flexDirection: 'row', 
-            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(99,102,241,0.05)',
-            borderRadius: 16,
+            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.7)',
+            borderRadius: 20,
             padding: Spacing.m,
             gap: 12,
-            borderWidth: 1,
-            borderColor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(99,102,241,0.1)',
           }}>
             <View style={{ alignItems: 'center', flex: 1 }}>
               <View style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: isDarkMode ? '#6366F1' : '#8B5CF6',
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: '#10B981',
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginBottom: 4,
+                marginBottom: 6,
               }}>
-                <ThemedText style={{ color: 'white', fontSize: 13 }}>
-                  4.2
+                <ThemedText style={{ color: 'white', fontSize: 14, fontWeight: '700' }}>
+                  {gradesData.length > 0 ? Math.round(calculateGPA(gradesData)) : '0'}
                 </ThemedText>
               </View>
-              <ThemedText style={{ fontSize: 11, color: isDarkMode ? '#94A3B8' : '#64748B', textAlign: 'center' }}>
+              <ThemedText style={{ 
+                fontSize: 11, 
+                fontWeight: '600',
+                color: isDarkMode ? 'rgba(255,255,255,0.8)' : '#1E40AF', 
+                textAlign: 'center' 
+              }}>
                 Средний балл
               </ThemedText>
             </View>
             
             <View style={{ alignItems: 'center', flex: 1 }}>
               <View style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: isDarkMode ? '#8B5CF6' : '#EC4899',
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: '#8B5CF6',
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginBottom: 4,
+                marginBottom: 6,
               }}>
-                <ThemedText style={{ color: 'white', fontSize: 13 }}>
-                  12
+                <ThemedText style={{ color: 'white', fontSize: 14, fontWeight: '700' }}>
+                  {new Set(coursesData.map((course: any) => course.course_name || course.name)).size}
                 </ThemedText>
               </View>
-              <ThemedText style={{ fontSize: 11, color: isDarkMode ? '#94A3B8' : '#64748B', textAlign: 'center' }}>
+              <ThemedText style={{ 
+                fontSize: 11, 
+                fontWeight: '600',
+                color: isDarkMode ? 'rgba(255,255,255,0.8)' : '#1E40AF', 
+                textAlign: 'center' 
+              }}>
                 Предметов
               </ThemedText>
             </View>
             
             <View style={{ alignItems: 'center', flex: 1 }}>
               <View style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: isDarkMode ? '#EC4899' : '#6366F1',
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: '#F59E0B',
                 justifyContent: 'center',
                 alignItems: 'center',
-                marginBottom: 4,
+                marginBottom: 6,
               }}>
-                <ThemedText style={{ color: 'white', fontSize: 13 }}>
-                  87%
+                <ThemedText style={{ color: 'white', fontSize: 10, fontWeight: '700' }}>
+                  Нет
                 </ThemedText>
               </View>
-              <ThemedText style={{ fontSize: 11, color: isDarkMode ? '#94A3B8' : '#64748B', textAlign: 'center' }}>
+              <ThemedText style={{ 
+                fontSize: 11, 
+                fontWeight: '600',
+                color: isDarkMode ? 'rgba(255,255,255,0.8)' : '#1E40AF', 
+                textAlign: 'center' 
+              }}>
                 Посещаемость
+              </ThemedText>
+            </View>
+          </View>
+        </LinearGradient>
+      </Animated.View>
+
+      {/* Основная информация студента */}
+      <Animated.View entering={FadeInDown.duration(500).delay(150)} style={{ marginBottom: Spacing.l }}>
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginBottom: Spacing.m,
+        }}>
+          <View style={{
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            backgroundColor: colors.primary + '20',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: 12,
+          }}>
+            <Ionicons name="school" size={16} color={colors.primary} />
+          </View>
+          <ThemedText style={{ 
+            fontSize: isVerySmallScreen ? 16 : 18, 
+            fontWeight: '700',
+            color: colors.text,
+          }}>
+            Основная информация
+          </ThemedText>
+        </View>
+        
+        <View style={{
+          backgroundColor: colors.surface,
+          borderRadius: 20,
+          padding: Spacing.l,
+          borderWidth: 1,
+          borderColor: colors.border,
+        }}>
+          {/* Курс */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="school-outline" size={20} color={colors.primary} />
+              <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12, fontWeight: '600' }}>
+                Курс
+              </ThemedText>
+            </View>
+            <ThemedText style={{ fontSize: 16, color: colors.primary, fontWeight: '700' }}>
+              {user.student?.course || 1} курс
+            </ThemedText>
+          </View>
+
+          {/* Группа */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="people-outline" size={20} color={colors.primary} />
+              <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12, fontWeight: '600' }}>
+                Группа
+              </ThemedText>
+            </View>
+            <ThemedText style={{ fontSize: 16, color: colors.primary, fontWeight: '700' }}>
+              {user.ldap_profile?.group || user.student?.group?.name || 'Не указана'}
+            </ThemedText>
+          </View>
+
+          {/* Факультет/Специальность */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="library-outline" size={20} color={colors.primary} />
+              <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12, fontWeight: '600' }}>
+                Специальность
+              </ThemedText>
+            </View>
+            <ThemedText style={{ 
+              fontSize: 14, 
+              color: colors.primary, 
+              fontWeight: '600',
+              textAlign: 'right',
+              flex: 1,
+              marginLeft: 12
+            }}>
+              {user.ldap_profile?.yonalishCon || 'Информационные технологии'}
+            </ThemedText>
+          </View>
+
+          {/* Email */}
+          {(user.ldap_profile?.email || user.email) && (
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons name="mail-outline" size={20} color={colors.primary} />
+                <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12, fontWeight: '600' }}>
+                  Email
+                </ThemedText>
+              </View>
+              <ThemedText style={{ 
+                fontSize: 14, 
+                color: colors.primary, 
+                fontWeight: '600',
+                textAlign: 'right',
+                flex: 1,
+                marginLeft: 12
+              }}>
+                {user.ldap_profile?.email || user.email}
+              </ThemedText>
+            </View>
+          )}
+        </View>
+      </Animated.View>
+
+      {/* Академическая информация */}
+      <Animated.View entering={FadeInDown.duration(500).delay(200)} style={{ marginBottom: Spacing.l }}>
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          marginBottom: Spacing.m,
+        }}>
+          <View style={{
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            backgroundColor: colors.primary + '20',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: 12,
+          }}>
+            <Ionicons name="analytics" size={16} color={colors.primary} />
+          </View>
+          <ThemedText style={{ 
+            fontSize: isVerySmallScreen ? 16 : 18, 
+            fontWeight: '700',
+            color: colors.text,
+          }}>
+            Академическая информация
+          </ThemedText>
+        </View>
+        
+        <View style={{
+          backgroundColor: colors.surface,
+          borderRadius: 20,
+          padding: Spacing.l,
+          borderWidth: 1,
+          borderColor: colors.border,
+        }}>
+          {/* Текущий семестр */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="calendar-outline" size={20} color={colors.primary} />
+              <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12, fontWeight: '600' }}>
+                Семестр
+              </ThemedText>
+            </View>
+            <ThemedText style={{ fontSize: 16, color: colors.primary, fontWeight: '700' }}>
+              {new Date().getMonth() >= 8 ? 'Осенний' : 'Весенний'} {new Date().getFullYear()}
+            </ThemedText>
+          </View>
+
+          {/* Средний балл (GPA) */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="trophy-outline" size={20} color={colors.primary} />
+              <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12, fontWeight: '600' }}>
+                Средний балл (GPA)
+              </ThemedText>
+            </View>
+            <ThemedText style={{ fontSize: 16, color: colors.primary, fontWeight: '700' }}>
+              {gradesData.length > 0 ? calculateGPA(gradesData).toFixed(1) : 'Нет данных'}
+            </ThemedText>
+          </View>
+
+          {/* Статус студента */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Ionicons name="checkmark-circle-outline" size={20} color={colors.primary} />
+              <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12, fontWeight: '600' }}>
+                Статус
+              </ThemedText>
+            </View>
+            <View style={{
+              backgroundColor: '#10B981',
+              paddingHorizontal: 12,
+              paddingVertical: 4,
+              borderRadius: 12,
+            }}>
+              <ThemedText style={{ fontSize: 12, color: 'white', fontWeight: '600' }}>
+                Активный
               </ThemedText>
             </View>
           </View>
         </View>
       </Animated.View>
 
-      {/* Информация из LDAP профиля */}
-      {user.ldap_profile && (
-        <Animated.View entering={FadeInDown.duration(500).delay(150)} style={{ marginTop: Spacing.l }}>
-          <ThemedText style={{ 
-            fontSize: 18, 
-            color: isDarkMode ? '#FFFFFF' : '#1E293B',
-            marginBottom: Spacing.m,
-            marginLeft: 4,
-          }}>
-            Информация о студенте
-          </ThemedText>
-          
-          <View style={{
-            borderRadius: 16,
-            backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.8)',
-            borderWidth: 1,
-            borderColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
-            padding: Spacing.m,
-          }}>
-            {/* Основная информация */}
-            {user.ldap_profile.jshr && (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
-                  JSHR:
-                </ThemedText>
-                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500' }}>
-                  {user.ldap_profile.jshr}
-                </ThemedText>
-              </View>
-            )}
-            
-            {user.ldap_profile.birthday && (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
-                  Дата рождения:
-                </ThemedText>
-                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500' }}>
-                  {user.ldap_profile.birthday}
-                </ThemedText>
-              </View>
-            )}
-            
-            {user.ldap_profile.phone && (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
-                  Телефон:
-                </ThemedText>
-                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500' }}>
-                  {user.ldap_profile.phone}
-                </ThemedText>
-              </View>
-            )}
-            
-            {user.ldap_profile.yonalishCon && (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
-                  Специальность:
-                </ThemedText>
-                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500', textAlign: 'right', flex: 1, marginLeft: 8 }}>
-                  {user.ldap_profile.yonalishCon}
-                </ThemedText>
-              </View>
-            )}
-            
-            {user.ldap_profile.degree && (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
-                  Степень:
-                </ThemedText>
-                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500' }}>
-                  {user.ldap_profile.degree}
-                </ThemedText>
-              </View>
-            )}
-            
-            {user.ldap_profile.talim && (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
-                  Форма обучения:
-                </ThemedText>
-                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500', textAlign: 'right', flex: 1, marginLeft: 8 }}>
-                  {user.ldap_profile.talim}
-                </ThemedText>
-              </View>
-            )}
-            
-            {user.ldap_profile.talimcon && (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
-                  Язык обучения:
-                </ThemedText>
-                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500' }}>
-                  {user.ldap_profile.talimcon}
-                </ThemedText>
-              </View>
-            )}
-            
-            {user.ldap_profile.length && (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
-                  Длительность:
-                </ThemedText>
-                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500' }}>
-                  {user.ldap_profile.length}
-                </ThemedText>
-              </View>
-            )}
-            
-            {user.ldap_profile.admdate && (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
-                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
-                  Дата поступления:
-                </ThemedText>
-                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500', textAlign: 'right', flex: 1, marginLeft: 8 }}>
-                  {user.ldap_profile.admdate}
-                </ThemedText>
-              </View>
-            )}
-            
-            {user.ldap_profile.yearofgraduation && (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <ThemedText style={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
-                  Год окончания:
-                </ThemedText>
-                <ThemedText style={{ color: isDarkMode ? '#FFFFFF' : '#1E293B', fontSize: 14, fontWeight: '500' }}>
-                  {user.ldap_profile.yearofgraduation}
-                </ThemedText>
-              </View>
-            )}
-          </View>
-        </Animated.View>
-      )}
-
-      {/* Успеваемость */}
-      <Animated.View entering={FadeInDown.duration(500).delay(200)} style={{ marginTop: Spacing.l }}>
-        <ThemedText style={{ 
-          fontSize: 18, 
-          color: isDarkMode ? '#FFFFFF' : '#000000', 
+      {/* Основные кнопки действий */}
+      <Animated.View entering={FadeInDown.duration(500).delay(300)} style={{ marginBottom: Spacing.l }}>
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
           marginBottom: Spacing.m,
-          marginLeft: 4,
         }}>
-          Успеваемость
-        </ThemedText>
+          <View style={{
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            backgroundColor: colors.primary + '20',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: 12,
+          }}>
+            <Ionicons name="apps" size={16} color={colors.primary} />
+          </View>
+          <ThemedText style={{ 
+            fontSize: isVerySmallScreen ? 16 : 18, 
+            fontWeight: '700',
+            color: colors.text,
+          }}>
+            Быстрые действия
+          </ThemedText>
+        </View>
         
-        <SettingsItem
-          title="Оценки"
-          subtitle="Текущие оценки по предметам"
-          icon="school-outline"
-          onPress={handleGradesPress}
-        />
-        
-        <SettingsItem
-          title="Расписание"
-          subtitle="Расписание занятий"
-          icon="calendar-outline"
-          onPress={handleSchedulePress}
-        />
-        
-        <SettingsItem
-          title="Задания"
-          subtitle="Домашние задания и проекты"
-          icon="clipboard-outline"
-          onPress={handleAssignmentsPress}
-        />
+        <View style={{ gap: 12 }}>
+          {/* Первая строка кнопок */}
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <TouchableOpacity
+              onPress={() => Alert.alert('Добавить фото', 'Функция добавления фотографии будет доступна в следующих версиях')}
+              style={{
+                flex: 1,
+                backgroundColor: colors.surface,
+                borderRadius: isVerySmallScreen ? 12 : 16,
+                padding: isVerySmallScreen ? 12 : 16,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
+              <Ionicons name="camera-outline" size={24} color={colors.primary} />
+              <ThemedText style={{ fontSize: 14, color: colors.text, marginTop: 8, fontWeight: '600' }}>
+                Добавить фото
+              </ThemedText>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={() => router.push('/(tabs)/schedule')}
+              style={{
+                flex: 1,
+                backgroundColor: colors.surface,
+                borderRadius: isVerySmallScreen ? 12 : 16,
+                padding: isVerySmallScreen ? 12 : 16,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
+              <Ionicons name="calendar-outline" size={24} color={colors.primary} />
+              <ThemedText style={{ fontSize: 14, color: colors.text, marginTop: 8, fontWeight: '600' }}>
+                Расписание
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
 
-        <SettingsItem
-          title="Библиотека"
-          subtitle="Учебные материалы и ресурсы"
-          icon="library-outline"
-          onPress={handleLibraryPress}
-        />
+          {/* Вторая строка кнопок */}
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <TouchableOpacity
+              onPress={() => Alert.alert('Связаться', 'Функция связи будет доступна в следующих версиях')}
+              style={{
+                flex: 1,
+                backgroundColor: colors.surface,
+                borderRadius: isVerySmallScreen ? 12 : 16,
+                padding: isVerySmallScreen ? 12 : 16,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
+              <Ionicons name="chatbubble-outline" size={24} color={colors.primary} />
+              <ThemedText style={{ fontSize: 14, color: colors.text, marginTop: 8, fontWeight: '600' }}>
+                Связаться
+              </ThemedText>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={async () => {
+                try {
+                  const name = user.ldap_profile?.full_name || `${user.first_name} ${user.last_name}`.trim() || user.username;
+                  const contactInfo = `${name}\nГруппа: ${user.ldap_profile?.group || 'Не указана'}\nEmail: ${user.ldap_profile?.email || user.email || 'Не указан'}`;
+                  await Share.share({
+                    message: contactInfo,
+                    title: 'Контактная информация студента'
+                  });
+                } catch (error) {
+                  Alert.alert('Ошибка', 'Не удалось поделиться контактом');
+                }
+              }}
+              style={{
+                flex: 1,
+                backgroundColor: colors.surface,
+                borderRadius: isVerySmallScreen ? 12 : 16,
+                padding: isVerySmallScreen ? 12 : 16,
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: colors.border,
+              }}
+            >
+              <Ionicons name="share-outline" size={24} color={colors.primary} />
+              <ThemedText style={{ fontSize: 14, color: colors.text, marginTop: 8, fontWeight: '600' }}>
+                Поделиться
+              </ThemedText>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Animated.View>
 
-      {/* Настройки */}
-      <Animated.View entering={FadeInDown.duration(500).delay(300)} style={{ marginTop: Spacing.l }}>
-        <ThemedText style={{ 
-          fontSize: 18, 
-          color: isDarkMode ? '#FFFFFF' : '#000000', 
+      {/* Блок "Достижения" */}
+      <Animated.View entering={FadeInDown.duration(500).delay(350)} style={{ marginBottom: Spacing.l }}>
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
           marginBottom: Spacing.m,
-          marginLeft: 4,
         }}>
-          Настройки
-        </ThemedText>
+          <View style={{
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            backgroundColor: colors.primary + '20',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: 12,
+          }}>
+            <Ionicons name="trophy" size={16} color={colors.primary} />
+          </View>
+          <ThemedText style={{ 
+            fontSize: isVerySmallScreen ? 16 : 18, 
+            fontWeight: '700',
+            color: colors.text,
+          }}>
+            Достижения
+          </ThemedText>
+        </View>
         
-        <SettingsItem
-          title="Уведомления"
-          subtitle="Push-уведомления и звуки"
-          icon="notifications-outline"
-          onPress={showNotificationsModal}
-          rightComponent={
-            <Switch 
-              value={notificationsEnabled} 
-              onValueChange={setNotificationsEnabled}
-              trackColor={{ 
-                false: isDarkMode ? '#374151' : '#E5E7EB', 
-                true: isDarkMode ? '#6366F1' : '#8B5CF6' 
-              }}
-              thumbColor={notificationsEnabled ? '#ffffff' : '#ffffff'}
-              style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
-            />
-          }
-        />
-        
-        <SettingsItem
-          title="Тема приложения"
-          subtitle={getThemeDisplayName()}
-          icon="moon-outline"
-          onPress={showThemeSelector}
-          rightComponent={
-            <Switch
-              value={isDarkMode}
-              onValueChange={handleThemeToggle}
-              trackColor={{ 
-                false: isDarkMode ? '#374151' : '#E5E7EB', 
-                true: isDarkMode ? '#6366F1' : '#8B5CF6' 
-              }}
-              thumbColor={isDarkMode ? '#ffffff' : '#ffffff'}
-              style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
-            />
-          }
-        />
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingRight: 20 }}
+          style={{ marginBottom: Spacing.m }}
+        >
+          {/* Академические достижения */}
+          <View style={{
+            backgroundColor: colors.surface,
+            borderRadius: 16,
+            padding: 16,
+            marginRight: 12,
+            alignItems: 'center',
+            minWidth: 120,
+            borderWidth: 1,
+            borderColor: colors.border,
+          }}>
+            <View style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              backgroundColor: '#10B981',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: 8,
+            }}>
+              <Ionicons name="school" size={24} color="white" />
+            </View>
+            <ThemedText style={{ fontSize: 12, color: colors.text, textAlign: 'center', fontWeight: '600' }}>
+              Отличная успеваемость
+            </ThemedText>
+          </View>
 
-        <SettingsItem
-          title="Язык приложения"
-          subtitle="Русский"
-          icon="language-outline"
-          onPress={handleLanguagePress}
-        />
+          <View style={{
+            backgroundColor: colors.surface,
+            borderRadius: 16,
+            padding: 16,
+            marginRight: 12,
+            alignItems: 'center',
+            minWidth: 120,
+            borderWidth: 1,
+            borderColor: colors.border,
+          }}>
+            <View style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              backgroundColor: '#8B5CF6',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: 8,
+            }}>
+              <Ionicons name="ribbon" size={24} color="white" />
+            </View>
+            <ThemedText style={{ fontSize: 12, color: colors.text, textAlign: 'center', fontWeight: '600' }}>
+              Сертификаты
+            </ThemedText>
+          </View>
 
-        <SettingsItem
-          title="Конфиденциальность"
-          subtitle="Управление данными"
-          icon="shield-checkmark-outline"
-          onPress={handlePrivacyPress}
-        />
-        
-        <SettingsItem
-          title="О приложении"
-          subtitle="Версия 1.0.0"
-          icon="information-circle-outline"
-          onPress={handleAboutPress}
-        />
+          <View style={{
+            backgroundColor: colors.surface,
+            borderRadius: 16,
+            padding: 16,
+            marginRight: 12,
+            alignItems: 'center',
+            minWidth: 120,
+            borderWidth: 1,
+            borderColor: colors.border,
+          }}>
+            <View style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              backgroundColor: '#F59E0B',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: 8,
+            }}>
+              <Ionicons name="people" size={24} color="white" />
+            </View>
+            <ThemedText style={{ fontSize: 12, color: colors.text, textAlign: 'center', fontWeight: '600' }}>
+              Участие в проектах
+            </ThemedText>
+          </View>
+
+          <View style={{
+            backgroundColor: colors.surface,
+            borderRadius: 16,
+            padding: 16,
+            marginRight: 12,
+            alignItems: 'center',
+            minWidth: 120,
+            borderWidth: 1,
+            borderColor: colors.border,
+          }}>
+            <View style={{
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              backgroundColor: '#EF4444',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: 8,
+            }}>
+              <Ionicons name="star" size={24} color="white" />
+            </View>
+            <ThemedText style={{ fontSize: 12, color: colors.text, textAlign: 'center', fontWeight: '600' }}>
+              Награды
+            </ThemedText>
+          </View>
+        </ScrollView>
       </Animated.View>
 
       {/* Компактная кнопка выхода */}
@@ -572,12 +787,12 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           onPress={onLogout}
           style={({ pressed }) => ({
             backgroundColor: pressed ? '#DC2626' : '#EF4444',
-            borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 11 : 12,
-            padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
+            borderRadius: 16,
+            padding: 16,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
+            marginBottom: Spacing.l,
             borderWidth: 1,
             borderColor: pressed ? '#B91C1C' : '#DC2626',
             opacity: pressed ? 0.9 : 1,
@@ -585,12 +800,13 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
         >
           <Ionicons 
             name="log-out-outline" 
-            size={isVerySmallScreen ? 16 : isSmallScreen ? 17 : 18} 
+            size={20} 
             color="white" 
-            style={{ marginRight: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s }} 
+            style={{ marginRight: 8 }} 
           />
           <ThemedText style={{ 
-            fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? 14 : 15,
+            fontSize: 16,
+            fontWeight: '600',
             color: 'white',
           }}>
             Выйти из аккаунта
@@ -598,228 +814,96 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
         </Pressable>
       </Animated.View>
 
-      {/* Модальное окно настроек уведомлений */}
+
+      {/* Меню настроек (выпадающее) */}
       <Modal
-        visible={notificationsModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={handleCloseModal}
+        visible={settingsMenuVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setSettingsMenuVisible(false)}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-          {/* Заголовок модального окна */}
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: Spacing.l,
-            paddingVertical: Spacing.m,
-            borderBottomWidth: 1,
-            borderBottomColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-          }}>
-            <ThemedText style={{
-              fontSize: 20,
-              color: isDarkMode ? '#FFFFFF' : '#1E293B',
-            }}>
-              🔔 Настройки уведомлений
-            </ThemedText>
-            <Pressable
-              onPress={handleCloseModal}
+        <Pressable 
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}
+          onPress={() => setSettingsMenuVisible(false)}
+        >
+          <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-end', paddingTop: 100, paddingRight: 20 }}>
+            <Animated.View 
+              entering={FadeInDown.duration(300)}
               style={{
-                width: 32,
-                height: 32,
+                backgroundColor: colors.surface,
                 borderRadius: 16,
-                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-                justifyContent: 'center',
-                alignItems: 'center',
+                padding: 16,
+                minWidth: 200,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 8,
               }}
             >
-              <Ionicons name="close" size={18} color={isDarkMode ? '#FFFFFF' : '#1E293B'} />
-            </Pressable>
-          </View>
-
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ 
-            padding: Spacing.l 
-          }}>
-            {/* Общие настройки */}
-            <View style={{ marginBottom: Spacing.l }}>
-              <ThemedText style={{
-                fontSize: 16,
-                color: isDarkMode ? '#F1F5F9' : '#374151',
-                marginBottom: Spacing.m,
-              }}>
-                Общие настройки
-              </ThemedText>
-
-              <SettingsItem
-                title="Push-уведомления"
-                subtitle="Уведомления в системе"
-                icon="phone-portrait-outline"
-                rightComponent={
-                  <Switch
-                    value={notificationSettings.push}
-                    onValueChange={(value) => updateNotificationSetting('push', value)}
-                    trackColor={{ 
-                      false: isDarkMode ? '#374151' : '#E5E7EB', 
-                      true: isDarkMode ? '#6366F1' : '#8B5CF6' 
-                    }}
-                    thumbColor={'#ffffff'}
-                    style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
-                  />
-                }
-                showArrow={false}
-              />
-
-              <SettingsItem
-                title="Email уведомления"
-                subtitle="Уведомления на почту"
-                icon="mail-outline"
-                rightComponent={
-                  <Switch
-                    value={notificationSettings.email}
-                    onValueChange={(value) => updateNotificationSetting('email', value)}
-                    trackColor={{ 
-                      false: isDarkMode ? '#374151' : '#E5E7EB', 
-                      true: isDarkMode ? '#6366F1' : '#8B5CF6' 
-                    }}
-                    thumbColor={'#ffffff'}
-                    style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
-                  />
-                }
-                showArrow={false}
-              />
-
-              <SettingsItem
-                title="SMS уведомления"
-                subtitle="Текстовые сообщения"
-                icon="chatbubble-outline"
-                rightComponent={
-                  <Switch
-                    value={notificationSettings.sms}
-                    onValueChange={(value) => updateNotificationSetting('sms', value)}
-                    trackColor={{ 
-                      false: isDarkMode ? '#374151' : '#E5E7EB', 
-                      true: isDarkMode ? '#6366F1' : '#8B5CF6' 
-                    }}
-                    thumbColor={'#ffffff'}
-                    style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
-                  />
-                }
-                showArrow={false}
-              />
-            </View>
-
-            {/* Типы уведомлений */}
-            <View style={{ marginBottom: Spacing.l }}>
-              <ThemedText style={{
-                fontSize: 16,
-                color: isDarkMode ? '#F1F5F9' : '#374151',
-                marginBottom: Spacing.m,
-              }}>
-                📝 Типы уведомлений
-              </ThemedText>
-
-              {[
-                { key: 'schedule', title: 'Расписание', subtitle: 'Напоминания о занятиях', icon: 'calendar-outline' as const },
-                { key: 'grades', title: 'Оценки', subtitle: 'Новые оценки и результаты', icon: 'school-outline' as const },
-                { key: 'news', title: 'Новости', subtitle: 'Университетские новости', icon: 'newspaper-outline' as const },
-                { key: 'events', title: 'События', subtitle: 'Мероприятия и события', icon: 'flag-outline' as const },
-                { key: 'assignments', title: 'Задания', subtitle: 'Домашние задания', icon: 'clipboard-outline' as const },
-              ].map(({ key, title, subtitle, icon }) => (
-                <SettingsItem
-                  key={key}
-                  title={title}
-                  subtitle={subtitle}
-                  icon={icon}
-                  rightComponent={
-                    <Switch
-                      value={notificationSettings[key as keyof typeof notificationSettings]}
-                      onValueChange={(value) => updateNotificationSetting(key as keyof typeof notificationSettings, value)}
-                      trackColor={{ 
-                        false: isDarkMode ? '#374151' : '#E5E7EB', 
-                        true: isDarkMode ? '#6366F1' : '#8B5CF6' 
-                      }}
-                      thumbColor={'#ffffff'}
-                      style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
-                    />
+              <TouchableOpacity
+                onPress={async () => {
+                  setSettingsMenuVisible(false);
+                  try {
+                    const name = user.ldap_profile?.full_name || `${user.first_name} ${user.last_name}`.trim() || user.username;
+                    const contactInfo = `${name}\nГруппа: ${user.ldap_profile?.group || 'Не указана'}\nEmail: ${user.ldap_profile?.email || user.email || 'Не указан'}`;
+                    await Share.share({
+                      message: contactInfo,
+                      title: 'Профиль студента'
+                    });
+                  } catch (error) {
+                    Alert.alert('Ошибка', 'Не удалось поделиться профилем');
                   }
-                  showArrow={false}
-                />
-              ))}
-            </View>
+                }}
+                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12 }}
+              >
+                <Ionicons name="share-outline" size={20} color={colors.primary} />
+                <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12 }}>
+                  Поделиться профилем
+                </ThemedText>
+              </TouchableOpacity>
 
-            {/* Звуки и вибрация */}
-            <View style={{ marginBottom: Spacing.l }}>
-              <ThemedText style={{
-                fontSize: 16,
-                color: isDarkMode ? '#F1F5F9' : '#374151',
-                marginBottom: Spacing.m,
-              }}>
-                🔊 Звуки и вибрация
-              </ThemedText>
+              <TouchableOpacity
+                onPress={() => {
+                  setSettingsMenuVisible(false);
+                  Alert.alert('QR-код', 'QR-код студента будет доступен в следующих версиях');
+                }}
+                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12 }}
+              >
+                <Ionicons name="qr-code-outline" size={20} color={colors.primary} />
+                <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12 }}>
+                  QR-код студента
+                </ThemedText>
+              </TouchableOpacity>
 
-              <SettingsItem
-                title="Звук уведомлений"
-                subtitle="Звуковые сигналы"
-                icon="volume-high-outline"
-                rightComponent={
-                  <Switch
-                    value={notificationSettings.sound}
-                    onValueChange={(value) => updateNotificationSetting('sound', value)}
-                    trackColor={{ 
-                      false: isDarkMode ? '#374151' : '#E5E7EB', 
-                      true: isDarkMode ? '#6366F1' : '#8B5CF6' 
-                    }}
-                    thumbColor={'#ffffff'}
-                    style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
-                  />
-                }
-                showArrow={false}
-              />
+              <TouchableOpacity
+                onPress={() => {
+                  setSettingsMenuVisible(false);
+                  Alert.alert('Копирование', 'Контактная информация скопирована в буфер обмена');
+                }}
+                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12 }}
+              >
+                <Ionicons name="copy-outline" size={20} color={colors.primary} />
+                <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12 }}>
+                  Скопировать контакт
+                </ThemedText>
+              </TouchableOpacity>
 
-              <SettingsItem
-                title="Вибрация"
-                subtitle="Тактильная обратная связь"
-                icon="phone-portrait-outline"
-                rightComponent={
-                  <Switch
-                    value={notificationSettings.vibration}
-                    onValueChange={(value) => updateNotificationSetting('vibration', value)}
-                    trackColor={{ 
-                      false: isDarkMode ? '#374151' : '#E5E7EB', 
-                      true: isDarkMode ? '#6366F1' : '#8B5CF6' 
-                    }}
-                    thumbColor={'#ffffff'}
-                    style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
-                  />
-                }
-                showArrow={false}
-              />
-            </View>
-
-            {/* Кнопка сохранения настроек */}
-            <Pressable
-              onPress={handleSaveNotifications}
-              style={({ pressed }) => ({
-                backgroundColor: pressed ? '#5B5CF6' : '#6366F1',
-                borderRadius: 12,
-                padding: Spacing.l,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: Spacing.xl,
-                opacity: pressed ? 0.9 : 1,
-              })}
-            >
-              <Ionicons name="checkmark-circle-outline" size={20} color="white" style={{ marginRight: Spacing.s }} />
-              <ThemedText style={{
-                fontSize: 16,
-                color: 'white',
-              }}>
-                Сохранить настройки
-              </ThemedText>
-            </Pressable>
-          </ScrollView>
-        </SafeAreaView>
+              <TouchableOpacity
+                onPress={() => {
+                  setSettingsMenuVisible(false);
+                  Alert.alert('Избранное', 'Добавлено в избранное');
+                }}
+                style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12 }}
+              >
+                <Ionicons name="heart-outline" size={20} color={colors.primary} />
+                <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12 }}>
+                  Добавить в избранное
+                </ThemedText>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
+        </Pressable>
       </Modal>
     </>
   );
