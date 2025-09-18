@@ -17,6 +17,7 @@ interface Course {
 interface CourseProgressCardProps {
   courses: Course[];
   onCoursePress?: (courseId: number) => void;
+  onViewAllPress?: () => void;
   containerStyle?: object;
   horizontalPadding?: number;
 }
@@ -24,6 +25,7 @@ interface CourseProgressCardProps {
 export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({ 
   courses, 
   onCoursePress,
+  onViewAllPress,
   containerStyle,
   horizontalPadding = 16
 }) => {
@@ -197,7 +199,11 @@ export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
           <Ionicons name="book" size={20} color="#FFFFFF" />
         </View>
         <ThemedText style={styles.headerTitle}>Курсы</ThemedText>
-        <TouchableOpacity style={styles.viewAllButton}>
+        <TouchableOpacity 
+          style={styles.viewAllButton}
+          onPress={onViewAllPress}
+          activeOpacity={0.7}
+        >
           <ThemedText style={styles.viewAllText}>Все</ThemedText>
         </TouchableOpacity>
       </View>

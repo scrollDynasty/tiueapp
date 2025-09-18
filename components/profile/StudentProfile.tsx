@@ -45,24 +45,8 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
             const responseData = coursesResponse.data as any || {};
             const coursesArray = Array.isArray(responseData.data) ? responseData.data : [];
             
-            // Применяем ту же фильтрацию что и на главном экране
-            let filteredCourses = coursesArray;
-            
-            // Если у пользователя должно быть 9 курсов, возьмем только первые 9
-            if (coursesArray.length === 10) {
-              filteredCourses = coursesArray.slice(0, 9);
-            } else {
-              // Попробуем фильтровать по статусу
-              const statusFiltered = coursesArray.filter((course: any) => 
-                course.status === 'current' || course.status === 'active' || !course.status
-              );
-              
-              if (statusFiltered.length === 9) {
-                filteredCourses = statusFiltered;
-              }
-            }
-            
-            setCoursesData(filteredCourses);
+            // Показываем все курсы без ограничений
+            setCoursesData(coursesArray);
           }
         } catch (error) {
           console.error('Error fetching student data:', error);
@@ -152,7 +136,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
               >
                 <ThemedText style={{
                   fontSize: isVerySmallScreen ? 24 : 28,
-                  fontWeight: '700',
+                  fontWeight: '500',
                   color: 'white',
                 }}>
                   {displayInfo.initials}
@@ -179,68 +163,85 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
 
           {/* Имя и информация */}
           <View style={{ marginBottom: Spacing.m }}>
-            <ThemedText style={{
-              fontSize: isVerySmallScreen ? 20 : 24,
-              fontWeight: '800',
+            <ThemedText 
+              numberOfLines={2}
+              style={{
+              fontSize: isVerySmallScreen ? 18 : 22,
+              fontWeight: '600',
               color: isDarkMode ? '#FFFFFF' : '#1E40AF',
               marginBottom: 4,
+              lineHeight: isVerySmallScreen ? 22 : 26,
             }}>
-              {displayInfo.name}
-            </ThemedText>
-            
-            <ThemedText style={{
-              fontSize: isVerySmallScreen ? 14 : 16,
+                {displayInfo.name}
+              </ThemedText>
+              
+            <ThemedText 
+              numberOfLines={1}
+              style={{
+              fontSize: isVerySmallScreen ? 13 : 15,
               color: isDarkMode ? 'rgba(255,255,255,0.8)' : '#3B82F6',
               marginBottom: 12,
             }}>
-              {displayInfo.subtitle}
-            </ThemedText>
+                {displayInfo.subtitle}
+              </ThemedText>
 
             {/* Студенческая информация */}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {user.ldap_profile?.yonalishCon && (
-                <View style={{ 
+                    <View style={{ 
                   backgroundColor: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
-                  paddingHorizontal: 12, 
-                  paddingVertical: 6, 
+                  paddingHorizontal: isVerySmallScreen ? 8 : 12, 
+                  paddingVertical: isVerySmallScreen ? 4 : 6, 
                   borderRadius: 16,
+                  flex: 1,
+                  maxWidth: isVerySmallScreen ? '45%' : 'auto',
                 }}>
-                  <ThemedText style={{ 
-                    fontSize: 12, 
+                  <ThemedText 
+                    numberOfLines={1}
+                    style={{ 
+                    fontSize: isVerySmallScreen ? 10 : 12, 
                     fontWeight: '600',
                     color: isDarkMode ? '#FFFFFF' : '#1E40AF' 
                   }}>
                     {user.ldap_profile.yonalishCon}
                   </ThemedText>
                 </View>
-              )}
+                  )}
               
               {user.ldap_profile?.group && (
-                <View style={{ 
+                    <View style={{ 
                   backgroundColor: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
-                  paddingHorizontal: 12, 
-                  paddingVertical: 6, 
+                  paddingHorizontal: isVerySmallScreen ? 8 : 12, 
+                  paddingVertical: isVerySmallScreen ? 4 : 6, 
                   borderRadius: 16,
+                  flex: 1,
+                  maxWidth: isVerySmallScreen ? '45%' : 'auto',
                 }}>
-                  <ThemedText style={{ 
-                    fontSize: 12, 
+                  <ThemedText 
+                    numberOfLines={1}
+                    style={{ 
+                    fontSize: isVerySmallScreen ? 10 : 12, 
                     fontWeight: '600',
                     color: isDarkMode ? '#FFFFFF' : '#1E40AF' 
                   }}>
                     Группа {user.ldap_profile.group}
                   </ThemedText>
                 </View>
-              )}
+                  )}
 
               {user.student?.course && (
                 <View style={{ 
                   backgroundColor: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
-                  paddingHorizontal: 12, 
-                  paddingVertical: 6, 
+                  paddingHorizontal: isVerySmallScreen ? 8 : 12, 
+                  paddingVertical: isVerySmallScreen ? 4 : 6, 
                   borderRadius: 16,
+                  flex: 1,
+                  maxWidth: isVerySmallScreen ? '45%' : 'auto',
                 }}>
-                  <ThemedText style={{ 
-                    fontSize: 12, 
+                  <ThemedText 
+                    numberOfLines={1}
+                    style={{ 
+                    fontSize: isVerySmallScreen ? 10 : 12, 
                     fontWeight: '600',
                     color: isDarkMode ? '#FFFFFF' : '#1E40AF' 
                   }}>
@@ -269,7 +270,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 alignItems: 'center',
                 marginBottom: 6,
               }}>
-                <ThemedText style={{ color: 'white', fontSize: 14, fontWeight: '700' }}>
+                <ThemedText style={{ color: 'white', fontSize: 14, fontWeight: '500' }}>
                   {gradesData.length > 0 ? Math.round(calculateGPA(gradesData)) : '0'}
                 </ThemedText>
               </View>
@@ -293,7 +294,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 alignItems: 'center',
                 marginBottom: 6,
               }}>
-                <ThemedText style={{ color: 'white', fontSize: 14, fontWeight: '700' }}>
+                <ThemedText style={{ color: 'white', fontSize: 14, fontWeight: '500' }}>
                   {new Set(coursesData.map((course: any) => course.course_name || course.name)).size}
                 </ThemedText>
               </View>
@@ -317,7 +318,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 alignItems: 'center',
                 marginBottom: 6,
               }}>
-                <ThemedText style={{ color: 'white', fontSize: 10, fontWeight: '700' }}>
+                <ThemedText style={{ color: 'white', fontSize: 10, fontWeight: '500' }}>
                   Нет
                 </ThemedText>
               </View>
@@ -339,7 +340,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
         <View style={{
           flexDirection: 'row',
           alignItems: 'center',
-          marginBottom: Spacing.m,
+            marginBottom: Spacing.m,
         }}>
           <View style={{
             width: 32,
@@ -354,87 +355,143 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           </View>
           <ThemedText style={{ 
             fontSize: isVerySmallScreen ? 16 : 18, 
-            fontWeight: '700',
+            fontWeight: '500',
             color: colors.text,
           }}>
             Основная информация
           </ThemedText>
         </View>
-        
-        <View style={{
+          
+          <View style={{
           backgroundColor: colors.surface,
-          borderRadius: 20,
-          padding: Spacing.l,
-          borderWidth: 1,
+          borderRadius: isVerySmallScreen ? 16 : 20,
+          padding: isVerySmallScreen ? spacing.sm : Spacing.l,
+            borderWidth: 1,
           borderColor: colors.border,
         }}>
           {/* Курс */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="school-outline" size={20} color={colors.primary} />
-              <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12, fontWeight: '600' }}>
+          <View style={{ 
+            flexDirection: isVerySmallScreen ? 'column' : 'row', 
+            justifyContent: 'space-between', 
+            alignItems: isVerySmallScreen ? 'flex-start' : 'center', 
+            marginBottom: 16 
+          }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isVerySmallScreen ? 4 : 0 }}>
+              <Ionicons name="school-outline" size={isVerySmallScreen ? 18 : 20} color={colors.primary} />
+              <ThemedText style={{ 
+                fontSize: isVerySmallScreen ? 14 : 16, 
+                color: colors.text, 
+                marginLeft: isVerySmallScreen ? 8 : 12, 
+                fontWeight: '600' 
+              }}>
                 Курс
-              </ThemedText>
-            </View>
-            <ThemedText style={{ fontSize: 16, color: colors.primary, fontWeight: '700' }}>
-              {user.student?.course || 1} курс
-            </ThemedText>
-          </View>
-
-          {/* Группа */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="people-outline" size={20} color={colors.primary} />
-              <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12, fontWeight: '600' }}>
-                Группа
-              </ThemedText>
-            </View>
-            <ThemedText style={{ fontSize: 16, color: colors.primary, fontWeight: '700' }}>
-              {user.ldap_profile?.group || user.student?.group?.name || 'Не указана'}
-            </ThemedText>
-          </View>
-
-          {/* Факультет/Специальность */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="library-outline" size={20} color={colors.primary} />
-              <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12, fontWeight: '600' }}>
-                Специальность
-              </ThemedText>
+                </ThemedText>
             </View>
             <ThemedText style={{ 
-              fontSize: 14, 
+              fontSize: isVerySmallScreen ? 14 : 16, 
+              color: colors.primary, 
+              fontWeight: '500',
+              marginLeft: isVerySmallScreen ? 26 : 0
+            }}>
+              {user.student?.course || 1} курс
+                </ThemedText>
+              </View>
+
+          {/* Группа */}
+          <View style={{ 
+            flexDirection: isVerySmallScreen ? 'column' : 'row', 
+            justifyContent: 'space-between', 
+            alignItems: isVerySmallScreen ? 'flex-start' : 'center', 
+            marginBottom: 16 
+          }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isVerySmallScreen ? 4 : 0 }}>
+              <Ionicons name="people-outline" size={isVerySmallScreen ? 18 : 20} color={colors.primary} />
+              <ThemedText style={{ 
+                fontSize: isVerySmallScreen ? 14 : 16, 
+                color: colors.text, 
+                marginLeft: isVerySmallScreen ? 8 : 12, 
+                fontWeight: '600' 
+              }}>
+                Группа
+                </ThemedText>
+            </View>
+            <ThemedText 
+              numberOfLines={1}
+              style={{ 
+                fontSize: isVerySmallScreen ? 14 : 16, 
+                color: colors.primary, 
+                fontWeight: '500',
+                marginLeft: isVerySmallScreen ? 26 : 0,
+                flex: isVerySmallScreen ? 1 : 0
+              }}>
+              {user.ldap_profile?.group || user.student?.group?.name || 'Не указана'}
+                </ThemedText>
+              </View>
+
+          {/* Факультет/Специальность */}
+          <View style={{ 
+            flexDirection: isVerySmallScreen ? 'column' : 'row', 
+            justifyContent: 'space-between', 
+            alignItems: isVerySmallScreen ? 'flex-start' : 'center', 
+            marginBottom: 16 
+          }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isVerySmallScreen ? 4 : 0 }}>
+              <Ionicons name="library-outline" size={isVerySmallScreen ? 18 : 20} color={colors.primary} />
+              <ThemedText style={{ 
+                fontSize: isVerySmallScreen ? 14 : 16, 
+                color: colors.text, 
+                marginLeft: isVerySmallScreen ? 8 : 12, 
+                fontWeight: '600' 
+              }}>
+                Специальность
+                </ThemedText>
+            </View>
+            <ThemedText 
+              numberOfLines={isVerySmallScreen ? 2 : 1}
+              style={{ 
+              fontSize: isVerySmallScreen ? 12 : 14, 
               color: colors.primary, 
               fontWeight: '600',
-              textAlign: 'right',
+              textAlign: isVerySmallScreen ? 'left' : 'right',
               flex: 1,
-              marginLeft: 12
+              marginLeft: isVerySmallScreen ? 26 : 12
             }}>
               {user.ldap_profile?.yonalishCon || 'Информационные технологии'}
-            </ThemedText>
-          </View>
+                </ThemedText>
+              </View>
 
           {/* Email */}
           {(user.ldap_profile?.email || user.email) && (
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons name="mail-outline" size={20} color={colors.primary} />
-                <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12, fontWeight: '600' }}>
+            <View style={{ 
+              flexDirection: isVerySmallScreen ? 'column' : 'row', 
+              justifyContent: 'space-between', 
+              alignItems: isVerySmallScreen ? 'flex-start' : 'center' 
+            }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isVerySmallScreen ? 4 : 0 }}>
+                <Ionicons name="mail-outline" size={isVerySmallScreen ? 18 : 20} color={colors.primary} />
+                <ThemedText style={{ 
+                  fontSize: isVerySmallScreen ? 14 : 16, 
+                  color: colors.text, 
+                  marginLeft: isVerySmallScreen ? 8 : 12, 
+                  fontWeight: '600' 
+                }}>
                   Email
                 </ThemedText>
               </View>
-              <ThemedText style={{ 
-                fontSize: 14, 
+              <ThemedText 
+                numberOfLines={1}
+                style={{ 
+                fontSize: isVerySmallScreen ? 12 : 14, 
                 color: colors.primary, 
                 fontWeight: '600',
-                textAlign: 'right',
+                textAlign: isVerySmallScreen ? 'left' : 'right',
                 flex: 1,
-                marginLeft: 12
+                marginLeft: isVerySmallScreen ? 26 : 12
               }}>
                 {user.ldap_profile?.email || user.email}
-              </ThemedText>
-            </View>
-          )}
+                </ThemedText>
+              </View>
+            )}
         </View>
       </Animated.View>
 
@@ -458,32 +515,47 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           </View>
           <ThemedText style={{ 
             fontSize: isVerySmallScreen ? 16 : 18, 
-            fontWeight: '700',
+            fontWeight: '500',
             color: colors.text,
           }}>
             Академическая информация
-          </ThemedText>
-        </View>
+                </ThemedText>
+              </View>
         
         <View style={{
           backgroundColor: colors.surface,
-          borderRadius: 20,
-          padding: Spacing.l,
+          borderRadius: isVerySmallScreen ? 16 : 20,
+          padding: isVerySmallScreen ? spacing.sm : Spacing.l,
           borderWidth: 1,
           borderColor: colors.border,
         }}>
           {/* Текущий семестр */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="calendar-outline" size={20} color={colors.primary} />
-              <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12, fontWeight: '600' }}>
+          <View style={{ 
+            flexDirection: isVerySmallScreen ? 'column' : 'row', 
+            justifyContent: 'space-between', 
+            alignItems: isVerySmallScreen ? 'flex-start' : 'center', 
+            marginBottom: 16 
+          }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isVerySmallScreen ? 4 : 0 }}>
+              <Ionicons name="calendar-outline" size={isVerySmallScreen ? 18 : 20} color={colors.primary} />
+              <ThemedText style={{ 
+                fontSize: isVerySmallScreen ? 14 : 16, 
+                color: colors.text, 
+                marginLeft: isVerySmallScreen ? 8 : 12, 
+                fontWeight: '600' 
+              }}>
                 Семестр
-              </ThemedText>
+                </ThemedText>
             </View>
-            <ThemedText style={{ fontSize: 16, color: colors.primary, fontWeight: '700' }}>
+            <ThemedText style={{ 
+              fontSize: isVerySmallScreen ? 14 : 16, 
+              color: colors.primary, 
+              fontWeight: '500',
+              marginLeft: isVerySmallScreen ? 26 : 0
+            }}>
               {new Date().getMonth() >= 8 ? 'Осенний' : 'Весенний'} {new Date().getFullYear()}
-            </ThemedText>
-          </View>
+                </ThemedText>
+              </View>
 
           {/* Средний балл (GPA) */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -491,12 +563,12 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
               <Ionicons name="trophy-outline" size={20} color={colors.primary} />
               <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12, fontWeight: '600' }}>
                 Средний балл (GPA)
-              </ThemedText>
-            </View>
-            <ThemedText style={{ fontSize: 16, color: colors.primary, fontWeight: '700' }}>
+                </ThemedText>
+              </View>
+            <ThemedText style={{ fontSize: 16, color: colors.primary, fontWeight: '500' }}>
               {gradesData.length > 0 ? calculateGPA(gradesData).toFixed(1) : 'Нет данных'}
-            </ThemedText>
-          </View>
+                </ThemedText>
+              </View>
 
           {/* Статус студента */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -504,8 +576,8 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
               <Ionicons name="checkmark-circle-outline" size={20} color={colors.primary} />
               <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12, fontWeight: '600' }}>
                 Статус
-              </ThemedText>
-            </View>
+                </ThemedText>
+              </View>
             <View style={{
               backgroundColor: '#10B981',
               paddingHorizontal: 12,
@@ -514,11 +586,11 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
             }}>
               <ThemedText style={{ fontSize: 12, color: 'white', fontWeight: '600' }}>
                 Активный
-              </ThemedText>
-            </View>
+                </ThemedText>
+              </View>
           </View>
-        </View>
-      </Animated.View>
+          </View>
+        </Animated.View>
 
       {/* Основные кнопки действий */}
       <Animated.View entering={FadeInDown.duration(500).delay(300)} style={{ marginBottom: Spacing.l }}>
@@ -540,11 +612,11 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           </View>
           <ThemedText style={{ 
             fontSize: isVerySmallScreen ? 16 : 18, 
-            fontWeight: '700',
+            fontWeight: '500',
             color: colors.text,
           }}>
             Быстрые действия
-          </ThemedText>
+        </ThemedText>
         </View>
         
         <View style={{ gap: 12 }}>
@@ -659,11 +731,11 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           </View>
           <ThemedText style={{ 
             fontSize: isVerySmallScreen ? 16 : 18, 
-            fontWeight: '700',
+            fontWeight: '500',
             color: colors.text,
           }}>
             Достижения
-          </ThemedText>
+        </ThemedText>
         </View>
         
         <ScrollView 
@@ -822,7 +894,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
         transparent={true}
         onRequestClose={() => setSettingsMenuVisible(false)}
       >
-        <Pressable 
+            <Pressable
           style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}
           onPress={() => setSettingsMenuVisible(false)}
         >
@@ -873,7 +945,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 <Ionicons name="qr-code-outline" size={20} color={colors.primary} />
                 <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12 }}>
                   QR-код студента
-                </ThemedText>
+              </ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -886,7 +958,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 <Ionicons name="copy-outline" size={20} color={colors.primary} />
                 <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12 }}>
                   Скопировать контакт
-                </ThemedText>
+              </ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -899,11 +971,11 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 <Ionicons name="heart-outline" size={20} color={colors.primary} />
                 <ThemedText style={{ fontSize: 16, color: colors.text, marginLeft: 12 }}>
                   Добавить в избранное
-                </ThemedText>
+              </ThemedText>
               </TouchableOpacity>
             </Animated.View>
           </View>
-        </Pressable>
+            </Pressable>
       </Modal>
     </>
   );

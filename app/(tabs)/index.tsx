@@ -137,34 +137,12 @@ export default function HomeScreen() {
           }
         }
         
-        // Попробуем разные способы фильтрации
-        let filteredCourses = coursesArray;
-        
-        // Если у вас должно быть 9 курсов, возьмем только первые 9
-        if (coursesArray.length === 10) {
-          filteredCourses = coursesArray.slice(0, 9);
-          if (__DEV__) {
-            console.log('📚 Filtered to first 9 courses');
-          }
-        } else {
-          // Попробуем фильтровать по статусу
-          const statusFiltered = coursesArray.filter((course: any) => 
-            course.status === 'current' || course.status === 'active' || !course.status
-          );
-          
-          if (statusFiltered.length === 9) {
-            filteredCourses = statusFiltered;
-            if (__DEV__) {
-              console.log('📚 Filtered by status to 9 courses');
-            }
-          }
-        }
-        
+        // Показываем все курсы без ограничений
         if (__DEV__) {
-          console.log(`📚 Final courses count: ${filteredCourses.length}`);
+          console.log(`📚 All courses count: ${coursesArray.length}`);
         }
         
-        setCoursesData(filteredCourses);
+        setCoursesData(coursesArray);
       } else {
         setCoursesData([]);
       }
@@ -647,7 +625,7 @@ export default function HomeScreen() {
                 <ActionCard
                   title="КУРСЫ"
                   icon="book-outline"
-                  onPress={() => router.push('/(tabs)/explore')}
+                  onPress={() => router.push('/courses')}
                   gradientColors={['#3B82F6', '#1E40AF']}
                   iconColor="#FFFFFF"
                   style={{ 
@@ -796,7 +774,14 @@ export default function HomeScreen() {
                         course.status === 'past' ? 'Курс завершен' : 'Статус неизвестен'
             };
           })}
-          onCoursePress={(courseId: number) => console.log('Course pressed:', courseId)}
+          onCoursePress={(courseId: number) => {
+            console.log('Course pressed:', courseId);
+            router.push('/courses');
+          }}
+          onViewAllPress={() => {
+            console.log('View all courses pressed');
+            router.push('/courses');
+          }}
           horizontalPadding={horizontalPadding}
           containerStyle={{ marginBottom: spacing.xl }}
         />
