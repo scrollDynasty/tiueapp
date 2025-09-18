@@ -55,13 +55,11 @@ export const checkAuthStatus = createAsyncThunk<
       if (response.success && response.data) {
         return response.data;
       } else {
-        // Очищаем невалидный токен
-        await authApi.clearStorage();
+        // Не очищаем токен сразу, даем возможность повторного входа
         return rejectWithValue('Not authenticated');
       }
     } catch (error) {
-      // Очищаем токен при ошибке
-      await authApi.clearStorage();
+      // Не очищаем токен при ошибке, пусть пользователь попробует снова
       return rejectWithValue('Failed to check auth status');
     }
   }

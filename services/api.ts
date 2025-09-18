@@ -52,16 +52,6 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
-        // Если получили 401 ошибку, токен истек - очищаем хранилище
-        if (response.status === 401) {
-          if (__DEV__) {
-          }
-          await this.clearStorage();
-          return {
-            success: false,
-            error: 'Сессия истекла. Необходимо войти заново.',
-          };
-        }
         
         return {
           success: false,
@@ -308,9 +298,9 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
-        // Если токен истек, пытаемся обновить
+        // Если токен истек, не очищаем сразу
         if (response.status === 401) {
-          await this.clearStorage();
+          // await this.clearStorage();
         }
         return {
           success: false,

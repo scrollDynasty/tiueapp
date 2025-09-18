@@ -43,9 +43,9 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         // Проверяем валидность токена
         const result = await dispatch(checkAuthStatus());
 
-        // Если проверка провалилась, очищаем токен и перенаправляем
+        // Если проверка провалилась, перенаправляем на логин, но не очищаем токен сразу
         if (checkAuthStatus.rejected.match(result)) {
-          await AsyncStorage.removeItem('authToken');
+          // Даем пользователю возможность повторно войти с тем же токеном
           router.replace('/login');
         }
       } else {
@@ -53,8 +53,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
         router.replace('/login');
       }
     } catch (error) {
-      // Очищаем AsyncStorage при ошибке
-      await AsyncStorage.clear();
+      // При ошибке просто перенаправляем на логин, не очищая данные
       router.replace('/login');
     } finally {
       initializingRef.current = false;
