@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useImmersiveMode } from '@/hooks/useSystemBars';
 import { store } from '@/store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -26,6 +27,7 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
   const [showSplash, setShowSplash] = React.useState(true);
+  const [splashShown, setSplashShown] = React.useState(false);
   
   const { enableImmersiveMode, reactivateImmersiveMode } = useImmersiveMode();
 
@@ -40,21 +42,41 @@ export default function RootLayout() {
       enableImmersiveMode();
     }, 1000);
 
-    // Отключаем переактивацию - оставляем immersive режим постоянно активным
-    // const backupTimer = setTimeout(() => {
-    //   reactivateImmersiveMode();
-    // }, 3000);
-
     return () => {
       clearTimeout(timer);
-      // clearTimeout(backupTimer); // Больше не используется
     };
   }, [enableImmersiveMode, reactivateImmersiveMode, colorScheme]);
+
+  // Проверяем, показывалась ли уже анимация в этой сессии
+  useEffect(() => {
+    const checkSplashStatus = async () => {
+      try {
+        const hasShownSplash = await AsyncStorage.getItem('splashShownInSession');
+        if (hasShownSplash === 'true') {
+          setSplashShown(true);
+          setShowSplash(false);
+          await ExpoSplashScreen.hideAsync();
+        }
+      } catch (error) {
+        // Если ошибка, показываем анимацию
+      }
+    };
+    
+    checkSplashStatus();
+  }, []);
 
   const handleSplashFinish = React.useCallback(async () => {
     // Скрываем нативный splash screen когда заканчивается кастомный
     await ExpoSplashScreen.hideAsync();
     setShowSplash(false);
+    setSplashShown(true);
+    
+    // Сохраняем информацию о том, что анимация была показана в этой сессии
+    try {
+      await AsyncStorage.setItem('splashShownInSession', 'true');
+    } catch (error) {
+      // Игнорируем ошибки сохранения
+    }
   }, []);
 
   if (!loaded) {
@@ -66,7 +88,7 @@ export default function RootLayout() {
       <Provider store={store}>
         <ThemeProvider>
           <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-            {showSplash ? (
+            {showSplash && !splashShown ? (
               <SplashScreen onAnimationFinish={handleSplashFinish} />
             ) : (
             <View style={styles.container}>

@@ -67,14 +67,12 @@ export default function HomeScreen() {
   const fetchGrades = React.useCallback(async () => {
     if (user?.role !== 'student') {
       if (__DEV__) {
-        console.log('🎓 Skipping grades fetch - user is not a student, role:', user?.role);
       }
       return;
     }
     
     try {
       if (__DEV__) {
-        console.log('🎓 Starting to fetch grades...');
       }
       setGradesLoading(true);
       
@@ -115,7 +113,6 @@ export default function HomeScreen() {
     
     try {
       if (__DEV__) {
-        console.log('📚 Starting to fetch courses...');
       }
       setCoursesLoading(true);
       
@@ -125,22 +122,6 @@ export default function HomeScreen() {
         const responseData = response.data as any || {};
         const coursesArray = Array.isArray(responseData.data) ? responseData.data : [];
         
-        if (__DEV__) {
-          console.log(`📚 Total courses received: ${coursesArray.length}`);
-          if (coursesArray.length > 0) {
-            console.log('📚 Sample course data:', coursesArray[0]);
-            console.log('📚 All course statuses:', coursesArray.map((c: any) => ({ 
-              id: c.course_id || c.id, 
-              name: c.course_name || c.name, 
-              status: c.status 
-            })));
-          }
-        }
-        
-        // Показываем все курсы без ограничений
-        if (__DEV__) {
-          console.log(`📚 All courses count: ${coursesArray.length}`);
-        }
         
         setCoursesData(coursesArray);
       } else {
@@ -148,7 +129,6 @@ export default function HomeScreen() {
       }
     } catch (error) {
       if (__DEV__) {
-        console.error('📚 Error fetching courses:', error);
       }
       setCoursesData([]);
     } finally {
@@ -242,11 +222,7 @@ export default function HomeScreen() {
           coursesData.map((course: any) => course.course_name || course.name || 'Unknown')
         );
         coursesCount = uniqueSubjects.size.toString();
-        
-        if (__DEV__) {
-          console.log(`📚 Unique subjects count: ${uniqueSubjects.size} from ${coursesData.length} courses`);
-          console.log('📚 Unique subjects:', Array.from(uniqueSubjects));
-        }
+
       }
     } else if (role === 'professor') {
       coursesCount = '5'; // TODO: получать из API для преподавателей
@@ -775,11 +751,9 @@ export default function HomeScreen() {
             };
           })}
           onCoursePress={(courseId: number) => {
-            console.log('Course pressed:', courseId);
             router.push('/courses');
           }}
           onViewAllPress={() => {
-            console.log('View all courses pressed');
             router.push('/courses');
           }}
           horizontalPadding={horizontalPadding}

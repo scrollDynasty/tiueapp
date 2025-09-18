@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { authApi } from '../../services/api';
 import { AuthState, LoginCredentials, User } from '../../types';
@@ -29,8 +30,15 @@ export const logoutUser = createAsyncThunk<void, void>(
   async (_, { rejectWithValue }) => {
     try {
       await authApi.logout();
+      // Очищаем флаг показа анимации при выходе, чтобы при следующем входе анимация показалась
+      await AsyncStorage.removeItem('splashShownInSession');
     } catch (error) {
       // Даже если API logout не работает, мы все равно выходим локально
+      try {
+        await AsyncStorage.removeItem('splashShownInSession');
+      } catch (storageError) {
+        // Игнорируем ошибки работы с хранилищем
+      }
     }
   }
 );

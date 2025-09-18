@@ -23,7 +23,6 @@ class LDAPDataService {
     if (!forceRefresh && this.profileCache && 
         Date.now() - this.profileCache.timestamp < this.PROFILE_CACHE_DURATION) {
       if (isDebugMode()) {
-        console.log('📋 getStudentProfile: returning cached profile');
       }
       return {
         success: true,
@@ -33,7 +32,6 @@ class LDAPDataService {
 
     try {
       if (isDebugMode()) {
-        console.log('📋 Getting student profile from LDAP...');
       }
 
       const response = await ldapAuthService.getUserProfile();
@@ -46,7 +44,6 @@ class LDAPDataService {
         };
         
         if (isDebugMode()) {
-          console.log('✅ Student profile retrieved successfully');
         }
       }
 
@@ -74,7 +71,6 @@ class LDAPDataService {
     if (!forceRefresh && this.coursesCache && 
         Date.now() - this.coursesCache.timestamp < this.COURSES_CACHE_DURATION) {
       if (isDebugMode()) {
-        console.log('📚 getActiveCourses: returning cached courses');
       }
       return {
         success: true,
@@ -87,7 +83,6 @@ class LDAPDataService {
 
     try {
       if (isDebugMode()) {
-        console.log('📚 Getting active courses from LDAP...');
       }
 
       const response = await ldapAuthService.getActiveCourses(params);
@@ -100,7 +95,6 @@ class LDAPDataService {
         };
         
         if (isDebugMode()) {
-          console.log(`✅ Retrieved ${response.data.count} courses`);
         }
       }
 
@@ -162,13 +156,11 @@ class LDAPDataService {
   async getCourseGrades(): Promise<ApiResponse<any[]>> {
     try {
       if (isDebugMode()) {
-        console.log('📊 Getting course grades from LDAP...');
       }
 
       const response = await ldapAuthService.getCourseGrades();
       
       if (isDebugMode() && response.success) {
-        console.log('✅ Course grades retrieved successfully');
       }
 
       return response;
@@ -189,19 +181,16 @@ class LDAPDataService {
   async getCourseAttendance(): Promise<ApiResponse<any[]>> {
     try {
       if (isDebugMode()) {
-        console.log('📈 Getting course attendance from LDAP...');
       }
 
       const response = await ldapAuthService.getCourseAttendance();
       
       if (isDebugMode() && response.success) {
-        console.log('✅ Course attendance retrieved successfully');
       }
 
       return response;
     } catch (error) {
       if (isDebugMode()) {
-        console.error('❌ Failed to get course attendance:', error);
       }
       return {
         success: false,
@@ -216,19 +205,16 @@ class LDAPDataService {
   async getMessages(): Promise<ApiResponse<any[]>> {
     try {
       if (isDebugMode()) {
-        console.log('💬 Getting messages from LDAP...');
       }
 
       const response = await ldapAuthService.getMessages();
       
       if (isDebugMode() && response.success) {
-        console.log('✅ Messages retrieved successfully');
       }
 
       return response;
     } catch (error) {
       if (isDebugMode()) {
-        console.error('❌ Failed to get messages:', error);
       }
       return {
         success: false,
@@ -249,7 +235,6 @@ class LDAPDataService {
   }>> {
     try {
       if (isDebugMode()) {
-        console.log('📋 Getting dashboard data from LDAP...');
       }
 
       // Получаем все данные параллельно
@@ -280,15 +265,6 @@ class LDAPDataService {
         attendance: attendanceResponse.success ? attendanceResponse.data || [] : [],
       };
 
-      if (isDebugMode()) {
-        console.log('✅ Dashboard data retrieved successfully:', {
-          currentCourses: currentCourses.length,
-          completedCourses: completedCourses.length,
-          hasGrades: dashboardData.grades.length > 0,
-          hasAttendance: dashboardData.attendance.length > 0,
-        });
-      }
-
       return {
         success: true,
         data: dashboardData,
@@ -311,9 +287,6 @@ class LDAPDataService {
     this.coursesCache = null;
     this.profileCache = null;
     
-    if (isDebugMode()) {
-      console.log('🧹 LDAP data cache cleared');
-    }
   }
 
   /**
@@ -322,9 +295,6 @@ class LDAPDataService {
   clearCoursesCache(): void {
     this.coursesCache = null;
     
-    if (isDebugMode()) {
-      console.log('🧹 LDAP courses cache cleared');
-    }
   }
 
   /**
@@ -333,9 +303,6 @@ class LDAPDataService {
   clearProfileCache(): void {
     this.profileCache = null;
     
-    if (isDebugMode()) {
-      console.log('🧹 LDAP profile cache cleared');
-    }
   }
 }
 

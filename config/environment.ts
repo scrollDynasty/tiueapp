@@ -54,7 +54,6 @@ export { developmentConfig, ldapConfig, productionConfig };
 // Утилитарная функция для получения базового URL
 export const getApiBaseUrl = (): string => {
   const apiUrl = config.API_BASE_URL;
-  console.log(`🔧 Using API URL: ${apiUrl} (${isDevelopment ? 'DEV' : 'PROD'} mode)`);
   return apiUrl;
 };
 

@@ -11,39 +11,27 @@ export default function DebugScreen() {
       const token = await AsyncStorage.getItem('authToken');
       const userStr = await AsyncStorage.getItem('userInfo');
       
-      // SECURITY: Never log full tokens in production
-      if (__DEV__) {
-        console.log('[DEBUG] Token exists:', !!token);
-        console.log('[DEBUG] User data exists:', !!userStr);
-      }
-      
       setTokenInfo(`Token: ${token ? 'exists (' + token.substring(0, 8) + '...)' : 'null'}\nUser: ${userStr ? 'exists' : 'null'}`);
     } catch (error) {
-      console.error('[DEBUG] Error checking storage:', error);
       setTokenInfo('Error checking storage');
     }
   };
 
   const clearStorage = async () => {
     try {
-      console.log('[DEBUG] Clearing storage...');
       await authApi.clearStorage();
       Alert.alert('Success', 'Storage cleared successfully');
       setTokenInfo('Storage cleared');
     } catch (error) {
-      console.error('[DEBUG] Error clearing storage:', error);
       Alert.alert('Error', 'Failed to clear storage');
     }
   };
 
   const testCurrentUser = async () => {
     try {
-      console.log('[DEBUG] Testing getCurrentUser...');
       const response = await authApi.getCurrentUser();
-      console.log('[DEBUG] getCurrentUser response:', response);
       Alert.alert('API Response', JSON.stringify(response, null, 2));
     } catch (error) {
-      console.error('[DEBUG] getCurrentUser error:', error);
       Alert.alert('Error', String(error));
     }
   };

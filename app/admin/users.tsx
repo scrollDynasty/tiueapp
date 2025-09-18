@@ -129,10 +129,7 @@ export default function UsersManagementScreen() {
     setShowPasswordReset(true);
   }, []);
 
-  const handleToggleStatus = React.useCallback((userId: string) => {
-    // Реализация переключения статуса пользователя
-    console.log('Toggle status for user:', userId);
-  }, []);
+  const handleToggleStatus = React.useCallback((userId: string) => { }, []);
 
   const handleToggleCreateForm = React.useCallback(() => {
     setShowCreateForm(prev => !prev);

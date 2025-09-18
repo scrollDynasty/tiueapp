@@ -33,36 +33,26 @@ export default function ProfileScreen() {
   }, []);
 
   const handleLogout = React.useCallback(async () => {
-    console.log('🚪 handleLogout called!');
     if (isMountedRef.current) {
       setIsLogoutModalVisible(true);
     }
   }, []);
 
   const performLogout = React.useCallback(async () => {
-    console.log('✅ Starting logout process...');
-    
     // Закрываем модальное окно сразу
     if (isMountedRef.current) {
       setIsLogoutModalVisible(false);
     }
     
     try {
-      console.log('🔄 Calling logoutUser...');
       await dispatch(logoutUser()).unwrap();
-      
-      console.log('🗑️ Clearing AsyncStorage...');
       await AsyncStorage.multiRemove(['userToken', 'userRole', 'userData']);
-      
-      console.log('🧹 Clearing Redux credentials...');
       dispatch(clearCredentials());
-      
-      console.log('🔄 Navigating to login...');
       router.replace('/login');
-      
-      console.log('✅ Logout completed successfully!');
     } catch (error) {
-      console.error('❌ Logout error:', error);
+      if (__DEV__) {
+        console.error('❌ Logout error:', error);
+      }
       // При ошибке показываем уведомление только если компонент еще смонтирован
       if (isMountedRef.current) {
         // Здесь можно добавить показ ошибки пользователю
@@ -72,7 +62,6 @@ export default function ProfileScreen() {
   }, [dispatch]);
 
   const handleCancelLogout = React.useCallback(() => {
-    console.log('❌ Logout cancelled');
     if (isMountedRef.current) {
       setIsLogoutModalVisible(false);
     }

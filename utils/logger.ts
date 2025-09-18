@@ -16,27 +16,6 @@ interface Logger {
 class DevLogger implements Logger {
   private createLogMethod = (level: LogLevel) => {
     return (message: string, ...args: any[]) => {
-      if (__DEV__) {
-        const timestamp = new Date().toISOString();
-        const formattedMessage = `[${timestamp}] ${message}`;
-        
-        switch (level) {
-          case 'error':
-            console.error(formattedMessage, ...args);
-            break;
-          case 'warn':
-            console.warn(formattedMessage, ...args);
-            break;
-          case 'info':
-            console.info(formattedMessage, ...args);
-            break;
-          case 'debug':
-            console.debug(formattedMessage, ...args);
-            break;
-          default:
-            console.log(formattedMessage, ...args);
-        }
-      }
       // В продакшене можно отправлять критические ошибки в систему мониторинга
       // if (!__DEV__ && level === 'error') {
       //   // Отправить в Crashlytics, Sentry и т.д.

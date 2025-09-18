@@ -34,53 +34,32 @@ export default function CoursesScreen() {
 
   const fetchGrades = React.useCallback(async () => {
     try {
-      console.log('🎓 Fetching grades...');
       const response = await authApi.getGrades();
-      console.log('🎓 Grades response:', response);
       
       if (response.success && response.data) {
         const responseData = response.data as any || {};
         const gradesArray = Array.isArray(responseData.data) ? responseData.data : [];
-        
-        console.log(`🎓 Total grades received: ${gradesArray.length}`);
-        if (gradesArray.length > 0) {
-          console.log('🎓 Sample grade data:', gradesArray[0]);
-        }
-        
         setGrades(gradesArray);
       } else {
-        console.log('🎓 No grades data received');
         setGrades([]);
       }
     } catch (error) {
-      console.error('🎓 Error fetching grades:', error);
       setGrades([]);
     }
   }, []);
 
   const fetchCourses = React.useCallback(async () => {
     try {
-      console.log('📚 Fetching courses...');
       const response = await authApi.getCourses();
-      console.log('📚 Courses response:', response);
       
       if (response.success && response.data) {
         const responseData = response.data as any || {};
         const coursesArray = Array.isArray(responseData.data) ? responseData.data : [];
-        
-        console.log(`📚 Total courses received: ${coursesArray.length}`);
-        if (coursesArray.length > 0) {
-          console.log('📚 Sample course data:', coursesArray[0]);
-        }
-        
         setCourses(coursesArray);
-        console.log('📚 All courses:', coursesArray.length);
       } else {
-        console.log('📚 No courses data received');
         setCourses([]);
       }
     } catch (error) {
-      console.error('📚 Error fetching courses:', error);
       setCourses([]);
     }
   }, []);
