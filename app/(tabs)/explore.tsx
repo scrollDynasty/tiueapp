@@ -1,114 +1,66 @@
 import { ThemedText } from '@/components/ThemedText';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAppSelector } from '@/hooks/redux';
 import { useResponsive } from '@/hooks/useResponsive';
-import { authApi } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import React from 'react';
-import { Platform, ScrollView, TouchableOpacity, View } from 'react-native';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { Dimensions, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeInDown, FadeInUp, SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-interface Course {
-  course_id: string;
-  course_name: string;
-  final_grade?: number;
-  status: 'current' | 'past' | 'future';
-  instructor?: string;
-  course_url?: string;
-}
-
-export default function CoursesScreen() {
+export default function ExploreScreen() {
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [focusedInput, setFocusedInput] = React.useState<string | null>(null);
   const insets = useSafeAreaInsets();
   const { horizontalPadding, isSmallScreen, fontSize, spacing, isVerySmallScreen } = useResponsive();
-  const { user } = useAppSelector((state) => state.auth);
-  
-  const [coursesData, setCoursesData] = React.useState<Course[]>([]);
-  const [gradesData, setGradesData] = React.useState<any[]>([]);
-  const [loading, setLoading] = React.useState(true);
 
-  // Загружаем данные курсов и оценок
-  React.useEffect(() => {
-    const fetchData = async () => {
-      if (user?.role !== 'student') return;
-      
-      try {
-        setLoading(true);
-        const [coursesResponse, gradesResponse] = await Promise.all([
-          authApi.getCourses(),
-          authApi.getGrades()
-        ]);
-
-        if (coursesResponse.success && coursesResponse.data) {
-          const responseData = coursesResponse.data as any || {};
-          const coursesArray = Array.isArray(responseData.data) ? responseData.data : [];
-          
-          // Применяем ту же фильтрацию что и на главном экране
-          let filteredCourses = coursesArray;
-          if (coursesArray.length === 10) {
-            filteredCourses = coursesArray.slice(0, 9);
-          }
-          
-          setCoursesData(filteredCourses);
-        }
-
-        if (gradesResponse.success && gradesResponse.data) {
-          const responseData = gradesResponse.data as any || {};
-          const gradesArray = Array.isArray(responseData.data) ? responseData.data : [];
-          setGradesData(gradesArray);
-        }
-      } catch (error) {
-        console.error('Error fetching courses data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [user]);
-
-  // Функция для получения оценки за курс
-  const getCourseGrade = (courseId: string) => {
-    const grade = gradesData.find(g => g.course_id === courseId);
-    return grade ? parseFloat(grade.final_grade || grade.grade || grade.score || 0) : null;
-  };
-
-  // Функция для определения статуса прохождения курса
-  const getCourseStatus = (courseId: string) => {
-    const grade = getCourseGrade(courseId);
-    if (grade === null) return 'not_graded';
-    if (grade < 40) return 'failed';
-    if (grade >= 40 && grade < 60) return 'passed';
-    if (grade >= 60 && grade < 80) return 'good';
-    return 'excellent';
-  };
-
-  // Функция для получения цвета статуса
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'excellent': return '#10B981';
-      case 'good': return '#3B82F6';
-      case 'passed': return '#F59E0B';
-      case 'failed': return '#EF4444';
-      default: return '#6B7280';
-    }
-  };
-
-  // Функция для получения текста статуса
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'excellent': return 'Отлично';
-      case 'good': return 'Хорошо';
-      case 'passed': return 'Сдано';
-      case 'failed': return 'Не сдано';
-      default: return 'Не оценено';
-    }
-  };
+  const categories = [
+    { 
+      title: "БИБЛИОТЕКА", 
+      icon: "library-outline" as const,
+      color: '#6366F1',
+      bgColor: '#EEF2FF',
+      description: "Электронные книги и ресурсы"
+    },
+    { 
+      title: "ЛАБОРАТОРИИ", 
+      icon: "flask-outline" as const,
+      color: '#EC4899',
+      bgColor: '#FDF2F8',
+      description: "Научные исследования"
+    },
+    { 
+      title: "КАФЕДРЫ", 
+      icon: "school-outline" as const,
+      color: '#10B981',
+      bgColor: '#ECFDF5',
+      description: "Преподаватели и курсы"
+    },
+    { 
+      title: "СПОРТ", 
+      icon: "fitness-outline" as const,
+      color: '#F59E0B',
+      bgColor: '#FFFBEB',
+      description: "Спортивные секции"
+    },
+    { 
+      title: "СТУДСОВЕТ", 
+      icon: "people-outline" as const,
+      color: '#8B5CF6',
+      bgColor: '#F5F3FF',
+      description: "Студенческая жизнь"
+    },
+    { 
+      title: "МЕРОПРИЯТИЯ", 
+      icon: "calendar-outline" as const,
+      color: '#EF4444',
+      bgColor: '#FEF2F2',
+      description: "События и концерты"
+    },
+  ];
 
   return (
     <View style={{ flex: 1 }}>
@@ -129,16 +81,16 @@ export default function CoursesScreen() {
           contentContainerStyle={{
             paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : horizontalPadding,
             paddingBottom: Platform.OS === 'android'
-              ? (isVerySmallScreen ? 80 : isSmallScreen ? 85 : 90) + Math.max(insets.bottom, 0)
-              : (isVerySmallScreen ? 160 : isSmallScreen ? 140 : 120),
+              ? (isVerySmallScreen ? 80 : isSmallScreen ? 85 : 90) + Math.max(insets.bottom, 0) // Компактные + insets для Android
+              : (isVerySmallScreen ? 160 : isSmallScreen ? 140 : 120), // Обычные для iOS
           }}
         >
-          {/* Заголовок курсов */}
+          {/* Современный заголовок в стиле главной страницы */}
           <Animated.View 
             entering={FadeInUp.duration(600).springify()}
             style={{ 
-              paddingTop: insets.top + 10,
-              marginBottom: spacing.lg,
+              paddingTop: insets.top + 10, // Контент заголовка под Dynamic Island + 10px
+              marginBottom: spacing.sm,
             }}
           >
             <View style={{ 
@@ -160,15 +112,15 @@ export default function CoursesScreen() {
                   marginRight: spacing.md,
                   borderWidth: 1,
                   borderColor: `${colors.primary}30`,
-                  shadowColor: colors.primary,
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 8,
-                  elevation: 6,
+                  shadowColor: Platform.OS === 'android' ? 'transparent' : colors.primary,
+                  shadowOffset: { width: 0, height: Platform.OS === 'android' ? 0 : 4 },
+                  shadowOpacity: Platform.OS === 'android' ? 0 : 0.2,
+                  shadowRadius: Platform.OS === 'android' ? 0 : 8,
+                  elevation: Platform.OS === 'android' ? 1 : 6,
                 }}
               >
                 <Ionicons 
-                  name="book" 
+                  name="compass" 
                   size={isVerySmallScreen ? 24 : 28} 
                   color={colors.primary} 
                 />
@@ -177,14 +129,14 @@ export default function CoursesScreen() {
                 <ThemedText
                   style={{
                     fontSize: isVerySmallScreen ? fontSize.title + 2 : fontSize.title + 6,
-                    lineHeight: isVerySmallScreen ? 24 : 32,
+                    lineHeight: isVerySmallScreen ? 24 : 32, // Добавляем lineHeight чтобы текст не обрезался
                     fontWeight: '800',
                     color: colors.text,
                     letterSpacing: 0.5,
                     marginBottom: 4,
                   }}
                 >
-                  Мои курсы
+                  Исследования
                 </ThemedText>
                 <ThemedText
                   style={{
@@ -193,214 +145,361 @@ export default function CoursesScreen() {
                     lineHeight: 20,
                   }}
                 >
-                  {coursesData.length} предметов • Академический прогресс
+                  Откройте для себя возможности университета
                 </ThemedText>
               </View>
-              
-              {/* Кнопка перехода к оценкам */}
-              <TouchableOpacity
-                onPress={() => router.push('/grades')}
-                style={{
-                  backgroundColor: colors.primary + '20',
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                  borderRadius: 12,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                }}
-              >
-                <Ionicons name="analytics-outline" size={16} color={colors.primary} />
-                <ThemedText style={{
-                  fontSize: 12,
-                  color: colors.primary,
-                  marginLeft: 6,
-                  fontWeight: '600',
-                }}>
-                  Оценки
-                </ThemedText>
-              </TouchableOpacity>
             </View>
           </Animated.View>
 
-          {/* Список курсов */}
-          {loading ? (
-            <Animated.View 
-              entering={FadeInDown.delay(200).duration(600)}
-              style={{
-                backgroundColor: colors.surface,
-                borderRadius: 20,
-                padding: spacing.xl,
-                alignItems: 'center',
-                borderWidth: 1,
-                borderColor: colors.border,
-              }}
-            >
-              <Ionicons name="book-outline" size={48} color={colors.textSecondary} />
-              <ThemedText style={{
-                fontSize: 16,
-                color: colors.text,
-                marginTop: 16,
-                fontWeight: '600',
-              }}>
-                Загружаем курсы...
-              </ThemedText>
-            </Animated.View>
-          ) : coursesData.length > 0 ? (
-            coursesData.map((course, index) => {
-              const grade = getCourseGrade(course.course_id);
-              const status = getCourseStatus(course.course_id);
-              const statusColor = getStatusColor(status);
-              const statusText = getStatusText(status);
+          {/* Поле поиска в стиле главной страницы */}
+          <Animated.View 
+            entering={SlideInDown.delay(200).duration(800).springify()}
+            style={{
+              backgroundColor: colors.surface,
+              borderRadius: 20,
+              paddingHorizontal: spacing.lg,
+              paddingVertical: spacing.md,
+              marginBottom: spacing.md,
+              shadowColor: Platform.OS === 'android' ? 'transparent' : colors.primary,
+              shadowOffset: { width: 0, height: Platform.OS === 'android' ? 2 : 6 },
+              shadowOpacity: Platform.OS === 'android' ? 0 : (isDarkMode ? 0.2 : 0.1),
+              shadowRadius: Platform.OS === 'android' ? 0 : 16,
+              elevation: Platform.OS === 'android' ? 2 : 8,
+              borderWidth: 1,
+              borderColor: focusedInput === 'search' 
+                ? `${colors.primary}40` 
+                : isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <LinearGradient
+                colors={focusedInput === 'search' 
+                  ? [colors.primary, `${colors.primary}80`] 
+                  : [`${colors.primary}20`, `${colors.primary}10`]
+                }
+                style={{
+                  width: isVerySmallScreen ? 40 : 44,
+                  height: isVerySmallScreen ? 40 : 44,
+                  borderRadius: isVerySmallScreen ? 20 : 22,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: spacing.md,
+                  borderWidth: 1,
+                  borderColor: focusedInput === 'search' 
+                    ? `${colors.primary}40` 
+                    : `${colors.primary}30`,
+                }}
+              >
+                <Ionicons 
+                  name="search" 
+                  size={isVerySmallScreen ? 20 : 22} 
+                  color={focusedInput === 'search' ? '#FFFFFF' : colors.primary}
+                />
+              </LinearGradient>
+              <TextInput
+                placeholder="Что вы ищете?"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                style={{
+                  flex: 1,
+                  fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : 16,
+                  color: colors.text,
+                  backgroundColor: 'transparent',
+                  borderWidth: 0,
+                  margin: 0,
+                  padding: 0,
+                  ...(Platform.OS === 'android' && {
+                    includeFontPadding: false,
+                    textAlignVertical: 'center',
+                  }),
+                  ...(Platform.OS === 'web' && {
+                    outline: 'none',
+                    boxShadow: 'none',
+                  }),
+                }}
+                placeholderTextColor={colors.textSecondary}
+                onFocus={() => setFocusedInput('search')}
+                onBlur={() => setFocusedInput(null)}
+                underlineColorAndroid="transparent"
+                selectTextOnFocus={false}
+                blurOnSubmit={false}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity 
+                  onPress={() => setSearchQuery('')}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    backgroundColor: isDarkMode ? 'rgba(255,255,255,0.08)' : colors.surfaceSecondary,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginLeft: spacing.sm
+                  }}
+                >
+                  <Ionicons name="close" size={16} color={colors.textSecondary} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </Animated.View>
 
-              return (
+          {/* Секция категорий в стиле главной страницы */}
+          <Animated.View entering={FadeInDown.delay(400).duration(800)}>
+
+            <View style={{
+              flexDirection: isVerySmallScreen ? 'column' : 'row',
+              flexWrap: 'wrap',
+              justifyContent: isVerySmallScreen ? 'flex-start' : 'space-between',
+              gap: spacing.sm,
+            }}>
+              {categories.map((category, index) => (
                 <Animated.View
-                  key={course.course_id}
-                  entering={FadeInDown.delay(200 + index * 100).duration(600)}
-                  style={{ marginBottom: spacing.md }}
+                  key={category.title}
+                  entering={FadeInUp.delay(500 + index * 100).duration(600).springify()}
+                  style={{
+                    width: isVerySmallScreen 
+                      ? '100%' 
+                      : (Dimensions.get('window').width - (isSmallScreen ? 40 : 48) - (isSmallScreen ? spacing.md : spacing.md)) / 2,
+                  }}
                 >
                   <TouchableOpacity
-                    onPress={() => {
-                      if (course.course_url) {
-                        // Можно открыть URL курса
-                        console.log('Opening course:', course.course_url);
-                      }
-                    }}
                     style={{
-                      backgroundColor: colors.surface,
-                      borderRadius: 20,
-                      padding: spacing.lg,
-                      borderWidth: 1,
-                      borderColor: colors.border,
-                      shadowColor: statusColor,
-                      shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: 0.1,
-                      shadowRadius: 12,
-                      elevation: 6,
+                      width: '100%',
+                      minHeight: isVerySmallScreen ? 90 : 120,
+                      borderRadius: 16,
+                      marginBottom: spacing.sm,
+                      overflow: 'hidden',
+                      shadowColor: Platform.OS === 'android' ? 'transparent' : category.color,
+                      shadowOffset: { width: 0, height: Platform.OS === 'android' ? 2 : 6 },
+                      shadowOpacity: Platform.OS === 'android' ? 0 : 0.25,
+                      shadowRadius: Platform.OS === 'android' ? 0 : 12,
+                      elevation: Platform.OS === 'android' ? 2 : 8,
                     }}
                   >
-                    {/* Заголовок курса */}
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.md }}>
-                      <View style={{ flex: 1, marginRight: spacing.md }}>
-                        <ThemedText style={{
-                          fontSize: isVerySmallScreen ? 16 : 18,
-                          fontWeight: '700',
-                          color: colors.text,
-                          marginBottom: 4,
-                        }}>
-                          {course.course_name}
+                    {/* Градиентный фон карточки в стиле главной страницы */}
+                    <LinearGradient
+                      colors={[category.color + '15', category.color + '25']}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        borderRadius: 20,
+                      }}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    />
+                    <View style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: colors.surface,
+                      opacity: isDarkMode ? 0.9 : 0.95,
+                      borderRadius: 20,
+                      borderWidth: 1,
+                      borderColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
+                    }} />
+                    
+                    {/* Контейнер содержимого в стиле главной страницы */}
+                    <View style={{ 
+                      flex: 1, 
+                      padding: isVerySmallScreen ? spacing.sm : spacing.md,
+                      flexDirection: isVerySmallScreen ? 'row' : 'column',
+                      justifyContent: isVerySmallScreen ? 'flex-start' : 'space-between',
+                      alignItems: isVerySmallScreen ? 'center' : 'flex-start'
+                    }}>
+                      {/* Иконка с красивым градиентом */}
+                      <LinearGradient
+                        colors={[category.color, category.color + '80']}
+                        style={{
+                          width: isVerySmallScreen ? 32 : 48,
+                          height: isVerySmallScreen ? 32 : 48,
+                          borderRadius: isVerySmallScreen ? 16 : 24,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginBottom: isVerySmallScreen ? 0 : spacing.sm,
+                          marginRight: isVerySmallScreen ? spacing.sm : 0,
+                          shadowColor: Platform.OS === 'android' ? 'transparent' : category.color,
+                          shadowOffset: { width: 0, height: Platform.OS === 'android' ? 0 : 4 },
+                          shadowOpacity: Platform.OS === 'android' ? 0 : 0.3,
+                          shadowRadius: Platform.OS === 'android' ? 0 : 8,
+                          elevation: Platform.OS === 'android' ? 1 : 6,
+                        }}
+                      >
+                        <Ionicons 
+                          name={category.icon} 
+                          size={isVerySmallScreen ? 18 : 28} 
+                          color="#FFFFFF"
+                        />
+                      </LinearGradient>
+                      
+                      {/* Текстовый контент */}
+                      <View style={{ flex: 1 }}>
+                        <ThemedText
+                          style={{
+                            fontSize: isVerySmallScreen ? 12 : fontSize.body,
+                            fontWeight: '700',
+                            color: colors.text,
+                            marginBottom: isVerySmallScreen ? 2 : 6,
+                            letterSpacing: 0.3,
+                          }}
+                        >
+                          {category.title}
                         </ThemedText>
-                        {course.instructor && (
-                          <ThemedText style={{
-                            fontSize: 14,
+                        <ThemedText
+                          style={{
+                            fontSize: isVerySmallScreen ? 10 : fontSize.small,
                             color: colors.textSecondary,
-                          }}>
-                            {course.instructor}
-                          </ThemedText>
-                        )}
-                      </View>
-                      
-                      {/* Статус курса */}
-                      <View style={{
-                        backgroundColor: statusColor,
-                        paddingHorizontal: 12,
-                        paddingVertical: 6,
-                        borderRadius: 12,
-                      }}>
-                        <ThemedText style={{
-                          fontSize: 12,
-                          fontWeight: '600',
-                          color: 'white',
-                        }}>
-                          {statusText}
+                            lineHeight: 18,
+                            fontWeight: '500',
+                          }}
+                        >
+                          {category.description}
                         </ThemedText>
                       </View>
                     </View>
-
-                    {/* Оценка и прогресс */}
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Ionicons name="trophy-outline" size={20} color={colors.primary} />
-                        <ThemedText style={{
-                          fontSize: 16,
-                          color: colors.text,
-                          marginLeft: 8,
-                          fontWeight: '600',
-                        }}>
-                          Оценка:
-                        </ThemedText>
-                      </View>
-                      
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <ThemedText style={{
-                          fontSize: 18,
-                          fontWeight: '700',
-                          color: grade !== null ? statusColor : colors.textSecondary,
-                          marginRight: 8,
-                        }}>
-                          {grade !== null ? Math.round(grade) : 'Нет'}
-                        </ThemedText>
-                        <ThemedText style={{
-                          fontSize: 14,
-                          color: colors.textSecondary,
-                        }}>
-                          / 100
-                        </ThemedText>
-                      </View>
-                    </View>
-
-                    {/* Прогресс бар */}
-                    {grade !== null && (
-                      <View style={{ marginTop: spacing.md }}>
-                        <View style={{
-                          height: 8,
-                          backgroundColor: colors.border,
-                          borderRadius: 4,
-                          overflow: 'hidden',
-                        }}>
-                          <View style={{
-                            height: '100%',
-                            width: `${Math.min(grade, 100)}%`,
-                            backgroundColor: statusColor,
-                            borderRadius: 4,
-                          }} />
-                        </View>
-                      </View>
-                    )}
                   </TouchableOpacity>
                 </Animated.View>
-              );
-            })
-          ) : (
-            <Animated.View 
-              entering={FadeInDown.delay(200).duration(600)}
-              style={{
-                backgroundColor: colors.surface,
-                borderRadius: 20,
-                padding: spacing.xl,
-                alignItems: 'center',
-                borderWidth: 1,
-                borderColor: colors.border,
-              }}
-            >
-              <Ionicons name="book-outline" size={48} color={colors.textSecondary} />
-              <ThemedText style={{
-                fontSize: 16,
-                color: colors.text,
-                marginTop: 16,
-                fontWeight: '600',
-              }}>
-                Нет курсов
+              ))}
+            </View>
+          </Animated.View>
+
+          {/* Быстрые действия в стиле главной страницы */}
+          <Animated.View 
+            entering={FadeInDown.delay(800).duration(800)}
+            style={{ 
+              marginTop: isVerySmallScreen ? spacing.md : spacing.lg,
+              backgroundColor: colors.surface,
+              borderRadius: 16,
+              padding: isVerySmallScreen ? spacing.sm : spacing.md,
+              shadowColor: colors.primary,
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: isDarkMode ? 0.2 : 0.1,
+              shadowRadius: 16,
+              elevation: 8,
+              borderWidth: 1,
+              borderColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
+            }}
+          >
+            {/* Заголовок секции */}
+            <View style={{ 
+              flexDirection: 'row', 
+              alignItems: 'center', 
+              marginBottom: spacing.md,
+              paddingBottom: spacing.xs,
+              borderBottomWidth: 1,
+              borderBottomColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
+            }}>
+              <LinearGradient
+                colors={[`${colors.primary}20`, `${colors.primary}10`]}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginRight: spacing.md,
+                  borderWidth: 1,
+                  borderColor: `${colors.primary}30`,
+                }}
+              >
+                <Ionicons name="flash" size={16} color={colors.primary} />
+              </LinearGradient>
+              <ThemedText
+                style={{
+                  fontSize: fontSize.title,
+                  fontWeight: '700',
+                  color: colors.text,
+                  letterSpacing: 0.5,
+                }}
+              >
+                Быстрые действия
               </ThemedText>
-              <ThemedText style={{
-                fontSize: 14,
-                color: colors.textSecondary,
-                textAlign: 'center',
-                marginTop: 8,
-              }}>
-                Курсы появятся после их назначения
-              </ThemedText>
-            </Animated.View>
-          )}
+            </View>
+
+            <View style={{ gap: spacing.xs }}>
+              {[
+                { title: 'Расписание экзаменов', icon: 'calendar', color: '#EF4444' },
+                { title: 'Электронная библиотека', icon: 'book', color: '#6366F1' },
+                { title: 'Подать заявление', icon: 'document-text', color: '#10B981' },
+                { title: 'Справки и документы', icon: 'folder', color: '#F59E0B' },
+              ].map((item, index) => (
+                <Animated.View
+                  key={item.title}
+                  entering={FadeInDown.delay(900 + index * 100).duration(600)}
+                >
+                  <TouchableOpacity
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: isDarkMode ? `${colors.primary}05` : 'rgba(99, 102, 241, 0.03)',
+                      borderRadius: 16,
+                      padding: isVerySmallScreen ? spacing.sm : spacing.md,
+                      borderWidth: 1,
+                      borderColor: isDarkMode ? `${colors.primary}15` : 'rgba(99, 102, 241, 0.08)',
+                      shadowColor: Platform.OS === 'android' ? 'transparent' : item.color,
+                      shadowOffset: { width: 0, height: Platform.OS === 'android' ? 0 : 2 },
+                      shadowOpacity: Platform.OS === 'android' ? 0 : 0.1,
+                      shadowRadius: Platform.OS === 'android' ? 0 : 4,
+                      elevation: Platform.OS === 'android' ? 1 : 2,
+                    }}
+                  >
+                    <LinearGradient
+                      colors={[item.color, item.color + '80']}
+                      style={{
+                        width: isVerySmallScreen ? 44 : 48,
+                        height: isVerySmallScreen ? 44 : 48,
+                        borderRadius: isVerySmallScreen ? 22 : 24,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginRight: spacing.md,
+                        shadowColor: Platform.OS === 'android' ? 'transparent' : item.color,
+                        shadowOffset: { width: 0, height: Platform.OS === 'android' ? 0 : 3 },
+                        shadowOpacity: Platform.OS === 'android' ? 0 : 0.3,
+                        shadowRadius: Platform.OS === 'android' ? 0 : 6,
+                        elevation: Platform.OS === 'android' ? 1 : 4,
+                      }}
+                    >
+                      <Ionicons 
+                        name={item.icon as any} 
+                        size={isVerySmallScreen ? 20 : 22} 
+                        color="#FFFFFF"
+                      />
+                    </LinearGradient>
+                    <ThemedText
+                      style={{
+                        fontSize: fontSize.body,
+                        color: colors.text,
+                        flex: 1,
+                        fontWeight: '600',
+                      }}
+                    >
+                      {item.title}
+                    </ThemedText>
+                    <LinearGradient
+                      colors={[`${colors.primary}20`, `${colors.primary}10`]}
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 16,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Ionicons 
+                        name="chevron-forward" 
+                        size={16} 
+                        color={colors.primary}
+                      />
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </Animated.View>
+              ))}
+            </View>
+          </Animated.View>
         </ScrollView>
       </View>
     </View>
