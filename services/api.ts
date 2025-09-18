@@ -15,6 +15,10 @@ class ApiService {
       token = await AsyncStorage.getItem('authToken');
     }
     
+    if (__DEV__) {
+      console.log('🔑 [API] Token found:', token ? `${token.substring(0, 10)}...` : 'No token');
+    }
+    
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -23,6 +27,9 @@ class ApiService {
       headers.Authorization = `Bearer ${token}`;  // Используем Bearer для LDAP токенов
     }
     
+    if (__DEV__) {
+      console.log('🔑 [API] Headers:', headers);
+    }
     return headers;
   }
 
@@ -823,6 +830,26 @@ class ApiService {
     if (__DEV__) {
       console.log('📋 Dashboard cache cleared');
     }
+  }
+
+  // LDAP методы для получения данных
+  async getGrades(): Promise<ApiResponse<any[]>> {
+    if (__DEV__) {
+      console.log('🎓 [API] Getting grades...');
+    }
+    const result = await this.request<any[]>('/auth/grades/');
+    if (__DEV__) {
+      console.log('🎓 [API] Grades result:', result);
+    }
+    return result;
+  }
+
+  async getCourses(): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>('/auth/courses/');
+  }
+
+  async getAttendance(): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>('/auth/attendance/');
   }
 
   // Отдельные методы для получения конкретной новости/события

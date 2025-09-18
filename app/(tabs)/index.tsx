@@ -8,6 +8,7 @@ import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { useResponsive } from '@/hooks/useResponsive';
+import { authApi } from '@/services/api';
 import { fetchEvents } from '@/store/slices/eventsSlice';
 import { fetchNews } from '@/store/slices/newsSlice';
 import { formatDateYMD } from '@/utils/date';
@@ -34,6 +35,12 @@ export default function HomeScreen() {
   const scrollY = useSharedValue(0);
   const [refreshing, setRefreshing] = React.useState(false);
   const [showNotifications, setShowNotifications] = React.useState(false);
+  const [gradesData, setGradesData] = React.useState<any[]>([]);
+  const [gradesLoading, setGradesLoading] = React.useState(false);
+  const [coursesData, setCoursesData] = React.useState<any[]>([]);
+  const [coursesLoading, setCoursesLoading] = React.useState(false);
+  const [attendanceData, setAttendanceData] = React.useState<any[]>([]);
+  const [attendanceLoading, setAttendanceLoading] = React.useState(false);
   const insets = useSafeAreaInsets();
   const { 
     horizontalPadding, 
@@ -56,13 +63,136 @@ export default function HomeScreen() {
     },
   });
 
+  // Функция для загрузки оценок
+  const fetchGrades = React.useCallback(async () => {
+    if (user?.role !== 'student') {
+      if (__DEV__) {
+        console.log('🎓 Skipping grades fetch - user is not a student, role:', user?.role);
+      }
+      return;
+    }
+    
+    try {
+      if (__DEV__) {
+        console.log('🎓 Starting to fetch grades...');
+      }
+      setGradesLoading(true);
+      
+      const response = await authApi.getGrades();
+      
+      if (response.success && response.data) {
+        // API возвращает объект с полем data, которое содержит массив
+        const responseData = response.data as any || {};
+        const gradesArray = Array.isArray(responseData.data) ? responseData.data : [];
+        
+        // Преобразуем данные LDAP в упрощенный формат для расчета GPA
+        const formattedGrades = gradesArray.map((item: any) => ({
+          grade: parseFloat(item.final_grade || item.grade || item.score || 0),
+          maxGrade: 100
+        }));
+        
+        setGradesData(formattedGrades);
+      } else {
+        // Если нет данных, устанавливаем пустой массив
+        setGradesData([]);
+      }
+    } catch (error) {
+      if (__DEV__) {
+        console.error('🎓 Error fetching grades:', error);
+      }
+      // В случае ошибки устанавливаем пустой массив
+      setGradesData([]);
+    } finally {
+      setGradesLoading(false);
+    }
+  }, [user?.role]);
+
+  // Функция для загрузки курсов
+  const fetchCourses = React.useCallback(async () => {
+    if (user?.role !== 'student') {
+      return;
+    }
+    
+    try {
+      if (__DEV__) {
+        console.log('📚 Starting to fetch courses...');
+      }
+      setCoursesLoading(true);
+      
+      const response = await authApi.getCourses();
+      
+      if (response.success && response.data) {
+        const responseData = response.data as any || {};
+        const coursesArray = Array.isArray(responseData.data) ? responseData.data : [];
+        
+        if (__DEV__) {
+          console.log(`📚 Total courses received: ${coursesArray.length}`);
+          if (coursesArray.length > 0) {
+            console.log('📚 Sample course data:', coursesArray[0]);
+            console.log('📚 All course statuses:', coursesArray.map((c: any) => ({ 
+              id: c.course_id || c.id, 
+              name: c.course_name || c.name, 
+              status: c.status 
+            })));
+          }
+        }
+        
+        // Попробуем разные способы фильтрации
+        let filteredCourses = coursesArray;
+        
+        // Если у вас должно быть 9 курсов, возьмем только первые 9
+        if (coursesArray.length === 10) {
+          filteredCourses = coursesArray.slice(0, 9);
+          if (__DEV__) {
+            console.log('📚 Filtered to first 9 courses');
+          }
+        } else {
+          // Попробуем фильтровать по статусу
+          const statusFiltered = coursesArray.filter((course: any) => 
+            course.status === 'current' || course.status === 'active' || !course.status
+          );
+          
+          if (statusFiltered.length === 9) {
+            filteredCourses = statusFiltered;
+            if (__DEV__) {
+              console.log('📚 Filtered by status to 9 courses');
+            }
+          }
+        }
+        
+        if (__DEV__) {
+          console.log(`📚 Final courses count: ${filteredCourses.length}`);
+        }
+        
+        setCoursesData(filteredCourses);
+      } else {
+        setCoursesData([]);
+      }
+    } catch (error) {
+      if (__DEV__) {
+        console.error('📚 Error fetching courses:', error);
+      }
+      setCoursesData([]);
+    } finally {
+      setCoursesLoading(false);
+    }
+  }, [user?.role]);
+
+  // Посещаемость недоступна в LDAP - пока отключена
+  // const fetchAttendance = React.useCallback(async () => {
+  //   // Данные о посещаемости пока не доступны в LDAP системе
+  // }, [user?.role]);
+
   // Загружаем данные при монтировании компонента
   React.useEffect(() => {
     if (user) {
       dispatch(fetchNews());
       dispatch(fetchEvents());
+      fetchGrades();
+      fetchCourses();
+      // fetchAttendance(); // Отключено - нет данных в LDAP
     }
-  }, [dispatch, user]);
+  }, [dispatch, user, fetchGrades, fetchCourses]);
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
@@ -70,14 +200,17 @@ export default function HomeScreen() {
       if (user) {
         await Promise.all([
           dispatch(fetchNews()).unwrap(),
-          dispatch(fetchEvents()).unwrap()
+          dispatch(fetchEvents()).unwrap(),
+          fetchGrades(),
+          fetchCourses()
+          // fetchAttendance() // Отключено - нет данных в LDAP
         ]);
       }
     } catch {
       // handle error
     }
     setRefreshing(false);
-  }, [dispatch, user]);
+  }, [dispatch, user, fetchGrades, fetchCourses]);
 
   // Получаем новости и события из Redux store
   const { items: newsData } = useAppSelector((state) => state.news);
@@ -97,26 +230,65 @@ export default function HomeScreen() {
     return newsData.filter(news => news.isImportant).slice(0, 2);
   }, [newsData]);
 
+  // Расчет среднего балла (GPA) из реальных данных
+  const calculateGPA = React.useCallback((grades: any[]) => {
+    if (grades.length === 0) return 0;
+    
+    // Считаем средний балл как среднее арифметическое всех оценок
+    const total = grades.reduce((sum, grade) => {
+      return sum + parseFloat(grade.grade || 0);
+    }, 0);
+    
+    return Math.round((total / grades.length) * 100) / 100; // Округляем до 2 знаков
+  }, []);
+
+  // Посещаемость пока недоступна в LDAP - все данные равны 0
+  // const calculateOverallAttendance = React.useCallback((attendanceList: any[]) => {
+  //   // LDAP система пока не предоставляет данные о посещаемости
+  //   // Все present_count и absent_count равны 0
+  //   return null;
+  // }, []);
+
   // Динамические данные для виджетов
   const statsData = React.useMemo(() => {
     const role = user?.role;
     
+    // Используем реальные данные курсов
     let coursesCount = '0';
     if (role === 'student') {
-      coursesCount = '8';
+      if (coursesLoading) {
+        coursesCount = '...';
+      } else {
+        // Подсчитываем уникальные предметы по названию
+        const uniqueSubjects = new Set(
+          coursesData.map((course: any) => course.course_name || course.name || 'Unknown')
+        );
+        coursesCount = uniqueSubjects.size.toString();
+        
+        if (__DEV__) {
+          console.log(`📚 Unique subjects count: ${uniqueSubjects.size} from ${coursesData.length} courses`);
+          console.log('📚 Unique subjects:', Array.from(uniqueSubjects));
+        }
+      }
     } else if (role === 'professor') {
-      coursesCount = '5';
+      coursesCount = '5'; // TODO: получать из API для преподавателей
     } else if (role === 'admin') {
-      coursesCount = '12';
+      coursesCount = '12'; // TODO: получать из API для админов
     }
     
     let gradeValue = '0';
     let gradeTitle = 'Баллы';
     if (role === 'student') {
-      gradeValue = '4.2';
+      if (gradesLoading) {
+        gradeValue = '...';
+      } else if (gradesData.length > 0) {
+        gradeValue = calculateGPA(gradesData).toFixed(1);
+      } else {
+        gradeValue = 'Нет данных';
+      }
       gradeTitle = 'Средний балл';
     } else if (role === 'professor') {
-      gradeValue = '4.8';
+      gradeValue = '4.8'; // TODO: получать из API для преподавателей
       gradeTitle = 'Ср. балл курсов';
     } else if (role === 'admin') {
       gradeValue = newsData.length.toString();
@@ -129,34 +301,39 @@ export default function HomeScreen() {
       grade: gradeValue,
       gradeTitle: gradeTitle
     };
-  }, [user?.role, newsData.length, eventsData.length]);
+  }, [user?.role, newsData.length, eventsData.length, gradesData, gradesLoading, coursesData, coursesLoading, calculateGPA]);
 
   // Компонент статистического виджета
-  const StatWidget = ({ icon, title, value, color }: {
+  const StatWidget = ({ icon, title, value, color, onPress }: {
     icon: keyof typeof Ionicons.glyphMap;
     title: string;
     value: string;
     color: string;
-  }) => (
-    <View 
-      style={{
-        backgroundColor: colors.surface,
-        borderRadius: 20,
-        padding: isExtraSmallScreen ? 10 : isVerySmallScreen ? 12 : 16,
-        flex: isExtraSmallScreen ? undefined : 1,
-        marginHorizontal: isExtraSmallScreen ? 0 : isVerySmallScreen ? 2 : 4,
-        marginBottom: isExtraSmallScreen ? spacing.sm : 0,
-        shadowColor: Platform.OS === 'android' ? 'transparent' : color,
-        shadowOffset: { width: 0, height: Platform.OS === 'android' ? 2 : 8 },
-        shadowOpacity: Platform.OS === 'android' ? 0 : 0.15,
-        shadowRadius: Platform.OS === 'android' ? 0 : 16,
-        elevation: Platform.OS === 'android' ? 2 : 8,
-        borderWidth: 1,
-        borderColor: color + '20',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
+    onPress?: () => void;
+  }) => {
+    const Widget = onPress ? TouchableOpacity : View;
+    
+    return (
+      <Widget 
+        onPress={onPress}
+        style={{
+          backgroundColor: colors.surface,
+          borderRadius: 20,
+          padding: isExtraSmallScreen ? 10 : isVerySmallScreen ? 12 : 16,
+          flex: isExtraSmallScreen ? undefined : 1,
+          marginHorizontal: isExtraSmallScreen ? 0 : isVerySmallScreen ? 2 : 4,
+          marginBottom: isExtraSmallScreen ? spacing.sm : 0,
+          shadowColor: Platform.OS === 'android' ? 'transparent' : color,
+          shadowOffset: { width: 0, height: Platform.OS === 'android' ? 2 : 8 },
+          shadowOpacity: Platform.OS === 'android' ? 0 : 0.15,
+          shadowRadius: Platform.OS === 'android' ? 0 : 16,
+          elevation: Platform.OS === 'android' ? 2 : 8,
+          borderWidth: 1,
+          borderColor: color + '20',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
       {/* Декоративный градиент */}
       <LinearGradient
         colors={[color + '10', 'transparent']}
@@ -213,8 +390,9 @@ export default function HomeScreen() {
           {title}
         </ThemedText>
       </View>
-    </View>
-  );
+      </Widget>
+    );
+  };
 
   // Компонент быстрого события
   const QuickEventCard = ({ event, index }: { event: any; index: number }) => (
@@ -367,7 +545,7 @@ export default function HomeScreen() {
           }}>
             <StatWidget 
               icon="book-outline" 
-              title="Курсы" 
+              title="Предметы" 
               value={statsData.courses} 
               color="#3B82F6" 
             />
@@ -382,6 +560,7 @@ export default function HomeScreen() {
               title={statsData.gradeTitle} 
               value={statsData.grade} 
               color="#F59E0B" 
+              onPress={() => router.push('/grades')}
             />
           </View>
         </Animated.View>
@@ -504,7 +683,7 @@ export default function HomeScreen() {
                 <ActionCard
                   title="ОЦЕНКИ"
                   icon="analytics-outline"
-                  onPress={() => router.push('/(tabs)/profile')}
+                  onPress={() => router.push('/grades')}
                   gradientColors={['#F59E0B', '#D97706']}
                   iconColor="#FFFFFF"
                   style={{ 
@@ -569,21 +748,24 @@ export default function HomeScreen() {
             flexDirection: isExtraSmallScreen ? 'column' : 'row',
             gap: isExtraSmallScreen ? spacing.md : spacing.lg,
           }}>
-            <View style={{ flex: 1 }}>
+            <TouchableOpacity 
+              style={{ flex: 1 }}
+              onPress={() => user?.role === 'student' ? router.push('/grades') : null}
+            >
               <CircularChart
-                value={parseFloat(statsData.grade) || 3.8}
-                maxValue={user?.role === 'student' ? 5 : 5}
+                value={parseFloat(statsData.grade) || 0}
+                maxValue={100}
                 title="Средний балл"
-                subtitle="GPA"
+                subtitle="из 100"
                 color="#3B82F6"
               />
-            </View>
+            </TouchableOpacity>
             <View style={{ flex: 1 }}>
               <CircularChart
-                value={85}
+                value={0}
                 maxValue={100}
                 title="Посещаемость"
-                subtitle="За семестр"
+                subtitle="Нет данных в LDAP"
                 color="#10B981"
               />
             </View>
@@ -592,12 +774,28 @@ export default function HomeScreen() {
 
         {/* Красивый компонент курсов */}
         <CourseProgressCard 
-          courses={[
-            { id: 1, name: 'Компьютерные науки', progress: 0.75, instructor: 'Профессор Иванов', nextClass: 'Завтра в 14:00' },
-            { id: 2, name: 'Математика', progress: 0.6, instructor: 'Профессор Петров', nextClass: 'Среда в 10:00' },
-            { id: 3, name: 'История', progress: 0.9, instructor: 'Профессор Сидоров', nextClass: 'Пятница в 16:00' },
-            { id: 4, name: 'Физика', progress: 0.45, instructor: 'Профессор Козлов', nextClass: 'Понедельник в 12:00' },
-          ]}
+          courses={coursesData.map((course: any, index: number) => {
+            // Рассчитываем прогресс на основе оценки или статуса курса
+            let progress = 0;
+            if (course.final_grade && course.final_grade > 0) {
+              progress = Math.min(course.final_grade / 100, 1); // Если есть итоговая оценка
+            } else if (course.status === 'current') {
+              progress = 0.6; // Текущие курсы - 60% прогресса
+            } else if (course.status === 'past') {
+              progress = 1.0; // Завершенные курсы - 100%
+            } else {
+              progress = 0.3; // По умолчанию - 30%
+            }
+            
+            return {
+              id: course.course_id || index,
+              name: course.course_name || course.name || 'Неизвестный курс',
+              progress: progress,
+              instructor: course.instructor || 'Преподаватель не указан',
+              nextClass: course.status === 'current' ? 'В процессе изучения' : 
+                        course.status === 'past' ? 'Курс завершен' : 'Статус неизвестен'
+            };
+          })}
           onCoursePress={(courseId: number) => console.log('Course pressed:', courseId)}
           horizontalPadding={horizontalPadding}
           containerStyle={{ marginBottom: spacing.xl }}

@@ -4,6 +4,7 @@ import { Colors, Spacing } from '@/constants/DesignTokens';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAppSelector } from '@/hooks/redux';
 import { useResponsive } from '@/hooks/useResponsive';
+import { authApi } from '@/services/api';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
@@ -243,53 +244,96 @@ export default function ScheduleScreen() {
 
   const days: string[] = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
   
-  // Тестовые данные для демонстрации дизайна
-  const scheduleData: Record<string, ScheduleItem[]> = {
-    'Понедельник': [
-      {
-        time: '9:00-10:30',
-        subject: 'Математический анализ',
-        teacher: 'Иванов И.И.',
-        room: 'Ауд. 205',
-        type: 'lecture'
-      },
-      {
-        time: '10:45-12:15',
-        subject: 'Программирование',
-        teacher: 'Петров П.П.',
-        room: 'Комп. класс 1',
-        type: 'lab'
-      },
-      {
-        time: '13:00-14:30',
-        subject: 'Физика',
-        teacher: 'Сидоров С.С.',
-        room: 'Ауд. 312',
-        type: 'seminar'
-      }
-    ],
-    'Вторник': [
-      {
-        time: '9:00-10:30',
-        subject: 'Алгебра',
-        teacher: 'Козлов К.К.',
-        room: 'Ауд. 201',
-        type: 'lecture'
-      }
-    ],
+  // Состояние для расписания
+  const [scheduleData, setScheduleData] = React.useState<Record<string, ScheduleItem[]>>({
+    'Понедельник': [],
+    'Вторник': [],
     'Среда': [],
-    'Четверг': [
-      {
-        time: '10:45-12:15',
-        subject: 'База данных',
-        teacher: 'Морозов М.М.',
-        room: 'Комп. класс 2',
-        type: 'lab'
-      }
-    ],
+    'Четверг': [],
     'Пятница': [],
     'Суббота': [],
-  };
+  });
+  const [scheduleLoading, setScheduleLoading] = React.useState(false);
+
+  // Функция для загрузки расписания
+  const fetchSchedule = React.useCallback(async () => {
+    if (user?.role !== 'student') {
+      return;
+    }
+    
+    try {
+      if (__DEV__) {
+        console.log('📅 Starting to fetch schedule...');
+      }
+      setScheduleLoading(true);
+      
+      const response = await authApi.getSchedule();
+      
+      if (response.success && response.data) {
+        const responseData = response.data as any || {};
+        const scheduleArray = Array.isArray(responseData.data) ? responseData.data : [];
+        
+        // Группируем расписание по дням недели
+        const groupedSchedule: Record<string, ScheduleItem[]> = {
+          'Понедельник': [],
+          'Вторник': [],
+          'Среда': [],
+          'Четверг': [],
+          'Пятница': [],
+          'Суббота': [],
+        };
+        
+        scheduleArray.forEach((item: any) => {
+          const dayName = item.day_name || item.day || 'Понедельник';
+          const scheduleItem: ScheduleItem = {
+            time: item.time || '00:00-00:00',
+            subject: item.subject || item.course_name || 'Неизвестный предмет',
+            teacher: item.teacher || item.instructor || 'Преподаватель не указан',
+            room: item.room || item.location || 'Аудитория не указана',
+            type: (item.type as 'lecture' | 'lab' | 'seminar') || 'lecture'
+          };
+          
+          if (groupedSchedule[dayName]) {
+            groupedSchedule[dayName].push(scheduleItem);
+          }
+        });
+        
+        setScheduleData(groupedSchedule);
+      } else {
+        // Если нет данных, оставляем пустое расписание
+        setScheduleData({
+          'Понедельник': [],
+          'Вторник': [],
+          'Среда': [],
+          'Четверг': [],
+          'Пятница': [],
+          'Суббота': [],
+        });
+      }
+    } catch (error) {
+      if (__DEV__) {
+        console.error('📅 Error fetching schedule:', error);
+      }
+      // В случае ошибки устанавливаем пустое расписание
+      setScheduleData({
+        'Понедельник': [],
+        'Вторник': [],
+        'Среда': [],
+        'Четверг': [],
+        'Пятница': [],
+        'Суббота': [],
+      });
+    } finally {
+      setScheduleLoading(false);
+    }
+  }, [user?.role]);
+
+  // Загружаем расписание при монтировании компонента
+  React.useEffect(() => {
+    if (user) {
+      fetchSchedule();
+    }
+  }, [user, fetchSchedule]);
 
   const currentSchedule = scheduleData[selectedDay] || [];
 
