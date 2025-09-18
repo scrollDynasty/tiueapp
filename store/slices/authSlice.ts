@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { authApi } from '../../services/api';
 import { AuthState, LoginCredentials, User } from '../../types';
 
-// Async thunks for authentication
+// Async thunks for LDAP authentication
 export const loginUser = createAsyncThunk<
   { user: User; token: string },
   LoginCredentials,
@@ -103,8 +103,10 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Login failed';
+        state.error = action.payload || 'Ошибка авторизации LDAP';
         state.isAuthenticated = false;
+        state.user = null;
+        state.token = null;
       })
       // Logout
       .addCase(logoutUser.fulfilled, (state) => {

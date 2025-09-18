@@ -2,7 +2,6 @@ import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive } from '@/hooks/useResponsive';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as ExpoSplashScreen from 'expo-splash-screen';
 import React, { useEffect, useRef } from 'react';
 import { Platform, StatusBar, StyleSheet, View } from 'react-native';
 import Animated, {
@@ -34,30 +33,19 @@ export function SplashScreen({ onAnimationFinish }: SplashScreenProps) {
   const opacity = useSharedValue(1);
 
   useEffect(() => {
-    // Немедленно скрываем нативный splash screen при старте кастомного
-    const hideSplash = async () => {
-      try {
-        await ExpoSplashScreen.hideAsync();
-      } catch (error) {
-        console.log('Native splash screen already hidden');
-      }
-    };
-    
-    hideSplash();
-
     // Запускаем анимацию только для мобильных платформ
     if (Platform.OS !== 'web' && animationRef.current) {
       animationRef.current.play();
     }
     
-    // Через 2.5 секунды начинаем исчезать и вызываем callback (уменьшили время)
+    // Через 2.5 секунды начинаем исчезать и вызываем callback
     const timer = setTimeout(() => {
       opacity.value = withTiming(0, { duration: 500 }, (finished) => {
         if (finished) {
           runOnJS(onAnimationFinish)();
         }
       });
-    }, 2500); // Уменьшили с 3000 до 2500
+    }, 2500);
 
     return () => clearTimeout(timer);
   }, [onAnimationFinish, opacity]);

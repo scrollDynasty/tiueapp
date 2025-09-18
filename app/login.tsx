@@ -40,7 +40,7 @@ export default function LoginScreen() {
   const { isSmallScreen, spacing, fontSize } = useResponsive();
   
   const [credentials, setCredentials] = useState<LoginCredentials>({
-    email: '',
+    username: '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -130,7 +130,7 @@ export default function LoginScreen() {
   }, [theme, themeColors]);
 
   const handleLogin = async () => {
-    if (!credentials.email || !credentials.password) {
+    if (!credentials.username || !credentials.password) {
       Alert.alert('Ошибка', 'Пожалуйста, заполните все поля');
       return;
     }
@@ -153,8 +153,8 @@ export default function LoginScreen() {
     await dispatch(loginUser(credentials));
   };
 
-  const handleEmailChange = (email: string) => {
-    setCredentials({ ...credentials, email: email.toLowerCase().trim() });
+  const handleUsernameChange = (username: string) => {
+    setCredentials({ ...credentials, username: username.toUpperCase().trim() });
     // Очищаем ошибку при изменении полей
     if (error) {
       dispatch(clearError());
@@ -267,7 +267,7 @@ export default function LoginScreen() {
               }
             ]}>
               
-              {/* Email Input */}
+              {/* Username Input */}
               <View style={[styles.inputContainer, { marginBottom: isSmallScreen ? spacing.md : spacing.lg }]}>
                 <Text style={[
                   styles.inputLabel, 
@@ -275,7 +275,7 @@ export default function LoginScreen() {
                     color: themeColors.text,
                     fontSize: isSmallScreen ? 11 : 12
                   }
-                ]}>Email</Text>
+                ]}>Имя пользователя</Text>
                 <View style={[
                   styles.inputWrapper, 
                   { 
@@ -284,16 +284,16 @@ export default function LoginScreen() {
                     height: isSmallScreen ? 44 : 52,
                     paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md
                   },
-                  focusedInput === 'email' && {
+                  focusedInput === 'username' && {
                     borderColor: Colors.brandPrimary,
                     backgroundColor: themeColors.surface,
                     shadowColor: Colors.tabActiveShadow,
                   }
                 ]}>
                   <Ionicons 
-                    name="mail-outline" 
+                    name="person-outline" 
                     size={isSmallScreen ? 18 : 20} 
-                    color={focusedInput === 'email' ? Colors.brandPrimary : themeColors.textSecondary}
+                    color={focusedInput === 'username' ? Colors.brandPrimary : themeColors.textSecondary}
                     style={[styles.inputIcon, { marginRight: isSmallScreen ? spacing.xs : spacing.sm }]}
                   />
                   <TextInput
@@ -303,15 +303,15 @@ export default function LoginScreen() {
                       color: themeColors.text,
                       fontSize: isSmallScreen ? fontSize.small : 14
                     }]}
-                    placeholder="your.email@university.uz"
+                    placeholder="U22312"
                     placeholderTextColor={themeColors.textSecondary}
-                    value={credentials.email}
-                    onChangeText={handleEmailChange}
-                    keyboardType="email-address"
+                    value={credentials.username}
+                    onChangeText={handleUsernameChange}
+                    keyboardType="default"
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!loading}
-                    onFocus={() => setFocusedInput('email')}
+                    onFocus={() => setFocusedInput('username')}
                     onBlur={() => setFocusedInput(null)}
                     underlineColorAndroid="transparent"
                     selectTextOnFocus={false}

@@ -30,8 +30,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-ih8*8x#9kf=@0s7ry9$2u
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-# Настройки для ngrok и продакшн - читаем из .env
-# Базовые хосты
+# Настройки хостов
 base_hosts = [
     'localhost',
     '127.0.0.1',
@@ -40,12 +39,17 @@ base_hosts = [
 
 # Читаем дополнительные хосты из .env файла
 env_hosts = config('ALLOWED_HOSTS', default='').split(',')
-env_hosts = [host.strip() for host in env_hosts if host.strip()]  # Убираем пустые строки
+env_hosts = [host.strip() for host in env_hosts if host.strip()]
 
-# Объединяем все хосты
-ALLOWED_HOSTS = base_hosts + env_hosts
+# Объединяем все хосты, убирая дубликаты
+all_hosts = base_hosts + env_hosts
+ALLOWED_HOSTS = list(set(all_hosts))  # Убираем дубликаты
 
-print(f"🔧 ALLOWED_HOSTS: {ALLOWED_HOSTS}")  # Для отладки
+if DEBUG:
+    print(f"🔧 ALLOWED_HOSTS: {ALLOWED_HOSTS}")
+
+# LDAP Configuration
+LDAP_BASE_URL = config('LDAP_BASE_URL', default='https://my.tiue.uz')
 
 
 # Application definition
@@ -58,17 +62,16 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework.authtoken',
     'corsheaders',
-    'authentication',
-    'users',
-    'groups',
-    'schedule',
-    'news',
+    'authentication',  # LDAP авторизация
+    'users',  # Включаем обратно для совместимости
+    'groups',  # Включаем обратно для совместимости
+    'schedule',  # Включаем обратно для совместимости
+    'news',  # Локальные новости
 ]
 
 MIDDLEWARE = [
-    'tiuebackend.cors_middleware.CorsMiddleware',  # Наш кастомный CORS middleware
+    'corsheaders.middleware.CorsMiddleware',  # Используем стандартный CORS middleware
     'tiuebackend.middleware.LoggingMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -180,46 +183,49 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Django REST Framework
 REST_FRAMEWORK = {
+    # Убираем стандартную аутентификацию, так как используем LDAP Bearer токены
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        # 'rest_framework.authentication.TokenAuthentication',  # Не используем
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',  # Разрешения проверяем в LDAP
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
 }
 
-# CORS Settings - теперь используем кастомный middleware
-# CORS_ALLOW_ALL_ORIGINS = True  # Разрешаем все домены
-# CORS_ALLOW_CREDENTIALS = True
-# CORS_ALLOW_ALL_HEADERS = True  # Разрешаем все заголовки
-# CORS_PREFLIGHT_MAX_AGE = 86400  # Кешируем preflight запросы
-# 
-# # Разрешенные домены (только для логгирования)
-# CORS_ALLOWED_ORIGINS = [
-#     'http://localhost:8081',
-#     'http://127.0.0.1:8081',
-#     'http://localhost:3000',
-#     'http://127.0.0.1:3000',
-# ]
-# 
-# # Разрешаем все методы
-# CORS_ALLOWED_METHODS = [
-#     'DELETE',
-#     'GET',
-#     'OPTIONS',
-#     'PATCH',
-#     'POST',
-#     'PUT',
-#     'HEAD',
-# ]
-# 
-# # Дополнительные настройки для уверенности
-# CORS_ALLOW_PRIVATE_NETWORK = True
+# CORS Settings - используем стандартный django-cors-headers
+CORS_ALLOW_ALL_ORIGINS = True  # Разрешаем все домены для разработки
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_HEADERS = True  # Разрешаем все заголовки
+CORS_PREFLIGHT_MAX_AGE = 86400  # Кешируем preflight запросы
+
+# Разрешенные домены
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:8081',
+    'http://127.0.0.1:8081',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:19006',  # Expo dev server
+    'http://127.0.0.1:19006',
+]
+
+# Разрешаем все методы
+CORS_ALLOWED_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+    'HEAD',
+]
+
+# Дополнительные настройки для уверенности
+CORS_ALLOW_PRIVATE_NETWORK = True
 
 # Custom User Model (we'll create it)
-AUTH_USER_MODEL = 'users.CustomUser'
+# AUTH_USER_MODEL = 'users.CustomUser'  # Не используем, так как все через LDAP
 
 # Default Admin Settings
 DEFAULT_ADMIN_EMAIL = config('DEFAULT_ADMIN_EMAIL', default='admin@tiue.uz')

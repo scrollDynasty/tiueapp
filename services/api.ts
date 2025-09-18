@@ -8,15 +8,19 @@ class ApiService {
   private async getHeaders(): Promise<Record<string, string>> {
     // Даем время AsyncStorage обновиться
     await new Promise(resolve => setTimeout(resolve, 100));
-    const token = await AsyncStorage.getItem('authToken');
+    
+    // Сначала пытаемся получить LDAP токен, потом legacy токен
+    let token = await AsyncStorage.getItem('ldap_access_token');
+    if (!token || token === 'undefined' || token === 'null') {
+      token = await AsyncStorage.getItem('authToken');
+    }
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'ngrok-skip-browser-warning': 'true', // Пропускает предупреждение ngrok
     };
     
     if (token && token !== 'undefined' && token !== 'null') {
-      headers.Authorization = `Token ${token}`;
+      headers.Authorization = `Bearer ${token}`;  // Используем Bearer для LDAP токенов
     }
     
     return headers;
@@ -47,6 +51,18 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
+        // Если получили 401 ошибку, токен истек - очищаем хранилище
+        if (response.status === 401) {
+          if (__DEV__) {
+            console.log('🔑 Token expired, clearing storage');
+          }
+          await this.clearStorage();
+          return {
+            success: false,
+            error: 'Сессия истекла. Необходимо войти заново.',
+          };
+        }
+        
         return {
           success: false,
           error: data.error || data.message || `HTTP ${response.status}`,
@@ -66,36 +82,29 @@ class ApiService {
   }
 
   async login(credentials: LoginCredentials): Promise<ApiResponse<{ user: User; token: string }>> {
-    // Для login запроса НЕ используем getHeaders (там может быть недействительный токен)
-    const timestamp = Date.now();
-    const response = await fetch(`${API_BASE_URL}/auth/login/?t=${timestamp}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-      },
-      body: JSON.stringify(credentials),
-    });
-
-
     try {
+      // Используем наш бэкенд как прокси для LDAP авторизации
+      const response = await fetch(`${API_BASE_URL}/auth/login/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+
       const data = await response.json();
 
       if (!response.ok) {
         let errorMessage = 'Ошибка входа';
         
         if (response.status === 401) {
-          errorMessage = 'Неверный email или пароль';
+          errorMessage = 'Неверное имя пользователя или пароль';
         } else if (response.status === 400) {
-          errorMessage = data.error || data.message || 'Некорректные данные для входа';
-        } else if (response.status === 500) {
-          errorMessage = 'Ошибка сервера. Попробуйте позже';
-        } else if (response.status >= 500) {
-          errorMessage = 'Сервер временно недоступен';
+          errorMessage = data.error || 'Некорректные данные для входа';
+        } else if (response.status === 503) {
+          errorMessage = 'Сервер авторизации временно недоступен';
         } else {
-          errorMessage = data.error || data.message || `Ошибка ${response.status}`;
+          errorMessage = data.error || `Ошибка ${response.status}`;
         }
         
         return {
@@ -104,49 +113,72 @@ class ApiService {
         };
       }
 
-      const result = {
-        success: true,
-        data: data.data, // Всегда используем data.data для login endpoint
-      };
-      
-
-      if (result.success && result.data) {
-        if (__DEV__) {
-          console.log('💾 Saving token to storage:', result.data.token ? `${result.data.token.substring(0, 10)}...` : 'No token');
-          // SECURITY: Never log full tokens, even in dev
-        }
-        
-        // ПОЛНАЯ очистка AsyncStorage перед сохранением нового токена
-        if (__DEV__) {
-          console.log('🧹 Completely clearing AsyncStorage...');
-        }
-        await AsyncStorage.clear();
-        await new Promise(resolve => setTimeout(resolve, 100)); // Даем время на очистку
-        
-        await AsyncStorage.setItem('authToken', result.data.token);
-        
-        // Проверяем, что токен действительно сохранился
-        const savedToken = await AsyncStorage.getItem('authToken');
-        if (__DEV__) {
-          console.log('✅ Token saved successfully:', savedToken ? `${savedToken.substring(0, 10)}...` : 'Failed to save');
-        }
-        
-        // Двойная проверка - убеждаемся что токен правильный
-        if (savedToken !== result.data.token) {
-          if (__DEV__) {
-            console.error('❌ Token mismatch! Expected:', result.data.token.substring(0, 10), 'Got:', savedToken?.substring(0, 10));
-          }
-          // Пробуем сохранить еще раз
-          await AsyncStorage.setItem('authToken', result.data.token);
-          const retryToken = await AsyncStorage.getItem('authToken');
-          if (__DEV__) {
-            console.log('🔄 Retry save result:', retryToken ? `${retryToken.substring(0, 10)}...` : 'Still failed');
-          }
-        }
+      if (!data.success || !data.data) {
+        return {
+          success: false,
+          error: 'Неверный формат ответа сервера',
+        };
       }
 
-      return result;
+      const { access_token, refresh_token, user: ldapProfile } = data.data;
+
+      // Преобразуем LDAP профиль в формат User если он есть
+      let user: User;
+      if (ldapProfile) {
+        user = {
+          id: ldapProfile.jshr || credentials.username,
+          username: credentials.username,
+          email: ldapProfile.email || `${credentials.username}@tiue.uz`,
+          first_name: this.extractFirstName(ldapProfile.full_name || ''),
+          last_name: this.extractLastName(ldapProfile.full_name || ''),
+          role: 'student',
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          // Сохраняем полный LDAP профиль для отображения
+          ldap_profile: ldapProfile,
+          student: {
+            group: {
+              name: ldapProfile.group || '',
+              course: this.extractCourseFromGroup(ldapProfile.group || ''),
+            },
+            course: this.extractCourseFromGroup(ldapProfile.group || ''),
+          },
+        };
+      } else {
+        // Создаем базовый профиль если LDAP профиль не получен
+        user = {
+          id: credentials.username,
+          username: credentials.username,
+          email: `${credentials.username}@tiue.uz`,
+          first_name: '',
+          last_name: '',
+          role: 'student',
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+      }
+
+      // Сохраняем токены
+      await Promise.all([
+        AsyncStorage.setItem('authToken', access_token), // Legacy совместимость
+        AsyncStorage.setItem('ldap_access_token', access_token),
+        AsyncStorage.setItem('ldap_refresh_token', refresh_token),
+      ]);
+
+      if (__DEV__) {
+        console.log('✅ LDAP login successful for user:', user.username);
+      }
+
+      return {
+        success: true,
+        data: { user, token: access_token },
+      };
     } catch (error) {
+      if (__DEV__) {
+        console.error('❌ Login error:', error);
+      }
       return {
         success: false,
         error: 'Проблема с подключением к серверу',
@@ -154,36 +186,68 @@ class ApiService {
     }
   }
 
+  // Утилитарные методы для парсинга LDAP данных
+  private extractFirstName(fullName: string): string {
+    const parts = fullName.split(' ');
+    return parts[1] || ''; // Второе слово обычно имя
+  }
+
+  private extractLastName(fullName: string): string {
+    const parts = fullName.split(' ');
+    return parts[0] || ''; // Первое слово обычно фамилия
+  }
+
+  private extractCourseFromGroup(groupName: string): number {
+    // Извлекаем курс из названия группы (например, "RB22-01" -> 3-й курс в 2025)
+    const match = groupName.match(/(\d{2})/);
+    if (match) {
+      const year = parseInt(match[1]);
+      const currentYear = new Date().getFullYear() % 100;
+      return Math.max(1, currentYear - year + 1);
+    }
+    return 1;
+  }
+
   async logout(): Promise<void> {
-    // Optional: call backend logout endpoint BEFORE removing token
     try {
-      await this.request('/auth/logout/', { method: 'POST' });
+      // LDAP не требует серверного logout, просто очищаем токены
+      await Promise.all([
+        AsyncStorage.removeItem('authToken'),
+        AsyncStorage.removeItem('ldap_access_token'),
+        AsyncStorage.removeItem('ldap_refresh_token'),
+      ]);
     } catch (error) {
-      // Ignore errors during logout
+      if (__DEV__) {
+        console.error('❌ Error clearing tokens:', error);
+      }
     }
-    // Remove token from storage after backend call (or if it fails)
-    if (__DEV__) {
-      console.log('🗑️ Clearing token from storage');
-    }
-    await AsyncStorage.removeItem('authToken');
     
     // Очищаем кеш пользователя и dashboard
     this.clearUserCache();
     this.clearDashboardCache();
     
     if (__DEV__) {
-      console.log('✅ Token and caches cleared successfully');
+      console.log('✅ All tokens and caches cleared successfully');
     }
   }
 
   // Добавляем функцию для принудительной очистки storage
   async clearStorage(): Promise<void> {
     if (__DEV__) {
-      console.log('🧹 Clearing all AsyncStorage');
+      console.log('🧹 Clearing all auth tokens');
     }
-    await AsyncStorage.clear();
+    await Promise.all([
+      AsyncStorage.removeItem('authToken'),
+      AsyncStorage.removeItem('ldap_access_token'),
+      AsyncStorage.removeItem('ldap_refresh_token'),
+    ]);
+    
+    // Очищаем кеши
+    this.clearUserCache();
+    this.clearDashboardCache();
+    
     if (__DEV__) {
-      console.log('✅ AsyncStorage cleared');
+      console.log('✅ All auth tokens cleared');
     }
   }
 
@@ -211,11 +275,11 @@ class ApiService {
     }
 
     if (__DEV__) {
-      console.log('👤 Getting current user...');
+      console.log('👤 Getting current user from LDAP...');
     }
 
-    // Создаем новый запрос
-    this.currentUserPromise = this.request<User>('/auth/me/')
+    // Создаем новый запрос к LDAP API
+    this.currentUserPromise = this.getLDAPCurrentUser()
       .then((result) => {
         // Кешируем успешный результат
         if (result.success) {
@@ -237,6 +301,88 @@ class ApiService {
       });
 
     return this.currentUserPromise;
+  }
+
+  private async getLDAPCurrentUser(): Promise<ApiResponse<User>> {
+    try {
+      // Получаем токен из AsyncStorage (сначала LDAP, потом legacy)
+      let token = await AsyncStorage.getItem('ldap_access_token');
+      if (!token || token === 'undefined' || token === 'null') {
+        token = await AsyncStorage.getItem('authToken');
+      }
+      
+      if (!token || token === 'undefined' || token === 'null') {
+        return {
+          success: false,
+          error: 'Not authenticated',
+        };
+      }
+
+      // Получаем профиль пользователя через наш бэкенд
+      const response = await fetch(`${API_BASE_URL}/auth/me/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Если токен истек, пытаемся обновить
+        if (response.status === 401) {
+          await this.clearStorage();
+        }
+        return {
+          success: false,
+          error: data.error || 'Failed to get user profile',
+        };
+      }
+
+      if (!data.success || !data.data) {
+        return {
+          success: false,
+          error: 'Invalid response format',
+        };
+      }
+
+      // Преобразуем LDAP профиль в формат User
+      const ldapProfile = data.data;
+      const user: User = {
+        id: ldapProfile.jshr || 'unknown',
+        username: ldapProfile.email ? ldapProfile.email.split('@')[0] : 'unknown',
+        email: ldapProfile.email || '',
+        first_name: this.extractFirstName(ldapProfile.full_name || ''),
+        last_name: this.extractLastName(ldapProfile.full_name || ''),
+        role: 'student',
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        // Сохраняем полный LDAP профиль для отображения
+        ldap_profile: ldapProfile,
+        student: {
+          group: {
+            name: ldapProfile.group || '',
+            course: this.extractCourseFromGroup(ldapProfile.group || ''),
+          },
+          course: this.extractCourseFromGroup(ldapProfile.group || ''),
+        },
+      };
+
+      return {
+        success: true,
+        data: user,
+      };
+    } catch (error) {
+      if (__DEV__) {
+        console.error('❌ Failed to get LDAP user:', error);
+      }
+      return {
+        success: false,
+        error: 'Failed to get current user',
+      };
+    }
   }
 
   // Метод для очистки кеша пользователя (например, при логауте)
@@ -341,7 +487,7 @@ class ApiService {
         const apiResponse = await fetch(url, {
           method: 'POST',
           headers: {
-            'Authorization': token ? `Token ${token}` : '',
+            'Authorization': token ? `Bearer ${token}` : '',
             // НЕ устанавливаем Content-Type для multipart/form-data
           },
           body: formData,
@@ -460,7 +606,7 @@ class ApiService {
           apiResponse = await fetch(url, {
             method: 'POST',
             headers: {
-              'Authorization': token ? `Token ${token}` : '',
+              'Authorization': token ? `Bearer ${token}` : '',
             },
             body: formData,
           });
