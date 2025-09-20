@@ -103,10 +103,11 @@ class ApiService {
         };
       }
 
+      // Django прокси возвращает данные в формате {success: true, data: {...}}
       if (!data.success || !data.data) {
         return {
           success: false,
-          error: 'Неверный формат ответа сервера',
+          error: data.error || 'Неверный формат ответа сервера',
         };
       }
 
@@ -287,6 +288,7 @@ class ApiService {
       }
 
       // Получаем профиль пользователя через наш бэкенд
+      // Делаем запрос к нашему бэкенду, который проксирует к LDAP
       const response = await fetch(`${API_BASE_URL}/auth/me/`, {
         method: 'POST',
         headers: {
@@ -727,7 +729,6 @@ class ApiService {
     this.dashboardPromise = null;
   }
 
-  // LDAP методы для получения данных
   async getGrades(): Promise<ApiResponse<any[]>> {
     const result = await this.request<any[]>('/auth/grades/');
     return result;

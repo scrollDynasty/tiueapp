@@ -79,6 +79,7 @@ class LDAPService:
                 return False, {'error': 'Unsupported HTTP method'}
             
             logger.info(f"LDAP API Response: {response.status_code}")
+            logger.info(f"LDAP API Response Text: {response.text[:500]}")  # Первые 500 символов
             
             # Проверяем статус ответа
             if response.status_code == 200:
