@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
   ActivityIndicator,
+  FlatList,
   Pressable,
   ScrollView,
   TextInput,
@@ -130,6 +131,23 @@ export default function UsersManagementScreen() {
   }, []);
 
   const handleToggleStatus = React.useCallback((userId: string) => { }, []);
+
+  // Мемоизированный renderItem для FlatList
+  const renderUserItem = React.useCallback(({ item, index }: { item: UserProfile; index: number }) => (
+    <UserCard
+      user={item}
+      onEdit={() => handleEditUser(item)}
+      onDelete={() => handleDeleteUser(item)}
+      onResetPassword={() => handleResetPassword(item)}
+      onToggleStatus={handleToggleStatus}
+      animationDelay={index * 100}
+    />
+  ), [handleEditUser, handleDeleteUser, handleResetPassword, handleToggleStatus]);
+
+  // Мемоизированный разделитель для FlatList
+  const itemSeparator = React.useCallback(() => (
+    <View style={{ height: spacing.md }} />
+  ), [spacing.md]);
 
   const handleToggleCreateForm = React.useCallback(() => {
     setShowCreateForm(prev => !prev);
@@ -517,19 +535,22 @@ export default function UsersManagementScreen() {
               </ThemedText>
             </View>
           ) : (
-            <View style={{ gap: spacing.md }}> 
-              {filteredUsers.map((user, index) => (
-                <UserCard
-                  key={user.id}
-                  user={user}
-                  onEdit={() => handleEditUser(user)}
-                  onDelete={() => handleDeleteUser(user)}
-                  onResetPassword={() => handleResetPassword(user)}
-                  onToggleStatus={handleToggleStatus}
-                  animationDelay={index * 100}
-                />
-              ))}
-            </View>
+            <FlatList
+              data={filteredUsers}
+              keyExtractor={(item) => item.id}
+              renderItem={renderUserItem}
+              ItemSeparatorComponent={itemSeparator}
+              showsVerticalScrollIndicator={false}
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={10}
+              windowSize={10}
+              initialNumToRender={8}
+              getItemLayout={(data, index) => ({
+                length: 120, // Примерная высота UserCard
+                offset: 120 * index + spacing.md * index,
+                index,
+              })}
+            />
           )}
         </Animated.View>
       </ScrollView>

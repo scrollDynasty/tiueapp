@@ -134,8 +134,8 @@ export const useImmersiveMode = () => {
       }
     };
 
-    // Уменьшаем частоту проверки до 500мс
-    checkInterval = setInterval(handleNavigationVisibilityChange, 500);
+    // Оптимизированная частота проверки - 2 секунды для экономии батареи
+    checkInterval = setInterval(handleNavigationVisibilityChange, 2000);
 
     return () => {
       if (checkInterval) {

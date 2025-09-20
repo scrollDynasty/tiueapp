@@ -55,7 +55,13 @@ export default function HomeScreen() {
     spacing, 
     width 
   } = useResponsive();
-  const { user } = useAppSelector(state => state.auth);
+  // Мемоизированный селектор для оптимизации
+  const authData = useAppSelector(React.useCallback((state) => ({
+    user: state.auth.user,
+    isAuthenticated: state.auth.isAuthenticated
+  }), []), (left, right) => left.user?.id === right.user?.id && left.isAuthenticated === right.isAuthenticated);
+  
+  const { user } = authData;
   
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -188,17 +194,22 @@ export default function HomeScreen() {
     return newsData.filter(news => news.isImportant).slice(0, 2);
   }, [newsData]);
 
-  // Расчет среднего балла (GPA) из реальных данных
-  const calculateGPA = React.useCallback((grades: any[]) => {
-    if (grades.length === 0) return 0;
+  // Мемоизированный расчет среднего балла (GPA) из реальных данных
+  const gpaValue = React.useMemo(() => {
+    if (!gradesData || gradesData.length === 0) return 0;
     
     // Считаем средний балл как среднее арифметическое всех оценок
-    const total = grades.reduce((sum, grade) => {
+    const total = gradesData.reduce((sum, grade) => {
       return sum + parseFloat(grade.grade || 0);
     }, 0);
     
-    return Math.round((total / grades.length) * 100) / 100; // Округляем до 2 знаков
-  }, []);
+    return Math.round((total / gradesData.length) * 100) / 100; // Округляем до 2 знаков
+  }, [gradesData]);
+
+  // Обратная совместимость
+  const calculateGPA = React.useCallback((grades: any[]) => {
+    return gpaValue;
+  }, [gpaValue]);
 
   // Посещаемость пока недоступна в LDAP - все данные равны 0
   // const calculateOverallAttendance = React.useCallback((attendanceList: any[]) => {
@@ -236,7 +247,7 @@ export default function HomeScreen() {
       if (gradesLoading) {
         gradeValue = '...';
       } else if (gradesData.length > 0) {
-        gradeValue = calculateGPA(gradesData).toFixed(1);
+        gradeValue = gpaValue.toFixed(1);
       } else {
         gradeValue = 'Нет данных';
       }
@@ -255,7 +266,7 @@ export default function HomeScreen() {
       grade: gradeValue,
       gradeTitle: gradeTitle
     };
-  }, [user?.role, newsData.length, eventsData.length, gradesData, gradesLoading, coursesData, coursesLoading, calculateGPA]);
+  }, [user?.role, newsData.length, eventsData.length, gradesData, gradesLoading, coursesData, coursesLoading, gpaValue]);
 
   // Компонент статистического виджета
   const StatWidget = ({ icon, title, value, color, onPress }: {
@@ -1301,12 +1312,55 @@ export default function HomeScreen() {
   );
 }
 
-// Local styles
+// Оптимизированные стили для производительности
 const styles = StyleSheet.create({
   quoteText: {
     fontSize: 16,
     lineHeight: 22,
     opacity: 0.95,
     marginTop: 4,
+  },
+  // Общие стили для статистических виджетов
+  statWidget: {
+    borderRadius: 20,
+    flex: 1,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  statWidgetContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statWidgetIcon: {
+    marginBottom: 8,
+  },
+  statWidgetValue: {
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  statWidgetTitle: {
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  // Стили для карточек действий
+  actionCard: {
+    borderRadius: 20,
+    padding: 16,
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  actionCardText: {
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  // Общий градиент
+  gradientOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
 });
