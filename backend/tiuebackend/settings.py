@@ -35,6 +35,7 @@ base_hosts = [
     'localhost',
     '127.0.0.1',
     '0.0.0.0',
+    '38.226.16.110',  # Ваш удаленный сервер
 ]
 
 # Читаем дополнительные хосты из .env файла
@@ -174,7 +175,7 @@ for folder in media_folders:
 
 # Base URL for absolute image URLs (fallback)
 # Prefer explicit env var `BASE_URL`. Default set to current ngrok tunnel.
-BASE_URL = config('BASE_URL', default='https://6d9c49f1ba60.ngrok-free.app')  # Обновляйте с текущим ngrok URL
+BASE_URL = config('BASE_URL', default='http://38.226.16.110:4343')  # Ваш удаленный сервер
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -208,6 +209,10 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:3000',
     'http://localhost:19006',  # Expo dev server
     'http://127.0.0.1:19006',
+    'http://38.226.16.110:8081',  # Ваш сервер для фронтенда
+    'http://38.226.16.110:3000',
+    'http://38.226.16.110:19006',
+    'http://38.226.16.110:4343',
 ]
 
 # Разрешаем все методы
