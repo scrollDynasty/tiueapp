@@ -6,8 +6,8 @@ export interface EnvironmentConfig {
 }
 
 const developmentConfig: EnvironmentConfig = {
-  API_BASE_URL: 'http://localhost:4343/api',
-  WS_BASE_URL: 'ws://localhost:4343/ws',
+  API_BASE_URL: 'http://38.226.16.117:4343/api',
+  WS_BASE_URL: 'ws://38.226.16.117:4343/ws',
   DEBUG: true,
 };
 
