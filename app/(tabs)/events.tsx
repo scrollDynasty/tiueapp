@@ -361,7 +361,7 @@ export default function EventsScreen() {
               filteredEvents.map((event: Event, index) => (
                 <Animated.View 
                   key={event.id} 
-                  entering={FadeInUp.delay(500 + index * 100).duration(600).springify()}
+                  entering={FadeInUp.delay(index * 50).duration(300)}
                   style={[styles.eventCard, {
                     backgroundColor: 'transparent',
                     borderRadius: isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
