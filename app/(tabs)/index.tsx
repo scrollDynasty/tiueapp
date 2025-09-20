@@ -3,7 +3,6 @@ import { AnimatedHeader } from '@/components/AnimatedHeader';
 import { CustomRefreshControl } from '@/components/CustomRefreshControl';
 import { NotificationModal } from '@/components/NotificationModal';
 import { ThemedText } from '@/components/ThemedText';
-import { CircularChart, CourseProgressCard, EventsCard } from '@/components/dashboard';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
@@ -17,8 +16,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import React from 'react';
-import { Image, Platform, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { Suspense } from 'react';
+
+// Lazy loading для тяжелых компонентов dashboard
+const CircularChart = React.lazy(() => import('@/components/dashboard').then(module => ({ default: module.CircularChart })));
+const CourseProgressCard = React.lazy(() => import('@/components/dashboard').then(module => ({ default: module.CourseProgressCard })));
+const EventsCard = React.lazy(() => import('@/components/dashboard').then(module => ({ default: module.EventsCard })));
+
+import { ActivityIndicator, Image, Platform, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, {
   FadeInDown,
   SlideInRight,
@@ -36,9 +41,9 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = React.useState(false);
   const [showNotifications, setShowNotifications] = React.useState(false);
   const [gradesData, setGradesData] = React.useState<any[]>([]);
-  const [gradesLoading, setGradesLoading] = React.useState(false);
+  const [gradesLoading, setGradesLoading] = React.useState(true); // Начинаем с loading=true для skeleton
   const [coursesData, setCoursesData] = React.useState<any[]>([]);
-  const [coursesLoading, setCoursesLoading] = React.useState(false);
+  const [coursesLoading, setCoursesLoading] = React.useState(true); // Начинаем с loading=true для skeleton
   const [attendanceData, setAttendanceData] = React.useState<any[]>([]);
   const [attendanceLoading, setAttendanceLoading] = React.useState(false);
   const insets = useSafeAreaInsets();
@@ -147,14 +152,24 @@ export default function HomeScreen() {
   //   // Данные о посещаемости пока не доступны в LDAP системе
   // }, [user?.role]);
 
-  // Загружаем данные при монтировании компонента
+  // Загружаем данные при монтировании компонента с приоритизацией
   React.useEffect(() => {
     if (user) {
+      // Сначала загружаем критически важные данные для быстрого LCP
       dispatch(fetchNews());
-      dispatch(fetchEvents());
-      fetchGrades();
-      fetchCourses();
-      // fetchAttendance(); // Отключено - нет данных в LDAP
+      
+      // Остальные данные загружаем с задержкой для улучшения LCP
+      setTimeout(() => {
+        dispatch(fetchEvents());
+      }, 100);
+      
+      setTimeout(() => {
+        fetchGrades();
+      }, 200);
+      
+      setTimeout(() => {
+        fetchCourses();
+      }, 300);
     }
   }, [dispatch, user, fetchGrades, fetchCourses]);
 
@@ -267,6 +282,24 @@ export default function HomeScreen() {
       gradeTitle: gradeTitle
     };
   }, [user?.role, newsData.length, eventsData.length, gradesData, gradesLoading, coursesData, coursesLoading, gpaValue]);
+
+  // Skeleton компонент для быстрого LCP
+  const SkeletonWidget = React.memo(() => (
+    <View style={[styles.statWidget, { backgroundColor: colors.surface, opacity: 0.6 }]}>
+      <View style={[styles.gradientOverlay, { backgroundColor: colors.border }]} />
+      <View style={styles.statWidgetContent}>
+        <View style={[styles.statWidgetIcon, { 
+          width: 24, height: 24, backgroundColor: colors.border, borderRadius: 12 
+        }]} />
+        <View style={{ 
+          width: 40, height: 20, backgroundColor: colors.border, borderRadius: 4, marginBottom: 4 
+        }} />
+        <View style={{ 
+          width: 60, height: 12, backgroundColor: colors.border, borderRadius: 2 
+        }} />
+      </View>
+    </View>
+  ));
 
   // Компонент статистического виджета
   const StatWidget = ({ icon, title, value, color, onPress }: {
@@ -470,7 +503,7 @@ export default function HomeScreen() {
 
         {/* Красивая статистика */}
         <Animated.View 
-          entering={FadeInDown.delay(300)}
+          entering={FadeInDown.delay(0).duration(200)}
           style={{
             marginBottom: spacing.lg,
             paddingHorizontal: horizontalPadding,
@@ -508,30 +541,42 @@ export default function HomeScreen() {
               alignItems: 'stretch',
             }),
           }}>
-            <StatWidget 
-              icon="book-outline" 
-              title="Предметы" 
-              value={statsData.courses} 
-              color="#3B82F6" 
-            />
-            <StatWidget 
-              icon="calendar-outline" 
-              title="События" 
-              value={statsData.events} 
-              color="#10B981" 
-            />
-            <StatWidget 
-              icon="trophy-outline" 
-              title={statsData.gradeTitle} 
-              value={statsData.grade} 
-              color="#F59E0B" 
-              onPress={() => router.push('/grades')}
-            />
+            {gradesLoading || coursesLoading ? (
+              // Быстрый skeleton loading для улучшения LCP
+              <>
+                <SkeletonWidget />
+                <SkeletonWidget />
+                <SkeletonWidget />
+              </>
+            ) : (
+              // Реальные данные
+              <>
+                <StatWidget 
+                  icon="book-outline" 
+                  title="Предметы" 
+                  value={statsData.courses} 
+                  color="#3B82F6" 
+                />
+                <StatWidget 
+                  icon="calendar-outline" 
+                  title="События" 
+                  value={statsData.events} 
+                  color="#10B981" 
+                />
+                <StatWidget 
+                  icon="trophy-outline" 
+                  title={statsData.gradeTitle} 
+                  value={statsData.grade} 
+                  color="#F59E0B" 
+                  onPress={() => router.push('/grades')}
+                />
+              </>
+            )}
           </View>
         </Animated.View>
 
         <Animated.View
-          entering={FadeInDown.delay(400)}
+          entering={FadeInDown.delay(50).duration(200)}
           style={{
             marginBottom: spacing.xl,
             paddingHorizontal: horizontalPadding,
@@ -662,23 +707,29 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
 
-        {/* Компонент событий */}
-        <EventsCard 
-          events={eventsData.map(event => ({
-            id: event.id,
-            title: event.title,
-            date: event.date,
-            image: event.image || null,
-            location: event.location,
-            time: event.time
-          }))}
-          onEventPress={(eventId: string | number) => router.push(`/events/${eventId}` as any)}
-          horizontalPadding={horizontalPadding}
-        />
+        {/* Компонент событий с lazy loading */}
+        <Suspense fallback={
+          <View style={{ height: 200, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        }>
+          <EventsCard 
+            events={eventsData.map(event => ({
+              id: event.id,
+              title: event.title,
+              date: event.date,
+              image: event.image || null,
+              location: event.location,
+              time: event.time
+            }))}
+            onEventPress={(eventId: string | number) => router.push(`/events/${eventId}` as any)}
+            horizontalPadding={horizontalPadding}
+          />
+        </Suspense>
 
         {/* Красивые диаграммы успеваемости */}
         <Animated.View 
-          entering={FadeInDown.delay(550)}
+          entering={FadeInDown.delay(100).duration(250)}
           style={{
             marginBottom: spacing.xl,
             paddingHorizontal: horizontalPadding,
@@ -713,26 +764,30 @@ export default function HomeScreen() {
             flexDirection: isExtraSmallScreen ? 'column' : 'row',
             gap: isExtraSmallScreen ? spacing.md : spacing.lg,
           }}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={{ flex: 1 }}
               onPress={() => user?.role === 'student' ? router.push('/grades') : null}
             >
-              <CircularChart
-                value={parseFloat(statsData.grade) || 0}
-                maxValue={100}
-                title="Средний балл"
-                subtitle="из 100"
-                color="#3B82F6"
-              />
+              <Suspense fallback={<ActivityIndicator size="small" color="#3B82F6" />}>
+                <CircularChart
+                  value={parseFloat(statsData.grade) || 0}
+                  maxValue={100}
+                  title="Средний балл"
+                  subtitle="из 100"
+                  color="#3B82F6"
+                />
+              </Suspense>
             </TouchableOpacity>
             <View style={{ flex: 1 }}>
-              <CircularChart
-                value={0}
-                maxValue={100}
-                title="Посещаемость"
-                subtitle="Нет данных в LDAP"
-                color="#10B981"
-              />
+              <Suspense fallback={<ActivityIndicator size="small" color="#10B981" />}>
+                <CircularChart
+                  value={0}
+                  maxValue={100}
+                  title="Посещаемость"
+                  subtitle="Нет данных в LDAP"
+                  color="#10B981"
+                />
+              </Suspense>
             </View>
           </View>
         </Animated.View>
@@ -773,7 +828,7 @@ export default function HomeScreen() {
 
         {/* Секция новостей с новым дизайном */}
         <Animated.View 
-          entering={FadeInDown.delay(650)}
+          entering={FadeInDown.delay(150).duration(250)}
           style={{
             marginBottom: spacing.xl,
             paddingHorizontal: horizontalPadding,
@@ -926,7 +981,7 @@ export default function HomeScreen() {
 
 
         <Animated.View 
-          entering={FadeInDown.delay(750)}
+          entering={FadeInDown.delay(200).duration(250)}
           style={{
             marginTop: spacing.xl,
             paddingHorizontal: horizontalPadding,
@@ -1136,7 +1191,7 @@ export default function HomeScreen() {
         </Animated.View>
 
         <Animated.View 
-          entering={FadeInDown.delay(850)}
+          entering={FadeInDown.delay(250).duration(250)}
           style={{
             marginTop: spacing.lg,
             paddingHorizontal: horizontalPadding,
