@@ -14,8 +14,8 @@ import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, TouchableOpac
 import Animated, { FadeInDown, FadeInUp, SlideInRight } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Cross-platform Image with retry
-function ImageWithRetry({ uri, style, resizeMode }: { uri?: string; style?: any; resizeMode?: any }) {
+// Cross-platform Image with retry - мемоизированный компонент
+const ImageWithRetry = React.memo(({ uri, style, resizeMode }: { uri?: string; style?: any; resizeMode?: any }) => {
   const [attempt, setAttempt] = React.useState(0);
   const [failed, setFailed] = React.useState(false);
 
@@ -87,7 +87,7 @@ function ImageWithRetry({ uri, style, resizeMode }: { uri?: string; style?: any;
       )}
     </>
   );
-}
+});
 
 const CATEGORIES = [
   { key: 'all', label: 'Все', icon: 'grid-outline' },
@@ -106,8 +106,16 @@ export default function EventsScreen() {
   const { isSmallScreen, spacing, fontSize, isVerySmallScreen, isExtraSmallScreen } = useResponsive();
   const dispatch = useAppDispatch();
   
+  
   const { items: events } = useAppSelector((state) => state.events);
   const [filter, setFilter] = useState('all');
+
+  // Мемоизированная фильтрация событий для оптимизации производительности
+  const filteredEvents = React.useMemo(() => {
+    if (!Array.isArray(events)) return [];
+    if (filter === 'all') return events;
+    return events.filter(event => event.category === filter);
+  }, [events, filter]);
 
   // Ref для отслеживания размонтирования компонента
   const isMountedRef = React.useRef(true);
@@ -150,12 +158,6 @@ export default function EventsScreen() {
   }, [dispatch]);
 
   
-  const filteredEvents = React.useMemo(() => {
-    return events.filter((event: Event) => {
-      if (filter === 'all') return true;
-      return event.category === filter;
-    });
-  }, [events, filter]);
 
   const getCategoryColor = React.useCallback((category: string) => {
     switch (category) {

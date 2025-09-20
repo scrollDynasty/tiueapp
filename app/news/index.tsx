@@ -52,6 +52,25 @@ export default function AllNewsScreen() {
     transform: [{ scale: headerScale.value }]
   }));
 
+  // Мемоизированные стили для NewsCard
+  const newsCardStyle = React.useMemo(() => ({
+    marginBottom: spacing.md,
+    marginHorizontal: spacing.xs,
+    borderRadius: 20,
+    overflow: 'hidden' as 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDarkMode ? 0.3 : 0.1,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 6,
+      },
+    }),
+  }), [spacing.md, spacing.xs, isDarkMode]);
+
   // Мемоизированный рендер элемента новости для предотвращения ненужных ре-рендеров
   const renderNewsItem = React.useCallback(({ item: news, index }: { item: any; index: number }) => (
     <Animated.View
@@ -67,26 +86,10 @@ export default function AllNewsScreen() {
         icon={news.icon}
         index={index}
         onPress={() => router.push(`/news/${news.id}`)}
-        style={{ 
-          marginBottom: spacing.md,
-          marginHorizontal: spacing.xs,
-          borderRadius: 20,
-          overflow: 'hidden',
-          ...Platform.select({
-            ios: {
-              shadowColor: isDarkMode ? '#000' : '#000',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: isDarkMode ? 0.3 : 0.1,
-              shadowRadius: 8,
-            },
-            android: {
-              elevation: 6,
-            },
-          }),
-        }}
+        style={newsCardStyle}
       />
     </Animated.View>
-  ), [spacing, isDarkMode]);
+  ), [newsCardStyle]);
 
   return (
     <View style={{ flex: 1 }}>

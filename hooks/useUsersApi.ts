@@ -33,9 +33,24 @@ export const useUsersApi = () => {
         return await apiCall();
       } catch (error) {
         lastError = error as Error;
-        console.error(`Attempt ${attempt} failed:`, error);
         if (attempt === maxRetries) break;
-        await new Promise(resolve => setTimeout(resolve, delay * attempt));
+        
+        // Безопасная задержка с проверкой размонтирования
+        await new Promise((resolve, reject) => {
+          const timer = setTimeout(() => {
+            if (isMountedRef.current) {
+              resolve(void 0);
+            } else {
+              reject(new Error('Component unmounted'));
+            }
+          }, delay * attempt);
+          
+          // Очищаем таймер если компонент размонтирован
+          if (!isMountedRef.current) {
+            clearTimeout(timer);
+            reject(new Error('Component unmounted'));
+          }
+        });
       }
     }
     throw lastError;
