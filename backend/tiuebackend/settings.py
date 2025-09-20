@@ -35,7 +35,8 @@ base_hosts = [
     'localhost',
     '127.0.0.1',
     '0.0.0.0',
-    '38.226.16.110',  # Ваш удаленный сервер
+    '38.226.16.117',  # Ваш удаленный сервер
+    'mobile.tiue.uz',  # Домен для мобильного API
 ]
 
 # Читаем дополнительные хосты из .env файла
@@ -63,7 +64,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'corsheaders',
+    'corsheaders',  # ВКЛЮЧЕНО для React Native разработки
     'authentication',  # LDAP авторизация
     'users',  # Включаем обратно для совместимости
     'groups',  # Включаем обратно для совместимости
@@ -72,7 +73,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # Используем стандартный CORS middleware
+    'corsheaders.middleware.CorsMiddleware',  # ВКЛЮЧЕНО для React Native разработки
     'tiuebackend.middleware.LoggingMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -175,7 +176,7 @@ for folder in media_folders:
 
 # Base URL for absolute image URLs (fallback)
 # Prefer explicit env var `BASE_URL`. Default set to current ngrok tunnel.
-BASE_URL = config('BASE_URL', default='http://38.226.16.110:4343')  # Ваш удаленный сервер
+BASE_URL = config('BASE_URL', default='https://mobile.tiue.uz')  # Домен мобильного API
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -195,25 +196,26 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
 }
 
-# CORS Settings - используем стандартный django-cors-headers
-CORS_ALLOW_ALL_ORIGINS = True  # Разрешаем все домены для разработки
+# CORS отключен - Nginx обрабатывает CORS заголовки
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_HEADERS = True  # Разрешаем все заголовки
-CORS_PREFLIGHT_MAX_AGE = 86400  # Кешируем preflight запросы
+CORS_ALLOW_ALL_HEADERS = True
+CORS_PREFLIGHT_MAX_AGE = 86400
 
-# Разрешенные домены
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:8081',
-    'http://127.0.0.1:8081',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://localhost:19006',  # Expo dev server
-    'http://127.0.0.1:19006',
-    'http://38.226.16.110:8081',  # Ваш сервер для фронтенда
-    'http://38.226.16.110:3000',
-    'http://38.226.16.110:19006',
-    'http://38.226.16.110:4343',
-]
+# Разрешенные домены - ОТКЛЮЧЕНО, так как Nginx обрабатывает CORS
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:8081',
+#     'http://127.0.0.1:8081', 
+#     'http://localhost:3000',
+#     'http://127.0.0.1:3000',
+#     'http://localhost:19006',  # Expo dev server
+#     'http://127.0.0.1:19006',
+#     'https://mobile.tiue.uz',  # Основной домен мобильного API
+#     'http://38.226.16.117:8081',  # IP сервера для разработки
+#     'http://38.226.16.117:3000',
+#     'http://38.226.16.117:19006',
+#     'http://38.226.16.117:4343',
+# ]
 
 # Разрешаем все методы
 CORS_ALLOWED_METHODS = [
@@ -274,3 +276,23 @@ LOGGING = {
         'level': 'WARNING',
     },
 }
+
+# CORS настройки для React Native разработки
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8081",
+    "http://127.0.0.1:8081",
+    "https://mobile.tiue.uz",
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]

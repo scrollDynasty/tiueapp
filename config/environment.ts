@@ -6,18 +6,18 @@ export interface EnvironmentConfig {
 }
 
 const developmentConfig: EnvironmentConfig = {
-  API_BASE_URL: 'http://38.226.16.117:4343/api',
-  WS_BASE_URL: 'ws://38.226.16.117:4343/ws',
+  API_BASE_URL: 'https://mobile.tiue.uz/api',
+  WS_BASE_URL: 'wss://mobile.tiue.uz/ws',
   DEBUG: true,
 };
 
 const productionConfig: EnvironmentConfig = {
-  API_BASE_URL: 'https://my.tiue.uz/api',
-  WS_BASE_URL: 'wss://my.tiue.uz/ws',
+  API_BASE_URL: 'https://mobile.tiue.uz/api',
+  WS_BASE_URL: 'wss://mobile.tiue.uz/ws',
   DEBUG: false,
 };
 
-// LDAP Mobile API Configuration
+// LDAP Mobile API Configuration - ПРЯМОЕ подключение к my.tiue.uz
 const ldapConfig = {
   // Базовый URL для LDAP API (без /api в конце)
   LDAP_BASE_URL: 'https://my.tiue.uz',
