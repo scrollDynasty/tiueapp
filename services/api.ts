@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import { getApiBaseUrl } from '../config/environment';
 import { ApiResponse, LoginCredentials, User } from '../types';
 
@@ -153,7 +154,7 @@ class ApiService {
             avatarUrl = avatarResponse.data.avatar_url;
           }
         } catch (error) {
-          console.log('Avatar loading failed during admin login, continuing without avatar');
+          // Игнорируем ошибки загрузки аватарки при входе
         }
         
         user = {
@@ -184,7 +185,7 @@ class ApiService {
             avatarUrl = avatarResponse.data.avatar_url;
           }
         } catch (error) {
-          console.log('Avatar loading failed during login, continuing without avatar');
+          // Игнорируем ошибки загрузки аватарки при входе
         }
         
         user = {
@@ -220,7 +221,7 @@ class ApiService {
             avatarUrl = avatarResponse.data.avatar_url;
           }
         } catch (error) {
-          console.log('Avatar loading failed during login, continuing without avatar');
+          // Игнорируем ошибки загрузки аватарки при входе
         }
         
         // Создаем базовый профиль если LDAP профиль не получен
@@ -431,7 +432,7 @@ class ApiService {
             avatarUrl = avatarResponse.data.avatar_url;
           }
         } catch (error) {
-          console.log('Avatar loading failed, continuing without avatar');
+            // Игнорируем ошибки загрузки аватарки
         }
         
         user = {
@@ -459,7 +460,7 @@ class ApiService {
             avatarUrl = avatarResponse.data.avatar_url;
           }
         } catch (error) {
-          console.log('Avatar loading failed, continuing without avatar');
+          // Игнорируем ошибки загрузки аватарки
         }
         
         user = {
@@ -522,21 +523,34 @@ class ApiService {
       const timestamp = Date.now();
       const filename = `avatar_${timestamp}.jpg`;
       
-      // Проверяем среду выполнения
-      if (typeof window !== 'undefined') {
+      // Проверяем среду выполнения - используем Platform для точного определения
+      if (Platform.OS === 'web') {
         // Веб-версия - создаем Blob из URI
-        console.log('Web environment detected, converting URI to Blob');
         const response = await fetch(imageData.uri);
         const blob = await response.blob();
         formData.append('avatar', blob, filename);
       } else {
-        // React Native - используем объект с uri/type/name
-        console.log('React Native environment detected');
+        // React Native (iOS/Android) - используем объект с uri/type/name
+        // Исправляем тип файла для React Native
+        let fileType = imageData.type || 'image/jpeg';
+        if (fileType === 'image') {
+          // Определяем тип по расширению файла
+          const extension = imageData.uri.toLowerCase().split('.').pop();
+          if (extension === 'png') {
+            fileType = 'image/png';
+          } else if (extension === 'webp') {
+            fileType = 'image/webp';
+          } else {
+            fileType = 'image/jpeg'; // по умолчанию
+          }
+        }
+        
         const fileToUpload = {
           uri: imageData.uri,
-          type: imageData.type || 'image/jpeg',
+          type: fileType,
           name: filename,
         };
+        
         // @ts-ignore - React Native FormData поддерживает объекты с uri/type/name
         formData.append('avatar', fileToUpload);
       }
@@ -545,8 +559,61 @@ class ApiService {
       // Удаляем Content-Type, чтобы браузер/RN установил правильный с boundary
       delete headers['Content-Type'];
       
-      console.log('Uploading avatar with headers:', headers);
+      // Для React Native используем XMLHttpRequest как более надежную альтернативу
+      if (Platform.OS !== 'web') {
+        return new Promise((resolve) => {
+          const xhr = new XMLHttpRequest();
+          
+          xhr.onload = () => {
+            
+            try {
+              const data = JSON.parse(xhr.responseText);
+              if (xhr.status >= 200 && xhr.status < 300) {
+                resolve({
+                  success: true,
+                  data: data.data || data,
+                });
+              } else {
+                resolve({
+                  success: false,
+                  error: data.error || data.message || 'Ошибка загрузки аватара',
+                });
+              }
+            } catch (parseError) {
+              resolve({
+                success: false,
+                error: 'Неверный формат ответа сервера',
+              });
+            }
+          };
+          
+          xhr.onerror = () => {
+            resolve({
+              success: false,
+              error: 'Ошибка сети при загрузке аватара',
+            });
+          };
+          
+          xhr.ontimeout = () => {
+            resolve({
+              success: false,
+              error: 'Превышено время ожидания',
+            });
+          };
+          
+          xhr.open('POST', url);
+          xhr.timeout = 30000; // 30 секунд
+          
+          // Устанавливаем заголовки
+          Object.keys(headers).forEach(key => {
+            xhr.setRequestHeader(key, headers[key]);
+          });
+          
+          xhr.send(formData);
+        });
+      }
       
+      // Для веб используем обычный fetch
       const apiResponse = await fetch(url, {
         method: 'POST',
         headers: headers,
@@ -556,7 +623,6 @@ class ApiService {
       const data = await apiResponse.json();
 
       if (!apiResponse.ok) {
-        console.error('Upload avatar API error:', apiResponse.status, data);
         return {
           success: false,
           error: data.error || data.message || 'Ошибка загрузки аватара',
@@ -569,7 +635,6 @@ class ApiService {
       };
       
     } catch (error) {
-      console.error('Upload avatar error:', error);
       return {
         success: false,
         error: 'Ошибка загрузки аватара',

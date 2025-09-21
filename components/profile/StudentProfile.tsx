@@ -134,21 +134,8 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           token: token || ''
         }));
         
-        // Принудительно очищаем кеш пользователя в API
+        // Принудительно очищаем кеш пользователя в API для следующих запросов
         authApi.clearUserCache();
-        
-        // Принудительно обновляем данные пользователя из API
-        try {
-          const updatedUserResponse = await authApi.getCurrentUser();
-          if (updatedUserResponse.success && updatedUserResponse.data) {
-            dispatch(setCredentials({
-              user: updatedUserResponse.data,
-              token: token || ''
-            }));
-          }
-        } catch (error) {
-          console.log('Failed to refresh user data after avatar upload');
-        }
         
         Alert.alert('Успешно', 'Аватар обновлен');
       } else {
