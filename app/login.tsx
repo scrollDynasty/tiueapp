@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -34,9 +34,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
-export default function LoginScreen() {
+const LoginScreen = React.memo(() => {
   const { theme, setTheme } = useTheme();
-  const themeColors = getThemeColors(theme === 'dark');
+  const themeColors = useMemo(() => getThemeColors(theme === 'dark'), [theme]);
   const { isSmallScreen, spacing, fontSize } = useResponsive();
   
   const [credentials, setCredentials] = useState<LoginCredentials>({
@@ -45,23 +45,22 @@ export default function LoginScreen() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
-
-  const toggleShowPassword = React.useCallback(() => {
-    setShowPassword(prev => !prev);
-  }, []);
-
   const [showErrorMessage, setShowErrorMessage] = useState(false);
+  
+  // Refs для cleanup
+  const styleElementRef = useRef<HTMLStyleElement | null>(null);
   
   const dispatch = useAppDispatch();
   const { loading, error, isAuthenticated } = useAppSelector((state) => state.auth);
+
+  const toggleShowPassword = useCallback(() => {
+    setShowPassword(prev => !prev);
+  }, []);
 
   // Анимационные значения
   const formTranslateY = useSharedValue(50);
   const formOpacity = useSharedValue(0);
   const buttonScale = useSharedValue(1);
-  const themeButtonScale = useSharedValue(1);
-  const themeButtonRotation = useSharedValue(0);
-  const themeButtonGlow = useSharedValue(1);
 
   useEffect(() => {
     // Анимация появления формы
@@ -70,17 +69,6 @@ export default function LoginScreen() {
       stiffness: 100 
     });
     formOpacity.value = withTiming(1, { duration: 800 });
-
-    // Мерцающий эффект для кнопки темы (привлекает внимание)
-    const glowTimer = setTimeout(() => {
-      themeButtonGlow.value = withTiming(1.2, { duration: 1000 }, () => {
-        themeButtonGlow.value = withTiming(1, { duration: 1000 });
-      });
-    }, 1000);
-
-    return () => {
-      clearTimeout(glowTimer);
-    };
   }, []);
 
   useEffect(() => {
@@ -100,19 +88,22 @@ export default function LoginScreen() {
       
       Alert.alert(title, message, [
         { text: 'OK', onPress: () => {
-            dispatch(clearError());
-            setShowErrorMessage(false);
+            // НЕ очищаем ошибку автоматически - только при следующей попытке входа
           } 
         }
       ]);
-    } else {
-      setShowErrorMessage(false);
     }
-  }, [error, dispatch]);
+  }, [error]);
 
   // Фиксируем стили автозаполнения при смене темы
   useEffect(() => {
     if (Platform.OS === 'web') {
+      // Удаляем предыдущий стиль если существует
+      if (styleElementRef.current) {
+        document.head.removeChild(styleElementRef.current);
+        styleElementRef.current = null;
+      }
+      
       // Добавляем CSS стили для автозаполнения
       const style = document.createElement('style');
       style.innerHTML = `
@@ -127,20 +118,47 @@ export default function LoginScreen() {
         }
       `;
       document.head.appendChild(style);
+      styleElementRef.current = style;
       
       return () => {
-        document.head.removeChild(style);
+        if (styleElementRef.current) {
+          document.head.removeChild(styleElementRef.current);
+          styleElementRef.current = null;
+        }
       };
     }
   }, [theme, themeColors]);
 
-  const handleLogin = async () => {
-    if (!credentials.username || !credentials.password) {
-      Alert.alert('Ошибка', 'Пожалуйста, заполните все поля');
+  // Валидация входных данных
+  const validateInput = useCallback((username: string, password: string) => {
+    const errors: string[] = [];
+    
+    if (!username.trim()) {
+      errors.push('Имя пользователя обязательно');
+    } else if (username.trim().length < 3) {
+      errors.push('Имя пользователя должно содержать минимум 3 символа');
+    } else if (!/^[A-Za-z0-9]+$/.test(username.trim())) {
+      errors.push('Имя пользователя может содержать только буквы и цифры');
+    }
+    
+    if (!password) {
+      errors.push('Пароль обязателен');
+    } else if (password.length < 4) {
+      errors.push('Пароль должен содержать минимум 4 символа');
+    }
+    
+    return errors;
+  }, []);
+
+  const handleLogin = useCallback(async () => {
+    // Валидация входных данных
+    const validationErrors = validateInput(credentials.username, credentials.password);
+    if (validationErrors.length > 0) {
+      Alert.alert('Ошибка валидации', validationErrors.join('\n'));
       return;
     }
 
-    // Очищаем предыдущую ошибку
+    // Очищаем предыдущую ошибку только при новой попытке входа
     dispatch(clearError());
     setShowErrorMessage(false);
 
@@ -155,80 +173,69 @@ export default function LoginScreen() {
       });
     });
 
-    // Применяем toUpperCase только при отправке
-    const submitCredentials = {
-      username: credentials.username.toUpperCase().trim(),
-      password: credentials.password,
-    };
+    try {
+      // Применяем toUpperCase только при отправке и очищаем от XSS
+      const submitCredentials = {
+        username: credentials.username.toUpperCase().trim().replace(/[<>]/g, ''),
+        password: credentials.password,
+      };
 
-    await dispatch(loginUser(submitCredentials));
-  };
+      await dispatch(loginUser(submitCredentials));
+    } catch (err) {
+      console.error('Login error:', err);
+      Alert.alert('Ошибка', 'Произошла ошибка при входе в систему');
+    }
+  }, [credentials, dispatch, validateInput]);
 
-  const handleUsernameChange = React.useCallback((username: string) => {
+  const handleUsernameChange = useCallback((username: string) => {
     // Убираем toUpperCase() из onChangeText - это вызывает дублирование
     setCredentials(prev => {
       if (prev.username === username) return prev;
       return { ...prev, username };
     });
-    // Очищаем ошибку при изменении полей
-    if (error) {
-      dispatch(clearError());
-      setShowErrorMessage(false);
-    }
-  }, [error, dispatch]);
+    // НЕ очищаем ошибку автоматически - только при следующей попытке входа
+  }, []);
 
-  const handlePasswordChange = React.useCallback((password: string) => {
+  const handlePasswordChange = useCallback((password: string) => {
     setCredentials(prev => {
       if (prev.password === password) return prev;
       return { ...prev, password };
     });
-    // Очищаем ошибку при изменении полей
-    if (error) {
-      dispatch(clearError());
-      setShowErrorMessage(false);
-    }
-  }, [error, dispatch]);
+    // НЕ очищаем ошибку автоматически - только при следующей попытке входа
+  }, []);
 
-  const handleUsernameFocus = React.useCallback(() => setFocusedInput('username'), []);
-  const handlePasswordFocus = React.useCallback(() => setFocusedInput('password'), []);
-  const handleInputBlur = React.useCallback(() => setFocusedInput(null), []);
 
-  const handleThemeToggle = () => {
-    // Анимация нажатия и поворота
-    themeButtonScale.value = withSpring(0.8, { damping: 15 }, () => {
-      themeButtonScale.value = withSpring(1, { damping: 15 });
-    });
-    
-    // Увеличенный поворот для более эффектного перехода
-    themeButtonRotation.value = withSpring(themeButtonRotation.value + 720, {
-      damping: 12,
-      stiffness: 100
-    });
+  const handleUsernameFocus = useCallback(() => setFocusedInput('username'), []);
+  const handlePasswordFocus = useCallback(() => setFocusedInput('password'), []);
+  const handleInputBlur = useCallback(() => setFocusedInput(null), []);
 
-    // Добавляем эффект свечения при переключении
-    themeButtonGlow.value = withSpring(1.4, { damping: 10 }, () => {
-      themeButtonGlow.value = withSpring(1, { damping: 15 });
-    });
 
-    // Переключаем тему
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
+  // Мемоизированные стили для лучшей производительности
+  const gradientColors = useMemo(() => 
+    theme === 'dark' 
+      ? ['#1E293B', '#334155', '#475569'] as const
+      : ['#f7f9fc', '#eef2f7', Colors.surfaceSubtle] as const,
+    [theme]
+  );
+
+  const formBackgroundStyle = useMemo(() => ({
+    backgroundColor: theme === 'dark' 
+      ? 'rgba(255,255,255,0.08)' 
+      : 'rgba(255,255,255,0.95)',
+    borderColor: theme === 'dark' 
+      ? 'rgba(255,255,255,0.15)' 
+      : 'rgba(0,0,0,0.08)',
+  }), [theme]);
 
   const formAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: formTranslateY.value }],
     opacity: formOpacity.value,
-  }));
+  }), []);
 
   const buttonAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: buttonScale.value }],
-  }));
+  }), []);
 
-  const themeButtonAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: themeButtonScale.value * themeButtonGlow.value },
-      { rotate: `${themeButtonRotation.value}deg` }
-    ],
-  }));
 
 
   return (
@@ -240,33 +247,13 @@ export default function LoginScreen() {
       
       {/* Современный градиентный фон адаптивный к теме */}
       <LinearGradient
-        colors={theme === 'dark' 
-          ? ['#1E293B', '#334155', '#475569']
-          : ['#f7f9fc', '#eef2f7', Colors.surfaceSubtle]
-        }
+        colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFillObject}
       />
 
       <SafeAreaView style={styles.safeArea}>
-        {/* Кнопка смены темы в правом верхнем углу - прозрачная с контуром */}
-        <AnimatedTouchableOpacity
-          style={[styles.themeButton, themeButtonAnimatedStyle]}
-          onPress={handleThemeToggle}
-          activeOpacity={0.7}
-        >
-          <Ionicons 
-            name={theme === 'dark' ? "sunny-outline" : "moon-outline"} 
-            size={isSmallScreen ? 22 : 26} 
-            color={theme === 'dark' ? '#FFD700' : '#6366F1'} 
-            style={{
-              textShadowColor: theme === 'dark' ? '#FFD700' : '#6366F1',
-              textShadowOffset: { width: 0, height: 0 },
-              textShadowRadius: 8,
-            }}
-          />
-        </AnimatedTouchableOpacity>
         
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -279,45 +266,118 @@ export default function LoginScreen() {
             <Animated.View style={[
               styles.formContainer, 
               formAnimatedStyle,
-              {
-                backgroundColor: theme === 'dark' 
-                  ? 'rgba(255,255,255,0.08)' 
-                  : 'rgba(255,255,255,0.95)',
-                borderColor: theme === 'dark' 
-                  ? 'rgba(255,255,255,0.15)' 
-                  : 'rgba(0,0,0,0.08)',
-              }
+              formBackgroundStyle
             ]}>
               
               {/* Username Input */}
-              <View style={[styles.inputContainer, { marginBottom: isSmallScreen ? spacing.md : spacing.lg }]}>
-                <Text style={[
-                  styles.inputLabel, 
-                  { 
-                    color: themeColors.text,
-                    fontSize: isSmallScreen ? 11 : 12
-                  }
-                ]}>Имя пользователя</Text>
-                <View style={[
-                  styles.inputWrapper, 
-                  { 
-                    backgroundColor: themeColors.surface,
-                    borderColor: themeColors.border,
-                    height: isSmallScreen ? 44 : 52,
-                    paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md
-                  },
-                  focusedInput === 'username' && {
-                    borderColor: Colors.brandPrimary,
-                    backgroundColor: themeColors.surface,
-                    shadowColor: Colors.tabActiveShadow,
-                  }
-                ]}>
-                  <Ionicons 
-                    name="person-outline" 
-                    size={isSmallScreen ? 18 : 20} 
-                    color={focusedInput === 'username' ? Colors.brandPrimary : themeColors.textSecondary}
-                    style={[styles.inputIcon, { marginRight: isSmallScreen ? spacing.xs : spacing.sm }]}
-                  />
+              <UsernameInput
+                themeColors={themeColors}
+                isSmallScreen={isSmallScreen}
+                spacing={spacing}
+                fontSize={fontSize}
+                credentials={credentials}
+                focusedInput={focusedInput}
+                loading={loading}
+                onUsernameChange={handleUsernameChange}
+                onFocus={handleUsernameFocus}
+                onBlur={handleInputBlur}
+              />
+
+              {/* Password Input */}
+              <PasswordInput
+                themeColors={themeColors}
+                isSmallScreen={isSmallScreen}
+                spacing={spacing}
+                fontSize={fontSize}
+                credentials={credentials}
+                focusedInput={focusedInput}
+                loading={loading}
+                showPassword={showPassword}
+                onPasswordChange={handlePasswordChange}
+                onFocus={handlePasswordFocus}
+                onBlur={handleInputBlur}
+                onTogglePassword={toggleShowPassword}
+              />
+
+              {/* Error Message */}
+              {showErrorMessage && error && (
+                <ErrorMessage
+                  error={error}
+                  theme={theme}
+                  onClose={() => setShowErrorMessage(false)}
+                />
+              )}
+
+              {/* Login Button */}
+              <LoginButton
+                loading={loading}
+                isSmallScreen={isSmallScreen}
+                spacing={spacing}
+                fontSize={fontSize}
+                animatedStyle={buttonAnimatedStyle}
+                onPress={handleLogin}
+              />
+
+            </Animated.View>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
+  );
+});
+
+// Оптимизированные компоненты
+const UsernameInput = React.memo(({ 
+  themeColors, 
+  isSmallScreen, 
+  spacing, 
+  fontSize, 
+  credentials, 
+  focusedInput, 
+  loading, 
+  onUsernameChange, 
+  onFocus, 
+  onBlur 
+}: {
+  themeColors: any;
+  isSmallScreen: boolean;
+  spacing: any;
+  fontSize: any;
+  credentials: LoginCredentials;
+  focusedInput: string | null;
+  loading: boolean;
+  onUsernameChange: (username: string) => void;
+  onFocus: () => void;
+  onBlur: () => void;
+}) => (
+  <View style={[styles.inputContainer, { marginBottom: isSmallScreen ? spacing.md : spacing.lg }]}>
+    <Text style={[
+      styles.inputLabel, 
+      { 
+        color: themeColors.text,
+        fontSize: isSmallScreen ? 11 : 12
+      }
+    ]}>Имя пользователя</Text>
+    <View style={[
+      styles.inputWrapper, 
+      { 
+        backgroundColor: themeColors.surface,
+        borderColor: themeColors.border,
+        height: isSmallScreen ? 44 : 52,
+        paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md
+      },
+      focusedInput === 'username' && {
+        borderColor: Colors.brandPrimary,
+        backgroundColor: themeColors.surface,
+        shadowColor: Colors.tabActiveShadow,
+      }
+    ]}>
+      <Ionicons 
+        name="person-outline" 
+        size={isSmallScreen ? 18 : 20} 
+        color={focusedInput === 'username' ? Colors.brandPrimary : themeColors.textSecondary}
+        style={[styles.inputIcon, { marginRight: isSmallScreen ? spacing.xs : spacing.sm }]}
+      />
                   <TextInput
                     style={[styles.input, {
                       backgroundColor: 'transparent',
@@ -328,186 +388,236 @@ export default function LoginScreen() {
                     placeholder="U22312"
                     placeholderTextColor={themeColors.textSecondary}
                     value={credentials.username}
-                    onChangeText={handleUsernameChange}
+                    onChangeText={onUsernameChange}
                     keyboardType="default"
                     autoCapitalize="none"
                     autoCorrect={false}
                     editable={!loading}
-                    onFocus={handleUsernameFocus}
-                    onBlur={handleInputBlur}
+                    onFocus={onFocus}
+                    onBlur={onBlur}
                     underlineColorAndroid="transparent"
                     selectTextOnFocus={false}
                     blurOnSubmit={false}
-                    // Фиксируем автозаполнение
                     autoComplete="email"
                     textContentType="emailAddress"
+                    accessibilityLabel="Поле для ввода имени пользователя"
+                    accessibilityHint="Введите ваше имя пользователя"
+                    importantForAutofill="yes"
                   />
-                </View>
-              </View>
-
-              {/* Password Input */}
-              <View style={[styles.inputContainer, { marginBottom: isSmallScreen ? spacing.md : spacing.lg }]}>
-                <Text style={[
-                  styles.inputLabel, 
-                  { 
-                    color: themeColors.text,
-                    fontSize: isSmallScreen ? 11 : 12
-                  }
-                ]}>Пароль</Text>
-                <View style={[
-                  styles.inputWrapper, 
-                  { 
-                    backgroundColor: themeColors.surface,
-                    borderColor: themeColors.border,
-                    height: isSmallScreen ? 44 : 52,
-                    paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md
-                  },
-                  focusedInput === 'password' && {
-                    borderColor: Colors.brandPrimary,
-                    backgroundColor: themeColors.surface,
-                    shadowColor: Colors.tabActiveShadow,
-                  }
-                ]}>
-                  <Ionicons 
-                    name="lock-closed-outline" 
-                    size={isSmallScreen ? 18 : 20} 
-                    color={focusedInput === 'password' ? Colors.brandPrimary : themeColors.textSecondary}
-                    style={[styles.inputIcon, { marginRight: isSmallScreen ? spacing.xs : spacing.sm }]}
-                  />
-                  <TextInput
-                    style={[styles.input, {
-                      backgroundColor: 'transparent',
-                      borderColor: 'transparent',
-                      color: themeColors.text,
-                      fontSize: isSmallScreen ? fontSize.small : 14,
-                      paddingRight: isSmallScreen ? 50 : 60, // Увеличиваем отступ справа для кнопки глазика
-                    }]}
-                    placeholder="Введите ваш пароль"
-                    placeholderTextColor={themeColors.textSecondary}
-                    value={credentials.password}
-                    onChangeText={handlePasswordChange}
-                    secureTextEntry={!showPassword}
-                    editable={!loading}
-                    onFocus={handlePasswordFocus}
-                    onBlur={handleInputBlur}
-                    underlineColorAndroid="transparent"
-                    selectTextOnFocus={false}
-                    blurOnSubmit={false}
-                    // Фиксируем автозаполнение пароля
-                    autoComplete="current-password"
-                    textContentType="password"
-                  />
-                  <TouchableOpacity
-                    onPress={toggleShowPassword}
-                    style={styles.passwordToggle}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons 
-                      name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                      size={20} 
-                      color={themeColors.textSecondary}
-                    />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Error Message */}
-              {showErrorMessage && error && (
-                <Animated.View 
-                  entering={FadeInDown.duration(300)}
-                  style={{
-                    backgroundColor: theme === 'dark' ? '#FF4444' : '#FFE6E6',
-                    borderWidth: 1,
-                    borderColor: '#FF4444',
-                    borderRadius: 12,
-                    padding: Spacing.m,
-                    marginTop: Spacing.m,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Ionicons 
-                    name="alert-circle-outline" 
-                    size={20} 
-                    color="#FF4444" 
-                    style={{ marginRight: 8 }}
-                  />
-                  <Text style={{
-                    color: theme === 'dark' ? '#FFFFFF' : '#CC0000',
-                    fontSize: 14,
-                    flex: 1,
-                  }}>
-                    {error}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => {
-                      dispatch(clearError());
-                      setShowErrorMessage(false);
-                    }}
-                    style={{ marginLeft: 8 }}
-                  >
-                    <Ionicons 
-                      name="close-outline" 
-                      size={18} 
-                      color="#FF4444" 
-                    />
-                  </TouchableOpacity>
-                </Animated.View>
-              )}
-
-              {/* Login Button */}
-              <Animated.View style={[
-                styles.loginButton, 
-                buttonAnimatedStyle,
-                { 
-                  marginTop: isSmallScreen ? spacing.md : spacing.lg,
-                  height: isSmallScreen ? 48 : 56
-                }
-              ]}>
-                <TouchableOpacity
-                  style={[styles.loginButtonTouchable, loading && styles.loginButtonDisabled]}
-                  onPress={handleLogin}
-                  disabled={loading}
-                  activeOpacity={0.9}
-                >
-                  <LinearGradient
-                    colors={loading ? [Colors.surfaceSubtle, Colors.textSecondary] : [Colors.brandPrimary, '#1D4ED8']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.buttonGradient}
-                  >
-                    {loading ? (
-                      <View style={styles.buttonContent}>
-                        <LoadingAnimation color={Colors.surface} size={isSmallScreen ? 16 : 20} />
-                        <Text style={[
-                          styles.buttonText,
-                          { fontSize: isSmallScreen ? fontSize.body : 16 }
-                        ]}>Вход...</Text>
-                      </View>
-                    ) : (
-                      <View style={styles.buttonContent}>
-                        <Text style={[
-                          styles.buttonText,
-                          { fontSize: isSmallScreen ? fontSize.body : 16 }
-                        ]}>Войти</Text>
-                        <Ionicons 
-                          name="arrow-forward" 
-                          size={isSmallScreen ? 18 : 20} 
-                          color={Colors.surface} 
-                        />
-                      </View>
-                    )}
-                  </LinearGradient>
-                </TouchableOpacity>
-              </Animated.View>
-
-            </Animated.View>
-          </View>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
     </View>
-  );
-}
+  </View>
+));
+
+const PasswordInput = React.memo(({ 
+  themeColors, 
+  isSmallScreen, 
+  spacing, 
+  fontSize, 
+  credentials, 
+  focusedInput, 
+  loading, 
+  showPassword,
+  onPasswordChange, 
+  onFocus, 
+  onBlur,
+  onTogglePassword
+}: {
+  themeColors: any;
+  isSmallScreen: boolean;
+  spacing: any;
+  fontSize: any;
+  credentials: LoginCredentials;
+  focusedInput: string | null;
+  loading: boolean;
+  showPassword: boolean;
+  onPasswordChange: (password: string) => void;
+  onFocus: () => void;
+  onBlur: () => void;
+  onTogglePassword: () => void;
+}) => (
+  <View style={[styles.inputContainer, { marginBottom: isSmallScreen ? spacing.md : spacing.lg }]}>
+    <Text style={[
+      styles.inputLabel, 
+      { 
+        color: themeColors.text,
+        fontSize: isSmallScreen ? 11 : 12
+      }
+    ]}>Пароль</Text>
+    <View style={[
+      styles.inputWrapper, 
+      { 
+        backgroundColor: themeColors.surface,
+        borderColor: themeColors.border,
+        height: isSmallScreen ? 44 : 52,
+        paddingHorizontal: isSmallScreen ? spacing.sm : spacing.md
+      },
+      focusedInput === 'password' && {
+        borderColor: Colors.brandPrimary,
+        backgroundColor: themeColors.surface,
+        shadowColor: Colors.tabActiveShadow,
+      }
+    ]}>
+      <Ionicons 
+        name="lock-closed-outline" 
+        size={isSmallScreen ? 18 : 20} 
+        color={focusedInput === 'password' ? Colors.brandPrimary : themeColors.textSecondary}
+        style={[styles.inputIcon, { marginRight: isSmallScreen ? spacing.xs : spacing.sm }]}
+      />
+      <TextInput
+        style={[styles.input, {
+          backgroundColor: 'transparent',
+          borderColor: 'transparent',
+          color: themeColors.text,
+          fontSize: isSmallScreen ? fontSize.small : 14,
+          paddingRight: isSmallScreen ? 50 : 60,
+        }]}
+        placeholder="Введите ваш пароль"
+        placeholderTextColor={themeColors.textSecondary}
+        value={credentials.password}
+        onChangeText={onPasswordChange}
+        secureTextEntry={!showPassword}
+        editable={!loading}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        underlineColorAndroid="transparent"
+        selectTextOnFocus={false}
+        blurOnSubmit={false}
+        autoComplete="current-password"
+        textContentType="password"
+        accessibilityLabel="Поле для ввода пароля"
+        accessibilityHint="Введите ваш пароль"
+        importantForAutofill="yes"
+      />
+      <TouchableOpacity
+        onPress={onTogglePassword}
+        style={styles.passwordToggle}
+        activeOpacity={0.7}
+        accessibilityLabel={showPassword ? "Скрыть пароль" : "Показать пароль"}
+        accessibilityRole="button"
+        accessibilityHint="Нажмите чтобы показать или скрыть пароль"
+      >
+        <Ionicons 
+          name={showPassword ? "eye-off-outline" : "eye-outline"} 
+          size={20} 
+          color={themeColors.textSecondary}
+        />
+      </TouchableOpacity>
+    </View>
+  </View>
+));
+
+const ErrorMessage = React.memo(({ error, theme, onClose }: {
+  error: string;
+  theme: string;
+  onClose: () => void;
+}) => (
+  <Animated.View 
+    entering={FadeInDown.duration(300)}
+    style={{
+      backgroundColor: theme === 'dark' ? '#FF4444' : '#FFE6E6',
+      borderWidth: 1,
+      borderColor: '#FF4444',
+      borderRadius: 12,
+      padding: Spacing.m,
+      marginTop: Spacing.m,
+      flexDirection: 'row',
+      alignItems: 'center',
+    }}
+  >
+    <Ionicons 
+      name="alert-circle-outline" 
+      size={20} 
+      color="#FF4444" 
+      style={{ marginRight: 8 }}
+    />
+    <Text style={{
+      color: theme === 'dark' ? '#FFFFFF' : '#CC0000',
+      fontSize: 14,
+      flex: 1,
+    }}>
+      {error}
+    </Text>
+    <TouchableOpacity
+      onPress={onClose}
+      style={{ marginLeft: 8 }}
+      accessibilityLabel="Скрыть сообщение об ошибке"
+      accessibilityRole="button"
+      accessibilityHint="Нажмите чтобы скрыть это сообщение (ошибка останется до следующей попытки входа)"
+    >
+      <Ionicons 
+        name="close-outline" 
+        size={18} 
+        color="#FF4444" 
+      />
+    </TouchableOpacity>
+  </Animated.View>
+));
+
+const LoginButton = React.memo(({ 
+  loading, 
+  isSmallScreen, 
+  spacing, 
+  fontSize, 
+  animatedStyle, 
+  onPress 
+}: {
+  loading: boolean;
+  isSmallScreen: boolean;
+  spacing: any;
+  fontSize: any;
+  animatedStyle: any;
+  onPress: () => void;
+}) => (
+  <Animated.View style={[
+    styles.loginButton, 
+    animatedStyle,
+    { 
+      marginTop: isSmallScreen ? spacing.md : spacing.lg,
+      height: isSmallScreen ? 48 : 56
+    }
+  ]}>
+    <TouchableOpacity
+      style={[styles.loginButtonTouchable, loading && styles.loginButtonDisabled]}
+      onPress={onPress}
+      disabled={loading}
+      activeOpacity={0.9}
+      accessibilityLabel={loading ? "Вход в систему..." : "Войти в систему"}
+      accessibilityRole="button"
+      accessibilityHint="Нажмите чтобы войти в систему"
+    >
+      <LinearGradient
+        colors={loading ? [Colors.surfaceSubtle, Colors.textSecondary] : [Colors.brandPrimary, '#1D4ED8']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.buttonGradient}
+      >
+        {loading ? (
+          <View style={styles.buttonContent}>
+            <LoadingAnimation color={Colors.surface} size={isSmallScreen ? 16 : 20} />
+            <Text style={[
+              styles.buttonText,
+              { fontSize: isSmallScreen ? fontSize.body : 16 }
+            ]}>Вход...</Text>
+          </View>
+        ) : (
+          <View style={styles.buttonContent}>
+            <Text style={[
+              styles.buttonText,
+              { fontSize: isSmallScreen ? fontSize.body : 16 }
+            ]}>Войти</Text>
+            <Ionicons 
+              name="arrow-forward" 
+              size={isSmallScreen ? 18 : 20} 
+              color={Colors.surface} 
+            />
+          </View>
+        )}
+      </LinearGradient>
+    </TouchableOpacity>
+  </Animated.View>
+));
+
+export default LoginScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -649,14 +759,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  // Кнопка смены темы
-  themeButton: {
-    position: 'absolute',
-    top: Platform.OS === 'ios' ? 50 : 15,
-    right: 15,
-    zIndex: 100,
-    padding: 12,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-  },
 });
