@@ -16,7 +16,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import React, { Suspense } from 'react';
+
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Lazy loading для тяжелых компонентов dashboard
 const CircularChart = React.lazy(() => import('@/components/dashboard').then(module => ({ default: module.CircularChart })));
@@ -36,17 +37,20 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 export default function HomeScreen() {
   const dispatch = useAppDispatch();
   const { isDarkMode } = useTheme();
-  const colors = getThemeColors(isDarkMode);
+  const colors = useMemo(() => getThemeColors(isDarkMode), [isDarkMode]);
   const scrollY = useSharedValue(0);
-  const [refreshing, setRefreshing] = React.useState(false);
-  const [showNotifications, setShowNotifications] = React.useState(false);
-  const [gradesData, setGradesData] = React.useState<any[]>([]);
-  const [gradesLoading, setGradesLoading] = React.useState(true); // Начинаем с loading=true для skeleton
-  const [coursesData, setCoursesData] = React.useState<any[]>([]);
-  const [coursesLoading, setCoursesLoading] = React.useState(true); // Начинаем с loading=true для skeleton
-  const [attendanceData, setAttendanceData] = React.useState<any[]>([]);
-  const [attendanceLoading, setAttendanceLoading] = React.useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [gradesData, setGradesData] = useState<any[]>([]);
+  const [gradesLoading, setGradesLoading] = useState(true);
+  const [coursesData, setCoursesData] = useState<any[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
+  const [attendanceData, setAttendanceData] = useState<any[]>([]);
+  const [attendanceLoading, setAttendanceLoading] = useState(false);
   const insets = useSafeAreaInsets();
+  
+  // Refs для cleanup таймеров
+  const timeoutRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
   const { 
     horizontalPadding, 
     cardGap, 
@@ -61,7 +65,7 @@ export default function HomeScreen() {
     width 
   } = useResponsive();
   // Мемоизированный селектор для оптимизации
-  const authData = useAppSelector(React.useCallback((state) => ({
+  const authData = useAppSelector(useCallback((state) => ({
     user: state.auth.user,
     isAuthenticated: state.auth.isAuthenticated
   }), []), (left, right) => left.user?.id === right.user?.id && left.isAuthenticated === right.isAuthenticated);
@@ -74,17 +78,21 @@ export default function HomeScreen() {
     },
   });
 
+  // Валидация данных оценок
+  const validateGradeData = useCallback((item: any) => {
+    if (!item || typeof item !== 'object') return false;
+    
+    const grade = parseFloat(item.final_grade || item.grade || item.score || 0);
+    return !isNaN(grade) && grade >= 0 && grade <= 100;
+  }, []);
+
   // Функция для загрузки оценок
-  const fetchGrades = React.useCallback(async () => {
+  const fetchGrades = useCallback(async () => {
     if (user?.role !== 'student') {
-      if (__DEV__) {
-      }
       return;
     }
     
     try {
-      if (__DEV__) {
-      }
       setGradesLoading(true);
       
       const response = await authApi.getGrades();
@@ -94,11 +102,13 @@ export default function HomeScreen() {
         const responseData = response.data as any || {};
         const gradesArray = Array.isArray(responseData.data) ? responseData.data : [];
         
-        // Преобразуем данные LDAP в упрощенный формат для расчета GPA
-        const formattedGrades = gradesArray.map((item: any) => ({
-          grade: parseFloat(item.final_grade || item.grade || item.score || 0),
-          maxGrade: 100
-        }));
+        // Преобразуем данные LDAP в упрощенный формат для расчета GPA с валидацией
+        const formattedGrades = gradesArray
+          .filter(validateGradeData)
+          .map((item: any) => ({
+            grade: parseFloat(item.final_grade || item.grade || item.score || 0),
+            maxGrade: 100
+          }));
         
         setGradesData(formattedGrades);
       } else {
@@ -114,17 +124,23 @@ export default function HomeScreen() {
     } finally {
       setGradesLoading(false);
     }
-  }, [user?.role]);
+  }, [user?.role, validateGradeData]);
+
+  // Валидация данных курсов
+  const validateCourseData = useCallback((item: any) => {
+    if (!item || typeof item !== 'object') return false;
+    
+    const courseName = item.course_name || item.name;
+    return courseName && typeof courseName === 'string' && courseName.trim().length > 0;
+  }, []);
 
   // Функция для загрузки курсов
-  const fetchCourses = React.useCallback(async () => {
+  const fetchCourses = useCallback(async () => {
     if (user?.role !== 'student') {
       return;
     }
     
     try {
-      if (__DEV__) {
-      }
       setCoursesLoading(true);
       
       const response = await authApi.getCourses();
@@ -133,47 +149,58 @@ export default function HomeScreen() {
         const responseData = response.data as any || {};
         const coursesArray = Array.isArray(responseData.data) ? responseData.data : [];
         
-        
-        setCoursesData(coursesArray);
+        // Фильтруем и валидируем данные курсов
+        const validCourses = coursesArray.filter(validateCourseData);
+        setCoursesData(validCourses);
       } else {
         setCoursesData([]);
       }
     } catch (error) {
       if (__DEV__) {
+        console.error('📚 Error fetching courses:', error);
       }
       setCoursesData([]);
     } finally {
       setCoursesLoading(false);
     }
-  }, [user?.role]);
+  }, [user?.role, validateCourseData]);
 
-  // Посещаемость недоступна в LDAP - пока отключена
-  // const fetchAttendance = React.useCallback(async () => {
-  //   // Данные о посещаемости пока не доступны в LDAP системе
-  // }, [user?.role]);
 
   // Загружаем данные при монтировании компонента с приоритизацией
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) {
       // Сначала загружаем критически важные данные для быстрого LCP
       dispatch(fetchNews());
       
       // Остальные данные загружаем с задержкой для улучшения LCP
-      setTimeout(() => {
+      const timeout1 = setTimeout(() => {
         dispatch(fetchEvents());
       }, 100);
+      timeoutRefs.current.push(timeout1);
       
-      setTimeout(() => {
+      const timeout2 = setTimeout(() => {
         fetchGrades();
       }, 200);
+      timeoutRefs.current.push(timeout2);
       
-      setTimeout(() => {
+      const timeout3 = setTimeout(() => {
         fetchCourses();
       }, 300);
+      timeoutRefs.current.push(timeout3);
     }
+
+    // Cleanup function
+    return () => {
+      timeoutRefs.current.forEach(timeout => {
+        if (timeout) {
+          clearTimeout(timeout);
+        }
+      });
+      timeoutRefs.current = [];
+    };
   }, [dispatch, user, fetchGrades, fetchCourses]);
 
-  const onRefresh = React.useCallback(async () => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
       if (user) {
@@ -185,8 +212,10 @@ export default function HomeScreen() {
           // fetchAttendance() // Отключено - нет данных в LDAP
         ]);
       }
-    } catch {
-      // handle error
+    } catch (error) {
+      if (__DEV__) {
+        console.error('🔄 Error refreshing data:', error);
+      }
     }
     setRefreshing(false);
   }, [dispatch, user, fetchGrades, fetchCourses]);
@@ -196,7 +225,7 @@ export default function HomeScreen() {
   const { items: eventsData } = useAppSelector((state) => state.events);
 
   // Получаем ближайшие события (следующие 3)
-  const upcomingEvents = React.useMemo(() => {
+  const upcomingEvents = useMemo(() => {
     const now = new Date();
     return eventsData
       .filter(event => new Date(event.date) >= now)
@@ -205,12 +234,12 @@ export default function HomeScreen() {
   }, [eventsData]);
 
   // Получаем важные новости
-  const importantNews = React.useMemo(() => {
+  const importantNews = useMemo(() => {
     return newsData.filter(news => news.isImportant).slice(0, 2);
   }, [newsData]);
 
   // Мемоизированный расчет среднего балла (GPA) из реальных данных
-  const gpaValue = React.useMemo(() => {
+  const gpaValue = useMemo(() => {
     if (!gradesData || gradesData.length === 0) return 0;
     
     // Считаем средний балл как среднее арифметическое всех оценок
@@ -222,7 +251,7 @@ export default function HomeScreen() {
   }, [gradesData]);
 
   // Обратная совместимость
-  const calculateGPA = React.useCallback((grades: any[]) => {
+  const calculateGPA = useCallback((grades: any[]) => {
     return gpaValue;
   }, [gpaValue]);
 
@@ -234,7 +263,7 @@ export default function HomeScreen() {
   // }, []);
 
   // Динамические данные для виджетов
-  const statsData = React.useMemo(() => {
+  const statsData = useMemo(() => {
     const role = user?.role;
     
     // Используем реальные данные курсов
@@ -248,7 +277,6 @@ export default function HomeScreen() {
           coursesData.map((course: any) => course.course_name || course.name || 'Unknown')
         );
         coursesCount = uniqueSubjects.size.toString();
-
       }
     } else if (role === 'professor') {
       coursesCount = '5'; // TODO: получать из API для преподавателей
@@ -284,7 +312,7 @@ export default function HomeScreen() {
   }, [user?.role, newsData.length, eventsData.length, gradesData, gradesLoading, coursesData, coursesLoading, gpaValue]);
 
   // Skeleton компонент для быстрого LCP
-  const SkeletonWidget = React.memo(() => (
+  const SkeletonWidget = () => (
     <View style={[styles.statWidget, { backgroundColor: colors.surface, opacity: 0.6 }]}>
       <View style={[styles.gradientOverlay, { backgroundColor: colors.border }]} />
       <View style={styles.statWidgetContent}>
@@ -299,7 +327,7 @@ export default function HomeScreen() {
         }} />
       </View>
     </View>
-  ));
+  );
 
   // Компонент статистического виджета
   const StatWidget = ({ icon, title, value, color, onPress }: {
@@ -459,13 +487,31 @@ export default function HomeScreen() {
     </Animated.View>
   );
 
+  // Мемоизированные градиентные цвета
+  const gradientColors = useMemo(() => 
+    isDarkMode 
+      ? ['#1E3A8A', '#2563EB', '#3B82F6'] as const
+      : ['#EFF6FF', '#DBEAFE', '#BFDBFE'] as const,
+    [isDarkMode]
+  );
+
+  // Мемоизированные обработчики
+  const handleAvatarPress = useCallback(() => {
+    router.push('/(tabs)/profile');
+  }, []);
+
+  const handleNotificationPress = useCallback(() => {
+    setShowNotifications(prev => !prev);
+  }, []);
+
+  const handleCloseNotifications = useCallback(() => {
+    setShowNotifications(false);
+  }, []);
+
   return (
     <View style={{ flex: 1 }}>
       <LinearGradient
-        colors={isDarkMode 
-          ? ['#1E3A8A', '#2563EB', '#3B82F6']
-          : ['#EFF6FF', '#DBEAFE', '#BFDBFE']
-        }
+        colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
@@ -474,14 +520,14 @@ export default function HomeScreen() {
       <AnimatedHeader 
         userName={user?.first_name || user?.username || 'Пользователь'}
         notificationCount={0}
-        onAvatarPress={() => router.push('/(tabs)/profile')}
-        onNotificationPress={() => setShowNotifications(prev => !prev)}
+        onAvatarPress={handleAvatarPress}
+        onNotificationPress={handleNotificationPress}
       />
 
       {showNotifications && (
         <NotificationModal
           isVisible={showNotifications}
-          onClose={() => setShowNotifications(false)}
+          onClose={handleCloseNotifications}
         />
       )}
 
@@ -553,7 +599,7 @@ export default function HomeScreen() {
               <>
                 <StatWidget 
                   icon="book-outline" 
-                  title="Предметы" 
+                  title="Предмет" 
                   value={statsData.courses} 
                   color="#3B82F6" 
                 />

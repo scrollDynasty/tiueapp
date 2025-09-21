@@ -385,7 +385,7 @@ const UsernameInput = React.memo(({
                       color: themeColors.text,
                       fontSize: isSmallScreen ? fontSize.small : 14
                     }]}
-                    placeholder="U22312"
+                    placeholder="U12345"
                     placeholderTextColor={themeColors.textSecondary}
                     value={credentials.username}
                     onChangeText={onUsernameChange}
