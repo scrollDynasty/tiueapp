@@ -10,19 +10,26 @@ class ApiService {
     // Даем время AsyncStorage обновиться
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    // Сначала пытаемся получить LDAP токен, потом legacy токен
+    // Приоритет: ldap_access_token -> adminToken -> authToken
     let token = await AsyncStorage.getItem('ldap_access_token');
+    let authType = 'Bearer';
+    
     if (!token || token === 'undefined' || token === 'null') {
-      token = await AsyncStorage.getItem('authToken');
+      token = await AsyncStorage.getItem('adminToken');
+      authType = 'Token';
     }
     
+    if (!token || token === 'undefined' || token === 'null') {
+      token = await AsyncStorage.getItem('authToken');
+      authType = 'Bearer';
+    }
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
     
     if (token && token !== 'undefined' && token !== 'null') {
-      headers.Authorization = `Bearer ${token}`;  // Используем Bearer для LDAP токенов
+      headers.Authorization = `${authType} ${token}`;
     }
     
     return headers;
@@ -53,10 +60,26 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
+        // Улучшенная обработка ошибок
+        let errorMessage = 'Неизвестная ошибка';
+        
+        if (response.status === 500) {
+          errorMessage = 'Ошибка сервера. Попробуйте позже или обратитесь к администратору.';
+        } else if (response.status === 403) {
+          errorMessage = 'Недостаточно прав доступа. Проверьте авторизацию.';
+        } else if (response.status === 401) {
+          errorMessage = 'Требуется авторизация. Войдите в систему заново.';
+        } else if (response.status === 400) {
+          errorMessage = data.error || 'Некорректные данные запроса';
+        } else {
+          errorMessage = data.error || data.message || `Ошибка ${response.status}`;
+        }
+        
+        console.error('API Error:', { status: response.status, data, url: response.url });
         
         return {
           success: false,
-          error: data.error || data.message || `HTTP ${response.status}`,
+          error: errorMessage,
         };
       }
 
@@ -112,14 +135,61 @@ class ApiService {
         };
       }
 
-      const { access_token, refresh_token, user: ldapProfile } = data.data;
+      const { access_token, refresh_token, user: ldapProfile, auth_type } = data.data;
 
-      // Преобразуем LDAP профиль в формат User если он есть
+      // Преобразуем профиль в формат User
       let user: User;
-      if (ldapProfile) {
+      let username: string;
+      
+      if (auth_type === 'local' && ldapProfile) {
+        // Локальный администратор
+        username = ldapProfile.username;
+        
+        // Загружаем аватарку администратора
+        let avatarUrl = null;
+        try {
+          const avatarResponse = await this.getUserAvatar(username);
+          if (avatarResponse.success && avatarResponse.data?.avatar_url) {
+            avatarUrl = avatarResponse.data.avatar_url;
+          }
+        } catch (error) {
+          console.log('Avatar loading failed during admin login, continuing without avatar');
+        }
+        
+        user = {
+          id: ldapProfile.id,
+          username: username,
+          email: ldapProfile.email || '',
+          first_name: ldapProfile.first_name || '',
+          last_name: ldapProfile.last_name || '',
+          role: ldapProfile.role || 'admin',
+          is_active: true,
+          created_at: ldapProfile.created_at || new Date().toISOString(),
+          updated_at: ldapProfile.updated_at || new Date().toISOString(),
+          avatar: avatarUrl || undefined, // Добавляем аватарку
+        };
+        
+        // Сохраняем токен администратора отдельно
+        await AsyncStorage.setItem('adminToken', access_token);
+        
+      } else if (ldapProfile) {
+        // LDAP пользователь
+        username = credentials.username;
+        
+        // Загружаем аватарку пользователя
+        let avatarUrl = null;
+        try {
+          const avatarResponse = await this.getUserAvatar(username);
+          if (avatarResponse.success && avatarResponse.data?.avatar_url) {
+            avatarUrl = avatarResponse.data.avatar_url;
+          }
+        } catch (error) {
+          console.log('Avatar loading failed during login, continuing without avatar');
+        }
+        
         user = {
           id: ldapProfile.jshr || credentials.username,
-          username: credentials.username,
+          username: username,
           email: ldapProfile.email || `${credentials.username}@tiue.uz`,
           first_name: this.extractFirstName(ldapProfile.full_name || ''),
           last_name: this.extractLastName(ldapProfile.full_name || ''),
@@ -127,6 +197,7 @@ class ApiService {
           is_active: true,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
+          avatar: avatarUrl || undefined, // Добавляем аватарку
           // Сохраняем полный LDAP профиль для отображения
           ldap_profile: ldapProfile,
           student: {
@@ -138,10 +209,24 @@ class ApiService {
           },
         };
       } else {
+        // Это может быть локальный администратор
+        username = credentials.username;
+        
+        // Загружаем аватарку
+        let avatarUrl = null;
+        try {
+          const avatarResponse = await this.getUserAvatar(username);
+          if (avatarResponse.success && avatarResponse.data?.avatar_url) {
+            avatarUrl = avatarResponse.data.avatar_url;
+          }
+        } catch (error) {
+          console.log('Avatar loading failed during login, continuing without avatar');
+        }
+        
         // Создаем базовый профиль если LDAP профиль не получен
         user = {
           id: credentials.username,
-          username: credentials.username,
+          username: username,
           email: `${credentials.username}@tiue.uz`,
           first_name: '',
           last_name: '',
@@ -149,6 +234,7 @@ class ApiService {
           is_active: true,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
+          avatar: avatarUrl || undefined, // Добавляем аватарку
         };
       }
 
@@ -275,11 +361,20 @@ class ApiService {
 
   private async getLDAPCurrentUser(): Promise<ApiResponse<User>> {
     try {
-      
-      // Получаем токен из AsyncStorage (сначала LDAP, потом legacy)
+      // Получаем токен и тип аутентификации
       let token = await AsyncStorage.getItem('ldap_access_token');
+      let authType = 'Bearer';
+      let isLocalAdmin = false;
+      
+      if (!token || token === 'undefined' || token === 'null') {
+        token = await AsyncStorage.getItem('adminToken');
+        authType = 'Token';
+        isLocalAdmin = true;
+      }
+      
       if (!token || token === 'undefined' || token === 'null') {
         token = await AsyncStorage.getItem('authToken');
+        authType = 'Bearer';
       }
       
       if (!token || token === 'undefined' || token === 'null') {
@@ -290,12 +385,13 @@ class ApiService {
       }
 
       // Получаем профиль пользователя через наш бэкенд
-      // Делаем запрос к нашему бэкенду, который проксирует к LDAP
-      const response = await fetch(`${API_BASE_URL}/auth/me/`, {
+      // Для локальных админов используем другой endpoint
+      const endpoint = isLocalAdmin ? '/auth/me/' : '/auth/me/';
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `${authType} ${token}`,
         },
       });
 
@@ -319,28 +415,75 @@ class ApiService {
         };
       }
 
-      // Преобразуем LDAP профиль в формат User
-      const ldapProfile = data.data;
-      const user: User = {
-        id: ldapProfile.jshr || 'unknown',
-        username: ldapProfile.email ? ldapProfile.email.split('@')[0] : 'unknown',
-        email: ldapProfile.email || '',
-        first_name: this.extractFirstName(ldapProfile.full_name || ''),
-        last_name: this.extractLastName(ldapProfile.full_name || ''),
-        role: 'student',
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        // Сохраняем полный LDAP профиль для отображения
-        ldap_profile: ldapProfile,
-        student: {
-          group: {
-            name: ldapProfile.group || '',
+      let user: User;
+      let username: string;
+
+      if (isLocalAdmin) {
+        // Обрабатываем локального администратора
+        const adminData = data.data.user;
+        username = adminData.username;
+        
+        // Загружаем аватарку администратора
+        let avatarUrl = null;
+        try {
+          const avatarResponse = await this.getUserAvatar(username);
+          if (avatarResponse.success && avatarResponse.data?.avatar_url) {
+            avatarUrl = avatarResponse.data.avatar_url;
+          }
+        } catch (error) {
+          console.log('Avatar loading failed, continuing without avatar');
+        }
+        
+        user = {
+          id: adminData.id,
+          username: username,
+          email: adminData.email || '',
+          first_name: adminData.first_name || '',
+          last_name: adminData.last_name || '',
+          role: adminData.role || 'admin',
+          is_active: true,
+          created_at: adminData.created_at || new Date().toISOString(),
+          updated_at: adminData.updated_at || new Date().toISOString(),
+          avatar: avatarUrl || undefined, // Добавляем аватарку
+        };
+      } else {
+        // Преобразуем LDAP профиль в формат User
+        const ldapProfile = data.data;
+        username = ldapProfile.email ? ldapProfile.email.split('@')[0] : 'unknown';
+        
+        // Загружаем аватарку пользователя
+        let avatarUrl = null;
+        try {
+          const avatarResponse = await this.getUserAvatar(username);
+          if (avatarResponse.success && avatarResponse.data?.avatar_url) {
+            avatarUrl = avatarResponse.data.avatar_url;
+          }
+        } catch (error) {
+          console.log('Avatar loading failed, continuing without avatar');
+        }
+        
+        user = {
+          id: ldapProfile.jshr || 'unknown',
+          username: username,
+          email: ldapProfile.email || '',
+          first_name: this.extractFirstName(ldapProfile.full_name || ''),
+          last_name: this.extractLastName(ldapProfile.full_name || ''),
+          role: 'student',
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          avatar: avatarUrl || undefined, // Добавляем аватарку
+          // Сохраняем полный LDAP профиль для отображения
+          ldap_profile: ldapProfile,
+          student: {
+            group: {
+              name: ldapProfile.group || '',
+              course: this.extractCourseFromGroup(ldapProfile.group || ''),
+            },
             course: this.extractCourseFromGroup(ldapProfile.group || ''),
           },
-          course: this.extractCourseFromGroup(ldapProfile.group || ''),
-        },
-      };
+        };
+      }
 
       return {
         success: true,
@@ -361,7 +504,82 @@ class ApiService {
   clearUserCache(): void {
     this.currentUserCache = null;
     this.currentUserPromise = null;
+  }
 
+  // Загрузка аватара пользователя
+  async uploadAvatar(imageData: any): Promise<ApiResponse<{ avatar_url: string }>> {
+    try {
+      if (!imageData.uri) {
+        return {
+          success: false,
+          error: 'Изображение не выбрано',
+        };
+      }
+
+      const url = `${API_BASE_URL}/users/avatar/`;
+      const formData = new FormData();
+      
+      const timestamp = Date.now();
+      const filename = `avatar_${timestamp}.jpg`;
+      
+      // Проверяем среду выполнения
+      if (typeof window !== 'undefined') {
+        // Веб-версия - создаем Blob из URI
+        console.log('Web environment detected, converting URI to Blob');
+        const response = await fetch(imageData.uri);
+        const blob = await response.blob();
+        formData.append('avatar', blob, filename);
+      } else {
+        // React Native - используем объект с uri/type/name
+        console.log('React Native environment detected');
+        const fileToUpload = {
+          uri: imageData.uri,
+          type: imageData.type || 'image/jpeg',
+          name: filename,
+        };
+        // @ts-ignore - React Native FormData поддерживает объекты с uri/type/name
+        formData.append('avatar', fileToUpload);
+      }
+      
+      const headers = await this.getHeaders();
+      // Удаляем Content-Type, чтобы браузер/RN установил правильный с boundary
+      delete headers['Content-Type'];
+      
+      console.log('Uploading avatar with headers:', headers);
+      
+      const apiResponse = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: formData,
+      });
+
+      const data = await apiResponse.json();
+
+      if (!apiResponse.ok) {
+        console.error('Upload avatar API error:', apiResponse.status, data);
+        return {
+          success: false,
+          error: data.error || data.message || 'Ошибка загрузки аватара',
+        };
+      }
+
+      return {
+        success: true,
+        data: data.data || data,
+      };
+      
+    } catch (error) {
+      console.error('Upload avatar error:', error);
+      return {
+        success: false,
+        error: 'Ошибка загрузки аватара',
+      };
+    }
+  }
+
+  // Получение аватара пользователя по username (для друзей)
+  async getUserAvatar(username: string): Promise<ApiResponse<{ avatar_url: string | null; initials: string }>> {
+    return this.request<{ avatar_url: string | null; initials: string }>(`/users/avatar/${username}/`);
   }
 
   // User management (admin only)
@@ -444,15 +662,21 @@ class ApiService {
         const timestamp = Date.now();
         const filename = `news_${timestamp}.jpg`;
         
-        // Создаем объект для FormData в React Native
-        const imageFile = {
-          uri: imageUri,
-          type: 'image/jpeg',
-          name: filename,
-        } as any;
-        
-        // Добавляем файл в FormData
-        formData.append('image', imageFile);
+        // Проверяем что у нас есть правильный URI изображения
+        if (!imageUri) {
+          console.warn('Image URI is missing, skipping image upload');
+        } else {
+          // Создаем объект для FormData
+          const imageFile = {
+            uri: imageUri,
+            type: newsData.image.type || 'image/jpeg',
+            name: filename,
+          } as any;
+          
+          // Добавляем файл в FormData
+          formData.append('image', imageFile);
+          console.log('Image added to FormData:', { uri: imageUri, name: filename });
+        }
 
         const apiResponse = await fetch(url, {
           method: 'POST',
@@ -542,15 +766,21 @@ class ApiService {
         const now = new Date();
         const filename = `evt_${now.getTime()}.jpg`;
 
-        // React Native-совместимая обработка изображения
-        const imageFile = {
-          uri: imageUri,
-          type: 'image/jpeg',
-          name: filename,
-        } as any;
-        
-        // Добавляем файл в FormData
-        formData.append('image', imageFile);
+        // Проверяем что у нас есть правильный URI изображения
+        if (!imageUri) {
+          console.warn('Event image URI is missing, skipping image upload');
+        } else {
+          // React Native-совместимая обработка изображения
+          const imageFile = {
+            uri: imageUri,
+            type: eventData.image.type || 'image/jpeg',
+            name: filename,
+          } as any;
+          
+          // Добавляем файл в FormData
+          formData.append('image', imageFile);
+          console.log('Event image added to FormData:', { uri: imageUri, name: filename });
+        }
 
         let apiResponse: Response;
         try {

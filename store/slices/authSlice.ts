@@ -146,5 +146,17 @@ const authSlice = createSlice({
   },
 });
 
+// Добавляем action для обновления аватара
+const updateUserAvatar = (avatarUrl: string) => (dispatch: any, getState: any) => {
+  const { auth } = getState();
+  if (auth.user) {
+    dispatch(setCredentials({
+      user: { ...auth.user, avatar: avatarUrl },
+      token: auth.token
+    }));
+  }
+};
+
 export const { clearError, setCredentials, clearCredentials } = authSlice.actions;
+export { updateUserAvatar };
 export default authSlice.reducer;
