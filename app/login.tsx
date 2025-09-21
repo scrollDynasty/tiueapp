@@ -330,7 +330,7 @@ export default function LoginScreen() {
                     value={credentials.username}
                     onChangeText={handleUsernameChange}
                     keyboardType="default"
-                    autoCapitalize="characters"
+                    autoCapitalize="none"
                     autoCorrect={false}
                     editable={!loading}
                     onFocus={handleUsernameFocus}
