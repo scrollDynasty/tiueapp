@@ -27,7 +27,7 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
   const [showSplash, setShowSplash] = React.useState(true);
-  const [splashShown, setSplashShown] = React.useState(false);
+  const [splashCompleted, setSplashCompleted] = React.useState(false);
   
   const { enableImmersiveMode, reactivateImmersiveMode } = useImmersiveMode();
 
@@ -54,18 +54,18 @@ export default function RootLayout() {
         const hasShownSplash = await AsyncStorage.getItem('splashShownInSession');
         if (hasShownSplash === 'true') {
           // Если анимация уже показывалась в этой сессии, скрываем splash screen
-          setSplashShown(true);
+          setSplashCompleted(true);
           setShowSplash(false);
           await ExpoSplashScreen.hideAsync();
         } else {
           // Если анимация не показывалась, показываем её
           setShowSplash(true);
-          setSplashShown(false);
+          setSplashCompleted(false);
         }
       } catch (error) {
         // Если ошибка, показываем анимацию
         setShowSplash(true);
-        setSplashShown(false);
+        setSplashCompleted(false);
       }
     };
     
@@ -79,7 +79,7 @@ export default function RootLayout() {
     // Скрываем нативный splash screen когда заканчивается кастомный
     await ExpoSplashScreen.hideAsync();
     setShowSplash(false);
-    setSplashShown(true);
+    setSplashCompleted(true);
     
     // Сохраняем информацию о том, что анимация была показана в этой сессии
     try {
@@ -94,7 +94,7 @@ export default function RootLayout() {
   }
 
   // Показываем splash screen в первую очередь, до всех остальных компонентов
-  if (showSplash && !splashShown) {
+  if (showSplash && !splashCompleted) {
     return (
       <ErrorBoundary>
         <Provider store={store}>

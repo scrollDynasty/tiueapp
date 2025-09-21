@@ -4,6 +4,7 @@ import { ApiResponse, LoginCredentials, User } from '../types';
 
 const API_BASE_URL = getApiBaseUrl();
 
+
 class ApiService {
   private async getHeaders(): Promise<Record<string, string>> {
     // Даем время AsyncStorage обновиться
@@ -274,6 +275,7 @@ class ApiService {
 
   private async getLDAPCurrentUser(): Promise<ApiResponse<User>> {
     try {
+      
       // Получаем токен из AsyncStorage (сначала LDAP, потом legacy)
       let token = await AsyncStorage.getItem('ldap_access_token');
       if (!token || token === 'undefined' || token === 'null') {

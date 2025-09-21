@@ -155,26 +155,43 @@ export default function LoginScreen() {
       });
     });
 
-    await dispatch(loginUser(credentials));
+    // Применяем toUpperCase только при отправке
+    const submitCredentials = {
+      username: credentials.username.toUpperCase().trim(),
+      password: credentials.password,
+    };
+
+    await dispatch(loginUser(submitCredentials));
   };
 
-  const handleUsernameChange = (username: string) => {
-    setCredentials({ ...credentials, username: username.toUpperCase().trim() });
+  const handleUsernameChange = React.useCallback((username: string) => {
+    // Убираем toUpperCase() из onChangeText - это вызывает дублирование
+    setCredentials(prev => {
+      if (prev.username === username) return prev;
+      return { ...prev, username };
+    });
     // Очищаем ошибку при изменении полей
     if (error) {
       dispatch(clearError());
       setShowErrorMessage(false);
     }
-  };
+  }, [error, dispatch]);
 
-  const handlePasswordChange = (password: string) => {
-    setCredentials({ ...credentials, password });
+  const handlePasswordChange = React.useCallback((password: string) => {
+    setCredentials(prev => {
+      if (prev.password === password) return prev;
+      return { ...prev, password };
+    });
     // Очищаем ошибку при изменении полей
     if (error) {
       dispatch(clearError());
       setShowErrorMessage(false);
     }
-  };
+  }, [error, dispatch]);
+
+  const handleUsernameFocus = React.useCallback(() => setFocusedInput('username'), []);
+  const handlePasswordFocus = React.useCallback(() => setFocusedInput('password'), []);
+  const handleInputBlur = React.useCallback(() => setFocusedInput(null), []);
 
   const handleThemeToggle = () => {
     // Анимация нажатия и поворота
@@ -313,11 +330,11 @@ export default function LoginScreen() {
                     value={credentials.username}
                     onChangeText={handleUsernameChange}
                     keyboardType="default"
-                    autoCapitalize="none"
+                    autoCapitalize="characters"
                     autoCorrect={false}
                     editable={!loading}
-                    onFocus={() => setFocusedInput('username')}
-                    onBlur={() => setFocusedInput(null)}
+                    onFocus={handleUsernameFocus}
+                    onBlur={handleInputBlur}
                     underlineColorAndroid="transparent"
                     selectTextOnFocus={false}
                     blurOnSubmit={false}
@@ -371,8 +388,8 @@ export default function LoginScreen() {
                     onChangeText={handlePasswordChange}
                     secureTextEntry={!showPassword}
                     editable={!loading}
-                    onFocus={() => setFocusedInput('password')}
-                    onBlur={() => setFocusedInput(null)}
+                    onFocus={handlePasswordFocus}
+                    onBlur={handleInputBlur}
                     underlineColorAndroid="transparent"
                     selectTextOnFocus={false}
                     blurOnSubmit={false}
