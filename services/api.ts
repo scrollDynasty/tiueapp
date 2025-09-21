@@ -264,21 +264,28 @@ class ApiService {
 
   // Утилитарные методы для парсинга LDAP данных
   private extractFirstName(fullName: string): string {
-    const parts = fullName.split(' ');
-    return parts[1] || ''; // Второе слово обычно имя
+    if (!fullName) return '';
+    const parts = fullName.trim().split(' ');
+    // В формате "ФАМИЛИЯ ИМЯ ОТЧЕСТВО" - второе слово это имя
+    const firstName = parts[1] || '';
+    return firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
   }
 
   private extractLastName(fullName: string): string {
-    const parts = fullName.split(' ');
-    return parts[0] || ''; // Первое слово обычно фамилия
+    if (!fullName) return '';
+    const parts = fullName.trim().split(' ');
+    // В формате "ФАМИЛИЯ ИМЯ ОТЧЕСТВО" - первое слово это фамилия
+    const lastName = parts[0] || '';
+    return lastName.charAt(0).toUpperCase() + lastName.slice(1).toLowerCase();
   }
 
   private extractCourseFromGroup(groupName: string): number {
-    // Извлекаем курс из названия группы (например, "RB22-01" -> 3-й курс в 2025)
-    const match = groupName.match(/(\d{2})/);
+    if (!groupName) return 1;
+    // Извлекаем курс из названия группы в формате "RC-24-01"
+    const match = groupName.match(/-(\d{2})-/);
     if (match) {
       const year = parseInt(match[1]);
-      const currentYear = new Date().getFullYear() % 100;
+      const currentYear = 25; // 2025
       return Math.max(1, currentYear - year + 1);
     }
     return 1;
@@ -645,6 +652,34 @@ class ApiService {
   // Получение аватара пользователя по username (для друзей)
   async getUserAvatar(username: string): Promise<ApiResponse<{ avatar_url: string | null; initials: string }>> {
     return this.request<{ avatar_url: string | null; initials: string }>(`/users/avatar/${username}/`);
+  }
+
+  // Поиск студентов
+  async searchStudents(params: {
+    query?: string;
+    course?: number;
+    group?: string;
+    limit?: number;
+  }): Promise<ApiResponse<any[]>> {
+    const searchParams = new URLSearchParams();
+    
+    if (params.query) {
+      searchParams.append('q', params.query);
+    }
+    if (params.course) {
+      searchParams.append('course', params.course.toString());
+    }
+    if (params.group) {
+      searchParams.append('group', params.group);
+    }
+    if (params.limit) {
+      searchParams.append('limit', params.limit.toString());
+    }
+
+    const queryString = searchParams.toString();
+    const endpoint = `/auth/search/students/${queryString ? `?${queryString}` : ''}`;
+    
+    return this.request<any[]>(endpoint);
   }
 
   // User management (admin only)

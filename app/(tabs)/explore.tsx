@@ -4,6 +4,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import React from 'react';
 import { Dimensions, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp, SlideInDown } from 'react-native-reanimated';
@@ -17,7 +18,21 @@ export default function ExploreScreen() {
   const insets = useSafeAreaInsets();
   const { horizontalPadding, isSmallScreen, fontSize, spacing, isVerySmallScreen } = useResponsive();
 
+  const handleCategoryPress = (categoryTitle: string) => {
+    if (categoryTitle === 'СТУДЕНТЫ') {
+      router.push('/students');
+    }
+    // Добавить другие обработчики категорий при необходимости
+  };
+
   const categories = [
+    { 
+      title: "СТУДЕНТЫ", 
+      icon: "person-outline" as const,
+      color: '#06B6D4',
+      bgColor: '#ECFEFF',
+      description: "Поиск студентов"
+    },
     { 
       title: "БИБЛИОТЕКА", 
       icon: "library-outline" as const,
@@ -60,6 +75,7 @@ export default function ExploreScreen() {
       bgColor: '#FEF2F2',
       description: "События и концерты"
     },
+   
   ];
 
   return (
@@ -263,6 +279,7 @@ export default function ExploreScreen() {
                   }}
                 >
                   <TouchableOpacity
+                    onPress={() => handleCategoryPress(category.title)}
                     style={{
                       width: '100%',
                       minHeight: isVerySmallScreen ? 90 : 120,
