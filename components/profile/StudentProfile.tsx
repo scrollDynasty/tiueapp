@@ -2,13 +2,16 @@ import { ThemedText } from '@/components/ThemedText';
 import { getThemeColors } from '@/constants/Colors';
 import { Spacing } from '@/constants/DesignTokens';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { useResponsive } from '@/hooks/useResponsive';
 import { authApi } from '@/services/api';
+import { setCredentials } from '@/store/slices/authSlice';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React from 'react';
-import { Alert, Modal, Pressable, ScrollView, Share, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Modal, Pressable, ScrollView, Share, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown, SlideInRight } from 'react-native-reanimated';
 
 interface StudentProfileProps {
@@ -20,10 +23,19 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
   const [settingsMenuVisible, setSettingsMenuVisible] = React.useState(false);
   const [gradesData, setGradesData] = React.useState<any[]>([]);
   const [coursesData, setCoursesData] = React.useState<any[]>([]);
+  const [uploadingAvatar, setUploadingAvatar] = React.useState(false);
+  const [currentAvatar, setCurrentAvatar] = React.useState<string | null>(user?.avatar || null);
   
   const { theme, isDarkMode, setTheme } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
+  const dispatch = useAppDispatch();
+  const { token } = useAppSelector((state) => state.auth);
+
+  // Обновляем локальную аватарку когда пользователь изменяется
+  React.useEffect(() => {
+    setCurrentAvatar(user?.avatar || null);
+  }, [user?.avatar]);
 
   // Загружаем данные студента для статистики
   React.useEffect(() => {
@@ -75,6 +87,81 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
     if (username) return username.slice(0, 2).toUpperCase();
     return 'СТ';
   }, []);
+
+  // Функция для загрузки аватара
+  const pickImage = React.useCallback(async () => {
+    try {
+      // Запрашиваем разрешение на доступ к медиатеке
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (permissionResult.granted === false) {
+        Alert.alert('Разрешение требуется', 'Разрешите доступ к фотографиям для загрузки аватара');
+        return;
+      }
+
+      // Открываем выбор изображения
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1], // Квадратное изображение для аватара
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        // Прямо загружаем аватар
+        await uploadAvatar(result.assets[0]);
+      }
+    } catch (error) {
+      console.error('Pick image error:', error);
+      Alert.alert('Ошибка', 'Не удалось выбрать изображение');
+    }
+  }, []);
+
+  // Функция для загрузки аватара
+  const uploadAvatar = React.useCallback(async (imageAsset: ImagePicker.ImagePickerAsset) => {
+    try {
+      setUploadingAvatar(true);
+      
+      const response = await authApi.uploadAvatar(imageAsset);
+      
+      if (response.success && response.data?.avatar_url) {
+        // Мгновенно обновляем локальную аватарку
+        setCurrentAvatar(response.data.avatar_url);
+        
+        // Обновляем аватар в Redux store
+        dispatch(setCredentials({
+          user: { ...user, avatar: response.data.avatar_url },
+          token: token || ''
+        }));
+        
+        // Принудительно очищаем кеш пользователя в API
+        authApi.clearUserCache();
+        
+        // Принудительно обновляем данные пользователя из API
+        try {
+          const updatedUserResponse = await authApi.getCurrentUser();
+          if (updatedUserResponse.success && updatedUserResponse.data) {
+            dispatch(setCredentials({
+              user: updatedUserResponse.data,
+              token: token || ''
+            }));
+          }
+        } catch (error) {
+          console.log('Failed to refresh user data after avatar upload');
+        }
+        
+        Alert.alert('Успешно', 'Аватар обновлен');
+      } else {
+        Alert.alert('Ошибка', response.error || 'Не удалось загрузить аватар');
+      }
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      Alert.alert('Ошибка', 'Произошла ошибка при загрузке аватара');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }, [dispatch]);
+
   
   const displayInfo = React.useMemo(() => {
     // Используем данные из LDAP профиля если они есть
@@ -112,7 +199,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
         >
           {/* Верхняя строка с аватаром и меню */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.m }}>
-            {/* Аватарка */}
+            {/* Аватарка с возможностью загрузки */}
             <View
               style={{
                 width: isVerySmallScreen ? 70 : 80,
@@ -121,27 +208,69 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 overflow: 'hidden',
                 borderWidth: 3,
                 borderColor: isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.8)',
+                position: 'relative',
               }}
             >
-              <LinearGradient
-                colors={['#6366F1', '#8B5CF6', '#EC4899']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
+              {uploadingAvatar ? (
+                <LinearGradient
+                  colors={['#6366F1', '#8B5CF6', '#EC4899']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <ActivityIndicator size="large" color="white" />
+                </LinearGradient>
+              ) : currentAvatar ? (
+                <Image
+                  source={{ uri: currentAvatar }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                  }}
+                />
+              ) : (
+                <LinearGradient
+                  colors={['#6366F1', '#8B5CF6', '#EC4899']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <ThemedText style={{
+                    fontSize: isVerySmallScreen ? 24 : 28,
+                    fontWeight: '500',
+                    color: 'white',
+                  }}>
+                    {displayInfo.initials}
+                  </ThemedText>
+                </LinearGradient>
+              )}
+              
+              {/* Кнопка изменения аватара */}
+              <Pressable
+                onPress={pickImage}
                 style={{
-                  width: '100%',
-                  height: '100%',
-                  justifyContent: 'center',
-                  alignItems: 'center',
+                  position: 'absolute',
+                  bottom: -2,
+                  right: -2,
+                  backgroundColor: '#3B82F6',
+                  borderRadius: 12,
+                  padding: 4,
+                  borderWidth: 2,
+                  borderColor: 'white',
                 }}
               >
-                <ThemedText style={{
-                  fontSize: isVerySmallScreen ? 24 : 28,
-                  fontWeight: '500',
-                  color: 'white',
-                }}>
-                  {displayInfo.initials}
-                </ThemedText>
-              </LinearGradient>
+                <Ionicons name="camera" size={14} color="white" />
+              </Pressable>
             </View>
             
             {/* Меню настроек (три черточки как в Instagram) */}
@@ -623,20 +752,26 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           {/* Первая строка кнопок */}
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <TouchableOpacity
-              onPress={() => Alert.alert('Добавить фото', 'Функция добавления фотографии будет доступна в следующих версиях')}
+              onPress={pickImage}
+              disabled={uploadingAvatar}
               style={{
                 flex: 1,
-                backgroundColor: colors.surface,
+                backgroundColor: uploadingAvatar ? colors.background : colors.surface,
                 borderRadius: isVerySmallScreen ? 12 : 16,
                 padding: isVerySmallScreen ? 12 : 16,
                 alignItems: 'center',
                 borderWidth: 1,
                 borderColor: colors.border,
+                opacity: uploadingAvatar ? 0.6 : 1,
               }}
             >
-              <Ionicons name="camera-outline" size={24} color={colors.primary} />
+              <Ionicons 
+                name={uploadingAvatar ? "hourglass-outline" : "person-circle-outline"} 
+                size={24} 
+                color={colors.primary} 
+              />
               <ThemedText style={{ fontSize: 14, color: colors.text, marginTop: 8, fontWeight: '600' }}>
-                Добавить фото
+                {uploadingAvatar ? 'Загрузка...' : 'Изменить аватар'}
               </ThemedText>
             </TouchableOpacity>
             
@@ -977,6 +1112,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           </View>
             </Pressable>
       </Modal>
+
     </>
   );
 });

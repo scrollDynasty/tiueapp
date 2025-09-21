@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',  # Добавляем поддержку токенов
     'corsheaders',  # ВКЛЮЧЕНО для React Native разработки
     'authentication',  # LDAP авторизация
     'users',  # Включаем обратно для совместимости
@@ -169,7 +170,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Создаем папки для медиафайлов при запуске
 import os
-media_folders = ['news', 'events']
+media_folders = ['news', 'events', 'avatars']
 for folder in media_folders:
     folder_path = os.path.join(MEDIA_ROOT, folder)
     os.makedirs(folder_path, exist_ok=True)
@@ -185,9 +186,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Django REST Framework
 REST_FRAMEWORK = {
-    # Убираем стандартную аутентификацию, так как используем LDAP Bearer токены
+    # Гибридная аутентификация: Token для админов + LDAP Bearer для студентов
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # 'rest_framework.authentication.TokenAuthentication',  # Не используем
+        'rest_framework.authentication.TokenAuthentication',  # Для админов
+        'rest_framework.authentication.SessionAuthentication',  # Для Django admin
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',  # Разрешения проверяем в LDAP

@@ -1,7 +1,8 @@
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
+from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Avg, Count, Q
 from datetime import datetime, timedelta
 from .models import CustomUser, Student, Grade, Attendance
@@ -181,3 +182,226 @@ def dashboard_view(request):
             "gpa": 0.0,
             "attendance": 0
         })
+
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])  # Делаем собственную проверку аутентификации
+def upload_avatar(request):
+    """
+    Загрузка аватара пользователя
+    
+    Body: FormData с полем 'avatar' (изображение)
+    
+    Response:
+    {
+        "success": true,
+        "data": {
+            "avatar_url": "https://mobile.tiue.uz/media/avatars/avatar_123456.jpg"
+        }
+    }
+    """
+    # Отладочная информация
+    logger.info(f"Request FILES keys: {list(request.FILES.keys())}")
+    logger.info(f"Request POST keys: {list(request.POST.keys())}")
+    logger.info(f"Request content type: {request.content_type}")
+    
+    # Получаем файл из FormData
+    if 'avatar' not in request.FILES:
+        available_files = list(request.FILES.keys())
+        logger.warning(f"Avatar file not found. Available files: {available_files}")
+        
+        # Пробуем найти файл с другими именами
+        if available_files:
+            avatar_file = request.FILES[available_files[0]]
+            logger.info(f"Using file with key: {available_files[0]}")
+        else:
+            logger.error("No files found in request.FILES")
+            return Response({
+                'success': False,
+                'error': 'Файл аватара не найден'
+            }, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        avatar_file = request.FILES['avatar']
+        logger.info("Avatar file found successfully")
+    
+    # Проверяем размер файла (максимум 5MB)
+    if avatar_file.size > 5 * 1024 * 1024:
+        return Response({
+            'success': False,
+            'error': 'Размер файла не должен превышать 5MB'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Проверяем тип файла
+    allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+    if hasattr(avatar_file, 'content_type') and avatar_file.content_type:
+        if avatar_file.content_type not in allowed_types:
+            return Response({
+                'success': False,
+                'error': 'Поддерживаются только изображения (JPEG, PNG, WebP)'
+            }, status=status.HTTP_400_BAD_REQUEST)
+    
+    logger.info(f"Avatar file received: {avatar_file.name}, size: {avatar_file.size} bytes")
+    
+    try:
+        # Гибридная аутентификация для аватаров
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+        
+        if auth_header.startswith('Bearer '):
+            # LDAP пользователь - создаем/находим локальную запись
+            ldap_token = auth_header.split(' ')[1]
+            
+            # Получаем профиль из LDAP
+            from authentication.ldap_service import ldap_service
+            success, profile_data = ldap_service.get_user_profile(ldap_token)
+            
+            if not success:
+                return Response({
+                    'success': False,
+                    'error': 'Неверный LDAP токен'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Извлекаем username из email или используем uid
+            username = profile_data.get('email', '').split('@')[0] if profile_data.get('email') else profile_data.get('uid', 'unknown')
+            email = profile_data.get('email', f'{username}@tiue.uz')
+            full_name = profile_data.get('full_name', '')
+            
+            # Создаем или получаем локального пользователя
+            user, created = CustomUser.objects.get_or_create(
+                username=username,
+                defaults={
+                    'email': email,
+                    'first_name': full_name.split()[1] if full_name.split() and len(full_name.split()) > 1 else 'Student',
+                    'last_name': full_name.split()[0] if full_name.split() else '',
+                    'role': 'student',
+                    'is_active': True
+                }
+            )
+            
+            logger.info(f"Using LDAP user {username} (created: {created})")
+            
+        elif auth_header.startswith('Token '):
+            # Локальный пользователь (администратор)
+            if request.user.is_authenticated:
+                user = request.user
+                logger.info(f"Using local user {user.username}")
+            else:
+                return Response({
+                    'success': False,
+                    'error': 'Локальный пользователь не аутентифицирован'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            return Response({
+                'success': False,
+                'error': 'Требуется токен авторизации (Bearer или Token)'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Удаляем старый аватар если есть
+        if user.avatar:
+            import os
+            try:
+                old_avatar_path = user.avatar.path
+                if os.path.exists(old_avatar_path):
+                    os.remove(old_avatar_path)
+                    logger.info(f"Old avatar deleted: {old_avatar_path}")
+                else:
+                    logger.warning(f"Old avatar file not found: {old_avatar_path}")
+            except Exception as e:
+                logger.error(f"Error deleting old avatar: {e}")
+                # Продолжаем работу даже если не удалось удалить старый файл
+        
+        # Генерируем уникальное имя файла
+        import uuid
+        file_extension = avatar_file.name.split('.')[-1] if '.' in avatar_file.name else 'jpg'
+        filename = f"avatar_{user.id}_{uuid.uuid4().hex[:8]}.{file_extension}"
+        
+        # Сохраняем новый аватар
+        user.avatar.save(filename, avatar_file, save=True)
+        
+        # Формируем полный URL
+        from django.conf import settings
+        base_url = getattr(settings, 'BASE_URL', 'http://localhost:4343')
+        avatar_url = f"{base_url.rstrip('/')}{user.avatar.url}"
+        
+        logger.info(f"Avatar uploaded for user {user.username}: {avatar_url}")
+        
+        return Response({
+            'success': True,
+            'data': {
+                'avatar_url': avatar_url
+            }
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Avatar upload error: {e}")
+        return Response({
+            'success': False,
+            'error': 'Ошибка сохранения аватара'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@csrf_exempt
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_user_avatar(request, username):
+    """
+    Получение аватара пользователя по username
+    
+    URL: /api/users/avatar/<username>/
+    
+    Response:
+    {
+        "success": true,
+        "data": {
+            "avatar_url": "https://mobile.tiue.uz/media/avatars/avatar_123.jpg",
+            "username": "U12345",
+            "initials": "AB"
+        }
+    }
+    """
+    try:
+        user = CustomUser.objects.filter(username=username).first()
+        
+        if not user:
+            # Пользователь не найден в локальной базе - возвращаем инициалы
+            initials = username[:2].upper() if username else 'ST'
+            return Response({
+                'success': True,
+                'data': {
+                    'avatar_url': None,
+                    'username': username,
+                    'initials': initials
+                }
+            }, status=status.HTTP_200_OK)
+        
+        # Формируем URL аватара
+        avatar_url = None
+        if user.avatar:
+            from django.conf import settings
+            base_url = getattr(settings, 'BASE_URL', 'http://localhost:4343')
+            avatar_url = f"{base_url.rstrip('/')}{user.avatar.url}"
+        
+        # Получаем инициалы
+        if user.first_name and user.last_name:
+            initials = f"{user.first_name[0]}{user.last_name[0]}".upper()
+        elif user.first_name:
+            initials = user.first_name[0].upper()
+        else:
+            initials = user.username[:2].upper()
+        
+        return Response({
+            'success': True,
+            'data': {
+                'avatar_url': avatar_url,
+                'username': user.username,
+                'initials': initials,
+                'full_name': f"{user.first_name} {user.last_name}".strip()
+            }
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Get avatar error: {e}")
+        return Response({
+            'success': False,
+            'error': 'Ошибка получения аватара'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

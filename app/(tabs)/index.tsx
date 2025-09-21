@@ -64,11 +64,15 @@ export default function HomeScreen() {
     spacing, 
     width 
   } = useResponsive();
-  // Мемоизированный селектор для оптимизации
+  // Мемоизированный селектор для оптимизации (включая аватарку)
   const authData = useAppSelector(useCallback((state) => ({
     user: state.auth.user,
     isAuthenticated: state.auth.isAuthenticated
-  }), []), (left, right) => left.user?.id === right.user?.id && left.isAuthenticated === right.isAuthenticated);
+  }), []), (left, right) => 
+    left.user?.id === right.user?.id && 
+    left.isAuthenticated === right.isAuthenticated &&
+    left.user?.avatar === right.user?.avatar // Добавляем проверку аватарки
+  );
   
   const { user } = authData;
   
@@ -519,6 +523,7 @@ export default function HomeScreen() {
       
       <AnimatedHeader 
         userName={user?.first_name || user?.username || 'Пользователь'}
+        avatarUrl={user?.avatar}
         notificationCount={0}
         onAvatarPress={handleAvatarPress}
         onNotificationPress={handleNotificationPress}

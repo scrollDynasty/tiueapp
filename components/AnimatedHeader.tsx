@@ -20,13 +20,13 @@ interface HeaderProps {
   onNotificationPress?: () => void;
 }
 
-export function AnimatedHeader({ 
+export const AnimatedHeader = React.memo(({ 
   userName, 
   avatarUrl, 
   notificationCount = 0,
   onAvatarPress,
   onNotificationPress 
-}: HeaderProps) {
+}: HeaderProps) => {
   const { isVerySmallScreen } = useResponsive();
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
@@ -223,4 +223,9 @@ export function AnimatedHeader({
       </View>
     </LinearGradient>
   );
-}
+}, (prevProps, nextProps) => {
+  // Перерендерить если изменились userName, avatarUrl или notificationCount
+  return prevProps.userName === nextProps.userName &&
+         prevProps.avatarUrl === nextProps.avatarUrl &&
+         prevProps.notificationCount === nextProps.notificationCount;
+});
