@@ -53,17 +53,27 @@ export default function RootLayout() {
       try {
         const hasShownSplash = await AsyncStorage.getItem('splashShownInSession');
         if (hasShownSplash === 'true') {
+          // Если анимация уже показывалась в этой сессии, скрываем splash screen
           setSplashShown(true);
           setShowSplash(false);
           await ExpoSplashScreen.hideAsync();
+        } else {
+          // Если анимация не показывалась, показываем её
+          setShowSplash(true);
+          setSplashShown(false);
         }
       } catch (error) {
         // Если ошибка, показываем анимацию
+        setShowSplash(true);
+        setSplashShown(false);
       }
     };
     
-    checkSplashStatus();
-  }, []);
+    // Проверяем только после загрузки шрифтов
+    if (loaded) {
+      checkSplashStatus();
+    }
+  }, [loaded]);
 
   const handleSplashFinish = React.useCallback(async () => {
     // Скрываем нативный splash screen когда заканчивается кастомный
@@ -83,14 +93,26 @@ export default function RootLayout() {
     return null;
   }
 
+  // Показываем splash screen в первую очередь, до всех остальных компонентов
+  if (showSplash && !splashShown) {
+    return (
+      <ErrorBoundary>
+        <Provider store={store}>
+          <ThemeProvider>
+            <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+              <SplashScreen onAnimationFinish={handleSplashFinish} />
+            </SafeAreaProvider>
+          </ThemeProvider>
+        </Provider>
+      </ErrorBoundary>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <Provider store={store}>
         <ThemeProvider>
           <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-            {showSplash && !splashShown ? (
-              <SplashScreen onAnimationFinish={handleSplashFinish} />
-            ) : (
             <View style={styles.container}>
               <StatusBar 
                 style={colorScheme === 'dark' ? 'light' : 'dark'}
@@ -118,7 +140,6 @@ export default function RootLayout() {
                 </AuthGuard>
               </ErrorBoundary>
             </View>
-            )}
           </SafeAreaProvider>
         </ThemeProvider>
       </Provider>
