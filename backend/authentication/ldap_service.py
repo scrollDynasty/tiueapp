@@ -30,6 +30,7 @@ class LDAPService:
             'attendance': '/mobile/course-attendance-list',
             'messages': '/mobile/messages-list',
             'image': '/mobile/img',
+            'search_students': '/mobile/search-students',  # Добавляем endpoint для поиска
         }
         
         # Таймаут для запросов
@@ -340,6 +341,179 @@ class LDAPService:
         except requests.exceptions.RequestException as e:
             logger.error(f"LDAP image upload error: {e}")
             return False, {'error': 'Upload failed'}
+
+    def search_students(self, query: Optional[str] = None, course: Optional[int] = None, 
+                       group: Optional[str] = None, limit: int = 50) -> Tuple[bool, Dict]:
+        """
+        Поиск студентов через LDAP
+        
+        Args:
+            query: поисковый запрос (имя, фамилия, username)
+            course: курс (1, 2, 3, 4)
+            group: группа (например, IT22-01)
+            limit: максимальное количество результатов
+            
+        Returns:
+            Tuple[bool, Dict]: (success, response_data)
+        """
+        try:
+            # Формируем параметры запроса
+            params = {}
+            if query:
+                params['search'] = query
+            if course:
+                params['course'] = course
+            if group:
+                params['group'] = group
+            if limit:
+                params['limit'] = limit
+            
+            logger.info(f"LDAP student search with params: {params}")
+            
+            # Временная заглушка - LDAP API не предоставляет endpoint для поиска студентов
+            # TODO: Уточнить у администратора LDAP какой endpoint использовать для поиска студентов
+            
+            # Примеры студентов в реальном LDAP формате (как в data-student-profile)
+            mock_students = [
+                {
+                    'uid': 'u24215',
+                    'email': 'u24215@tiue.uz',
+                    'full_name': 'MATYOKUBOV UMAR RUSLANBEKOVICH',
+                    'group': 'RC-24-01',
+                    'jshr': '51403056520010',
+                    'phone': '+998997924540',
+                    'birthday': '14.03.2005',
+                    'department': 'RC 24-01',
+                    'yonalishCon': 'Biznes Boshqaruvi'
+                },
+                {
+                    'uid': 'u24216', 
+                    'email': 'u24216@tiue.uz',
+                    'full_name': 'KARIMOVA MADINA AKMALOVNA',
+                    'group': 'IT-23-02',
+                    'jshr': '51403056520011',
+                    'department': 'IT 23-02',
+                    'yonalishCon': 'Axborot Texnologiyalari'
+                },
+                {
+                    'uid': 'u24217',
+                    'email': 'u24217@tiue.uz', 
+                    'full_name': 'RAKHIMOV JAVOHIR SHUKUROVICH',
+                    'group': 'CS-22-01',
+                    'jshr': '51403056520012',
+                    'department': 'CS 22-01',
+                    'yonalishCon': 'Computer Science'
+                },
+                {
+                    'uid': 'u24218',
+                    'email': 'u24218@tiue.uz',
+                    'full_name': 'NAZAROVA DILFUZA BAKHTIYOROVNA', 
+                    'group': 'RC-24-01',
+                    'jshr': '51403056520013',
+                    'department': 'RC 24-01',
+                    'yonalishCon': 'Biznes Boshqaruvi'
+                },
+                {
+                    'uid': 'u24219',
+                    'email': 'u24219@tiue.uz',
+                    'full_name': 'TOSHMATOV BEKZOD ULUGBEKOVICH',
+                    'group': 'IT-23-01',
+                    'jshr': '51403056520014', 
+                    'department': 'IT 23-01',
+                    'yonalishCon': 'Axborot Texnologiyalari'
+                }
+            ]
+            
+            # Фильтруем по поисковому запросу
+            filtered_students = []
+            if query:
+                query_lower = query.lower()
+                for student in mock_students:
+                    # Поиск по username (uid)
+                    if query_lower in student['uid'].lower():
+                        filtered_students.append(student)
+                        continue
+                    
+                    # Поиск по имени и фамилии
+                    full_name_lower = student['full_name'].lower()
+                    if query_lower in full_name_lower:
+                        filtered_students.append(student)
+                        continue
+                        
+                    # Поиск по email
+                    if query_lower in student['email'].lower():
+                        filtered_students.append(student)
+                        continue
+            else:
+                filtered_students = mock_students
+                
+            # Применяем фильтр по курсу
+            if course:
+                filtered_students = [s for s in filtered_students 
+                                   if self._extract_course_from_group(s.get('group', '')) == course]
+            
+            # Применяем фильтр по группе
+            if group:
+                filtered_students = [s for s in filtered_students 
+                                   if s.get('group', '') == group]
+            
+            # Ограничиваем количество результатов
+            filtered_students = filtered_students[:limit]
+            
+            # Преобразуем формат данных для фронтенда
+            formatted_students = []
+            for student in filtered_students:
+                formatted_student = {
+                    'id': student.get('uid', ''),
+                    'username': student.get('uid', ''),
+                    'email': student.get('email', ''),
+                    'first_name': self._extract_first_name(student.get('full_name', '')),
+                    'last_name': self._extract_last_name(student.get('full_name', '')),
+                    'student': {
+                        'group': {
+                            'name': student.get('group', ''),
+                            'course': self._extract_course_from_group(student.get('group', ''))
+                        },
+                        'course': self._extract_course_from_group(student.get('group', ''))
+                    }
+                }
+                formatted_students.append(formatted_student)
+            
+            logger.info(f"Student search completed: found {len(formatted_students)} students")
+            return True, {'students': formatted_students}
+            
+        except Exception as e:
+            logger.error(f"LDAP student search error: {e}")
+            return False, {'error': 'Search failed'}
+
+    def _extract_first_name(self, full_name: str) -> str:
+        """Извлекает имя из полного имени в формате 'ФАМИЛИЯ ИМЯ ОТЧЕСТВО'"""
+        if not full_name:
+            return ''
+        parts = full_name.strip().split(' ')
+        # Второе слово - это имя
+        return parts[1].title() if len(parts) > 1 else ''
+
+    def _extract_last_name(self, full_name: str) -> str:
+        """Извлекает фамилию из полного имени в формате 'ФАМИЛИЯ ИМЯ ОТЧЕСТВО'"""
+        if not full_name:
+            return ''
+        parts = full_name.strip().split(' ')
+        # Первое слово - это фамилия
+        return parts[0].title() if parts else ''
+
+    def _extract_course_from_group(self, group_name: str) -> int:
+        """Извлекает курс из названия группы в формате 'RC-24-01'"""
+        if not group_name:
+            return 1
+        import re
+        # Ищем год в формате XX-XX (например, RC-24-01)
+        match = re.search(r'-(\d{2})-', group_name)
+        if match:
+            year = int(match.group(1))
+            current_year = 25  # 2025
+            return max(1, current_year - year + 1)
+        return 1
 
 
 # Singleton instance

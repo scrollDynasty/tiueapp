@@ -5,6 +5,7 @@ LDAP Authentication URLs
 
 from django.urls import path
 from . import views
+from .student_search import search_students
 
 urlpatterns = [
     # Тестовый endpoint
@@ -47,4 +48,8 @@ urlpatterns = [
     # Заглушка для logout (LDAP не требует серверного logout)
     path('logout/', views.test_api, name='ldap_logout'),
     path('logout', views.test_api, name='ldap_logout_no_slash'),
+    
+    # Поиск студентов через LDAP
+    path('search/students/', search_students, name='search_students'),
+    path('search/students', search_students, name='search_students_no_slash'),
 ]
