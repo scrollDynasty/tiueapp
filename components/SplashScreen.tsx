@@ -33,19 +33,15 @@ export function SplashScreen({ onAnimationFinish }: SplashScreenProps) {
   const opacity = useSharedValue(1);
 
   useEffect(() => {
-    // Запускаем анимацию только для мобильных платформ
-    if (Platform.OS !== 'web' && animationRef.current) {
-      animationRef.current.play();
-    }
-    
-    // Через 2.5 секунды начинаем исчезать и вызываем callback
+    // Через 3 секунды начинаем исчезать и вызываем callback
+    // Увеличили время чтобы анимация успела проиграться полностью
     const timer = setTimeout(() => {
       opacity.value = withTiming(0, { duration: 500 }, (finished) => {
         if (finished) {
           runOnJS(onAnimationFinish)();
         }
       });
-    }, 2500);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, [onAnimationFinish, opacity]);
@@ -93,7 +89,8 @@ export function SplashScreen({ onAnimationFinish }: SplashScreenProps) {
                 ]}
                 loop={true}
                 speed={1}
-                autoPlay={false}
+                autoPlay={true}
+                resizeMode="contain"
               />
             ) : (
               // Альтернативная анимация для веб
