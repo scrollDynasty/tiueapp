@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Modal, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Modal, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
+import { Image } from 'expo-image';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -185,7 +186,10 @@ export default function NewsDetailScreen() {
                 height: imageHeight,
                 backgroundColor: colors.surfaceSecondary,
               }}
-              resizeMode="cover"
+              contentFit="cover"
+              priority="high"
+              cachePolicy="memory-disk"
+              transition={200}
             />
           </Pressable>
           
@@ -507,7 +511,10 @@ export default function NewsDetailScreen() {
                 width: Math.min(viewportWidth * (isVerySmallScreen ? 0.98 : isSmallScreen ? 0.95 : 0.9), 1200),
                 height: Math.min(viewportHeight * (isVerySmallScreen ? 0.65 : isSmallScreen ? 0.7 : 0.8), 1000),
               }}
-              resizeMode="contain"
+              contentFit="contain"
+              priority="high"
+              cachePolicy="memory-disk"
+              transition={200}
             />
           </View>
         </Modal>

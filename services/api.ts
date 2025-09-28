@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import { getApiBaseUrl } from '../config/environment';
 import { ApiResponse, LoginCredentials, User } from '../types';
+import { cache, cacheKeys, cacheTTL, withCache } from '../utils/cache';
 
 const API_BASE_URL = getApiBaseUrl();
 
