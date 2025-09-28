@@ -3,6 +3,7 @@ import { AnimatedHeader } from '@/components/AnimatedHeader';
 import { CustomRefreshControl } from '@/components/CustomRefreshControl';
 import { NotificationModal } from '@/components/NotificationModal';
 import { ThemedText } from '@/components/ThemedText';
+import { EventsCard } from '@/components/dashboard/EventsCard';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
@@ -17,9 +18,10 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
+
+import { Image } from 'expo-image';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Image } from 'expo-image';
 import Animated, {
   FadeInDown,
   SlideInRight,
@@ -165,26 +167,26 @@ export default function HomeScreen() {
   }, [user?.role, validateCourseData]);
 
 
-  // Загружаем данные при монтировании компонента с приоритизацией
+  // Загружаем данные при монтировании компонента с приоритизацией для быстрого LCP
   useEffect(() => {
     if (user) {
       // Сначала загружаем критически важные данные для быстрого LCP
       dispatch(fetchNews());
       
-      // Остальные данные загружаем с задержкой для улучшения LCP
+      // Остальные данные загружаем с большими задержками для улучшения LCP
       const timeout1 = setTimeout(() => {
         dispatch(fetchEvents());
-      }, 100);
+      }, 500); // Увеличиваем задержку
       timeoutRefs.current.push(timeout1);
       
       const timeout2 = setTimeout(() => {
         fetchGrades();
-      }, 200);
+      }, 1000); // Еще больше задержки
       timeoutRefs.current.push(timeout2);
       
       const timeout3 = setTimeout(() => {
         fetchCourses();
-      }, 300);
+      }, 1500); // Максимальная задержка для некритичных данных
       timeoutRefs.current.push(timeout3);
     }
 
@@ -573,9 +575,45 @@ export default function HomeScreen() {
             {gradesLoading || coursesLoading ? (
               // Быстрый skeleton loading для улучшения LCP
               <>
-                <SkeletonWidget />
-                <SkeletonWidget />
-                <SkeletonWidget />
+                <View style={{
+                  backgroundColor: colors.surface,
+                  borderRadius: 20,
+                  padding: isExtraSmallScreen ? 10 : isVerySmallScreen ? 12 : 16,
+                  flex: isExtraSmallScreen ? undefined : 1,
+                  marginHorizontal: isExtraSmallScreen ? 0 : isVerySmallScreen ? 2 : 4,
+                  marginBottom: isExtraSmallScreen ? spacing.sm : 0,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minHeight: 120,
+                }}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                </View>
+                <View style={{
+                  backgroundColor: colors.surface,
+                  borderRadius: 20,
+                  padding: isExtraSmallScreen ? 10 : isVerySmallScreen ? 12 : 16,
+                  flex: isExtraSmallScreen ? undefined : 1,
+                  marginHorizontal: isExtraSmallScreen ? 0 : isVerySmallScreen ? 2 : 4,
+                  marginBottom: isExtraSmallScreen ? spacing.sm : 0,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minHeight: 120,
+                }}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                </View>
+                <View style={{
+                  backgroundColor: colors.surface,
+                  borderRadius: 20,
+                  padding: isExtraSmallScreen ? 10 : isVerySmallScreen ? 12 : 16,
+                  flex: isExtraSmallScreen ? undefined : 1,
+                  marginHorizontal: isExtraSmallScreen ? 0 : isVerySmallScreen ? 2 : 4,
+                  marginBottom: isExtraSmallScreen ? spacing.sm : 0,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  minHeight: 120,
+                }}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                </View>
               </>
             ) : (
               // Реальные данные
@@ -736,12 +774,8 @@ export default function HomeScreen() {
           </View>
         </Animated.View>
 
-        {/* Компонент событий с lazy loading */}
-        <Suspense fallback={
-          <View style={{ height: 200, justifyContent: 'center', alignItems: 'center' }}>
-            <ActivityIndicator size="large" color={colors.primary} />
-          </View>
-        }>
+        {/* Компонент событий с оптимизированной загрузкой */}
+        {eventsData.length > 0 ? (
           <EventsCard 
             events={eventsData.map(event => ({
               id: event.id,
@@ -754,7 +788,46 @@ export default function HomeScreen() {
             onEventPress={(eventId: string | number) => router.push(`/events/${eventId}` as any)}
             horizontalPadding={horizontalPadding}
           />
-        </Suspense>
+        ) : (
+          <Animated.View 
+            entering={FadeInDown.delay(600).duration(200)}
+            style={{
+              marginBottom: spacing.xl,
+              paddingHorizontal: horizontalPadding,
+            }}
+          >
+            <View style={{
+              backgroundColor: colors.surface,
+              borderRadius: 16,
+              padding: spacing.xl,
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}>
+              <Ionicons 
+                name="calendar-outline" 
+                size={48} 
+                color={colors.textSecondary} 
+                style={{ marginBottom: 16 }}
+              />
+              <ThemedText style={{
+                fontSize: 16,
+                fontWeight: '600',
+                color: colors.text,
+                marginBottom: 8,
+              }}>
+                Событий пока нет
+              </ThemedText>
+              <ThemedText style={{
+                fontSize: 14,
+                color: colors.textSecondary,
+                textAlign: 'center',
+              }}>
+                Скоро здесь появятся предстоящие события
+              </ThemedText>
+            </View>
+          </Animated.View>
+        )}
 
         {/* Красивые диаграммы успеваемости */}
         <Animated.View 

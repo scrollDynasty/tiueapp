@@ -183,7 +183,7 @@ export const AnimatedHeader = React.memo(({
           )}
         </Pressable>
 
-        {/* Аватар */}
+        {/* Аватар с оптимизированной загрузкой */}
         <View>
           <Pressable onPress={onAvatarPress}>
             {avatarUrl ? (

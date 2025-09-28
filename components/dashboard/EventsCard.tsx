@@ -298,7 +298,7 @@ export const EventsCard: React.FC<EventsCardProps> = ({ events, onEventPress, co
                 {/* Карточка с изображением */}
                 {item.image && !failedImages.has(item.id) ? (
                   <>
-                    {/* Фоновое изображение */}
+                    {/* Фоновое изображение с оптимизацией */}
                     <Image
                       source={{
                         uri: item.image.startsWith('http')
@@ -307,7 +307,7 @@ export const EventsCard: React.FC<EventsCardProps> = ({ events, onEventPress, co
                       }}
                       style={styles.eventImageBackground}
                       contentFit="cover"
-                      transition={200}
+                      transition={150}
                       onError={() => {
                         console.warn('Failed to load event image:', item.image);
                         setFailedImages(prev => new Set([...prev, item.id]));
