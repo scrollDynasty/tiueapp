@@ -13,18 +13,15 @@ import { fetchEvents } from '@/store/slices/eventsSlice';
 import { fetchNews } from '@/store/slices/newsSlice';
 import { formatDateYMD } from '@/utils/date';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 
 import { Image } from 'expo-image';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, {
-  FadeInDown,
-  SlideInRight,
   useAnimatedScrollHandler,
   useSharedValue
 } from 'react-native-reanimated';
@@ -46,8 +43,6 @@ export default function HomeScreen() {
   const [attendanceLoading, setAttendanceLoading] = useState(false);
   const insets = useSafeAreaInsets();
   
-  // Refs для cleanup таймеров
-  const timeoutRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
   const { 
     horizontalPadding, 
     cardGap, 
@@ -167,39 +162,17 @@ export default function HomeScreen() {
   }, [user?.role, validateCourseData]);
 
 
-  // Загружаем данные при монтировании компонента с приоритизацией для быстрого LCP
+  // Загружаем данные при монтировании компонента максимально быстро
   useEffect(() => {
     if (user) {
-      // Сначала загружаем критически важные данные для быстрого LCP
+      // Загружаем все данные параллельно без задержек для максимальной скорости
       dispatch(fetchNews());
-      
-      // Остальные данные загружаем с большими задержками для улучшения LCP
-      const timeout1 = setTimeout(() => {
-        dispatch(fetchEvents());
-      }, 500); // Увеличиваем задержку
-      timeoutRefs.current.push(timeout1);
-      
-      const timeout2 = setTimeout(() => {
-        fetchGrades();
-      }, 1000); // Еще больше задержки
-      timeoutRefs.current.push(timeout2);
-      
-      const timeout3 = setTimeout(() => {
-        fetchCourses();
-      }, 1500); // Максимальная задержка для некритичных данных
-      timeoutRefs.current.push(timeout3);
+      dispatch(fetchEvents());
+      fetchGrades();
+      fetchCourses();
     }
 
-    // Cleanup function
-    return () => {
-      timeoutRefs.current.forEach(timeout => {
-        if (timeout) {
-          clearTimeout(timeout);
-        }
-      });
-      timeoutRefs.current = [];
-    };
-  }, [dispatch, user, fetchGrades, fetchCourses]);
+  }, [dispatch, user]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -210,7 +183,6 @@ export default function HomeScreen() {
           dispatch(fetchEvents()).unwrap(),
           fetchGrades(),
           fetchCourses()
-          // fetchAttendance() // Отключено - нет данных в LDAP
         ]);
       }
     } catch (error) {
@@ -219,25 +191,15 @@ export default function HomeScreen() {
       }
     }
     setRefreshing(false);
-  }, [dispatch, user, fetchGrades, fetchCourses]);
+  }, [dispatch, user]);
 
   // Получаем новости и события из Redux store
   const { items: newsData } = useAppSelector((state) => state.news);
   const { items: eventsData } = useAppSelector((state) => state.events);
 
-  // Получаем ближайшие события (следующие 3)
-  const upcomingEvents = useMemo(() => {
-    const now = new Date();
-    return eventsData
-      .filter(event => new Date(event.date) >= now)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(0, 3);
-  }, [eventsData]);
-
-  // Получаем важные новости
-  const importantNews = useMemo(() => {
-    return newsData.filter(news => news.isImportant).slice(0, 2);
-  }, [newsData]);
+  // Упрощаем вычисления для быстрого LCP
+  const upcomingEvents = eventsData.slice(0, 3);
+  const importantNews = newsData.slice(0, 2);
 
   // Мемоизированный расчет среднего балла (GPA) из реальных данных
   const gpaValue = useMemo(() => {
@@ -256,61 +218,14 @@ export default function HomeScreen() {
     return gpaValue;
   }, [gpaValue]);
 
-  // Посещаемость пока недоступна в LDAP - все данные равны 0
-  // const calculateOverallAttendance = React.useCallback((attendanceList: any[]) => {
-  //   // LDAP система пока не предоставляет данные о посещаемости
-  //   // Все present_count и absent_count равны 0
-  //   return null;
-  // }, []);
 
-  // Динамические данные для виджетов
-  const statsData = useMemo(() => {
-    const role = user?.role;
-    
-    // Используем реальные данные курсов
-    let coursesCount = '0';
-    if (role === 'student') {
-      if (coursesLoading) {
-        coursesCount = '...';
-      } else {
-        // Подсчитываем уникальные предметы по названию
-        const uniqueSubjects = new Set(
-          coursesData.map((course: any) => course.course_name || course.name || 'Unknown')
-        );
-        coursesCount = uniqueSubjects.size.toString();
-      }
-    } else if (role === 'professor') {
-      coursesCount = '5'; // TODO: получать из API для преподавателей
-    } else if (role === 'admin') {
-      coursesCount = '12'; // TODO: получать из API для админов
-    }
-    
-    let gradeValue = '0';
-    let gradeTitle = 'Баллы';
-    if (role === 'student') {
-      if (gradesLoading) {
-        gradeValue = '...';
-      } else if (gradesData.length > 0) {
-        gradeValue = gpaValue.toFixed(1);
-      } else {
-        gradeValue = 'Нет данных';
-      }
-      gradeTitle = 'Средний балл';
-    } else if (role === 'professor') {
-      gradeValue = '4.8'; // TODO: получать из API для преподавателей
-      gradeTitle = 'Ср. балл курсов';
-    } else if (role === 'admin') {
-      gradeValue = newsData.length.toString();
-      gradeTitle = 'Новости';
-    }
-    
-    return {
-      courses: coursesCount,
-      events: eventsData.length.toString(),
-      grade: gradeValue,
-      gradeTitle: gradeTitle
-    };
-  }, [user?.role, newsData.length, eventsData.length, gradesData, gradesLoading, coursesData, coursesLoading, gpaValue]);
+  // Упрощенные данные для виджетов (для быстрого LCP)
+  const statsData = {
+    courses: coursesLoading ? '...' : coursesData.length.toString(),
+    events: eventsData.length.toString(),
+    grade: gradesLoading ? '...' : (gradesData.length > 0 ? gpaValue.toFixed(1) : '0'),
+    gradeTitle: 'Средний балл'
+  };
 
 
   // Компонент статистического виджета
@@ -344,19 +259,6 @@ export default function HomeScreen() {
           overflow: 'hidden',
         }}
       >
-      {/* Декоративный градиент */}
-      <LinearGradient
-        colors={[color + '10', 'transparent']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-        }}
-      />
       
       <View style={{ 
       alignItems: 'center',
@@ -406,8 +308,7 @@ export default function HomeScreen() {
 
   // Компонент быстрого события
   const QuickEventCard = ({ event, index }: { event: any; index: number }) => (
-    <Animated.View
-      entering={SlideInRight.delay(400 + index * 100)}
+    <View
       style={{
         backgroundColor: colors.surface,
         borderRadius: 12,
@@ -468,16 +369,11 @@ export default function HomeScreen() {
           </ThemedText>
         </View>
       </View>
-    </Animated.View>
+    </View>
   );
 
-  // Мемоизированные градиентные цвета
-  const gradientColors = useMemo(() => 
-    isDarkMode 
-      ? ['#1E3A8A', '#2563EB', '#3B82F6'] as const
-      : ['#EFF6FF', '#DBEAFE', '#BFDBFE'] as const,
-    [isDarkMode]
-  );
+  // Упрощенные цвета для быстрого рендера
+  const backgroundColor = isDarkMode ? '#1E3A8A' : '#EFF6FF';
 
   // Мемоизированные обработчики
   const handleAvatarPress = useCallback(() => {
@@ -494,12 +390,14 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <LinearGradient
-        colors={gradientColors}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-      />
+      <View style={{ 
+        position: 'absolute', 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        bottom: 0,
+        backgroundColor: backgroundColor
+      }} />
       
       <AnimatedHeader 
         userName={user?.first_name || user?.username || 'Пользователь'}
@@ -516,7 +414,7 @@ export default function HomeScreen() {
         />
       )}
 
-      <AnimatedScrollView
+      <ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
@@ -532,9 +430,7 @@ export default function HomeScreen() {
         }}
       >
 
-        {/* Красивая статистика */}
-        <Animated.View 
-          entering={FadeInDown.delay(0).duration(200)}
+        <View 
           style={{
             marginBottom: spacing.lg,
             paddingHorizontal: horizontalPadding,
@@ -640,10 +536,9 @@ export default function HomeScreen() {
               </>
             )}
           </View>
-        </Animated.View>
+        </View>
 
-        <Animated.View
-          entering={FadeInDown.delay(50).duration(200)}
+        <View
           style={{
             marginBottom: spacing.xl,
             paddingHorizontal: horizontalPadding,
@@ -772,7 +667,7 @@ export default function HomeScreen() {
               </>
             )}
           </View>
-        </Animated.View>
+        </View>
 
         {/* Компонент событий с оптимизированной загрузкой */}
         {eventsData.length > 0 ? (
@@ -789,8 +684,7 @@ export default function HomeScreen() {
             horizontalPadding={horizontalPadding}
           />
         ) : (
-          <Animated.View 
-            entering={FadeInDown.delay(600).duration(200)}
+          <View
             style={{
               marginBottom: spacing.xl,
               paddingHorizontal: horizontalPadding,
@@ -826,12 +720,11 @@ export default function HomeScreen() {
                 Скоро здесь появятся предстоящие события
               </ThemedText>
             </View>
-          </Animated.View>
+          </View>
         )}
 
         {/* Красивые диаграммы успеваемости */}
-        <Animated.View 
-          entering={FadeInDown.delay(100).duration(250)}
+        <View
           style={{
             marginBottom: spacing.xl,
             paddingHorizontal: horizontalPadding,
@@ -940,12 +833,11 @@ export default function HomeScreen() {
               </View>
             </View>
           </View>
-        </Animated.View>
+        </View>
 
         {/* Простой список курсов для быстрого рендера */}
         {user?.role === 'student' && coursesData.length > 0 && (
-        <Animated.View 
-          entering={FadeInDown.duration(200).springify()}
+        <View
           style={{
             marginBottom: spacing.xl,
             paddingHorizontal: horizontalPadding,
@@ -1011,12 +903,11 @@ export default function HomeScreen() {
                 </ThemedText>
               </TouchableOpacity>
             ))}
-          </Animated.View>
+          </View>
         )}
 
         {/* Секция новостей с новым дизайном */}
-        <Animated.View 
-          entering={FadeInDown.duration(250).springify()}
+        <View
           style={{
             marginBottom: spacing.xl,
             paddingHorizontal: horizontalPadding,
@@ -1168,11 +1059,10 @@ export default function HomeScreen() {
               </View>
             )}
           </View>
-        </Animated.View>
+        </View>
 
 
-        <Animated.View 
-          entering={FadeInDown.delay(200).duration(250)}
+        <View
           style={{
             marginTop: spacing.xl,
             paddingHorizontal: horizontalPadding,
@@ -1220,8 +1110,7 @@ export default function HomeScreen() {
                     />
                   </View>
                 ) : (
-                  <LinearGradient
-                    colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
+                  <View
                     style={{
                       width: isVerySmallScreen ? 48 : 56,
                       height: isVerySmallScreen ? 48 : 56,
@@ -1238,7 +1127,7 @@ export default function HomeScreen() {
                       size={isVerySmallScreen ? 24 : 28} 
                       color="#FFFFFF" 
                     />
-                  </LinearGradient>
+                  </View>
                 )}
                 <View style={{ flex: 1 }}>
                   <ThemedText style={{
@@ -1289,30 +1178,24 @@ export default function HomeScreen() {
               </View>
             </View>
           ) : (
-            <LinearGradient
-              colors={isDarkMode 
-                ? [`${colors.primary}40`, `${colors.primary}60`] 
-                : ['#6366F1', '#8B5CF6']
-              }
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ 
-                borderRadius: 20,
-                shadowColor: colors.primary,
-                shadowOffset: { width: 0, height: 8 },
-                shadowOpacity: 0.25,
-                shadowRadius: 16,
-                elevation: 8,
-              }}
-            >
+              <View
+                style={{ 
+                  borderRadius: 20,
+                  backgroundColor: isDarkMode ? colors.primary + '40' : '#6366F1',
+                  shadowColor: colors.primary,
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 16,
+                  elevation: 8,
+                }}
+              >
               <View style={{
                 backgroundColor: 'transparent',
                 padding: spacing.xl,
                 borderRadius: 20,
               }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.lg }}>
-                  <LinearGradient
-                    colors={['rgba(255,255,255,0.2)', 'rgba(255,255,255,0.1)']}
+                  <View
                     style={{
                       width: isVerySmallScreen ? 48 : 56,
                       height: isVerySmallScreen ? 48 : 56,
@@ -1329,7 +1212,7 @@ export default function HomeScreen() {
                       size={isVerySmallScreen ? 24 : 28} 
                       color="#FFFFFF" 
                     />
-                  </LinearGradient>
+                  </View>
                   <View style={{ flex: 1 }}>
                     <ThemedText style={{
                       fontSize: isVerySmallScreen ? fontSize.title : fontSize.title + 2,
@@ -1377,12 +1260,11 @@ export default function HomeScreen() {
                   </View>
                 </View>
               </View>
-            </LinearGradient>
+            </View>
           )}
-        </Animated.View>
+        </View>
 
-        <Animated.View 
-          entering={FadeInDown.delay(250).duration(250)}
+        <View
           style={{
             marginTop: spacing.lg,
             paddingHorizontal: horizontalPadding,
@@ -1411,8 +1293,7 @@ export default function HomeScreen() {
             borderBottomWidth: 1,
             borderBottomColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
           }}>
-            <LinearGradient
-              colors={[`${colors.primary}20`, `${colors.primary}10`]}
+            <View
               style={{
                 width: 40,
                 height: 40,
@@ -1425,7 +1306,7 @@ export default function HomeScreen() {
               }}
             >
               <Ionicons name="apps" size={20} color={colors.primary} />
-            </LinearGradient>
+            </View>
             <ThemedText style={{
               fontSize: fontSize.title,
               fontWeight: '700',
@@ -1447,24 +1328,20 @@ export default function HomeScreen() {
                 alert('Помощь\n\nДля получения помощи обратитесь к администратору или в службу поддержки университета.\n\nТелефон: +7 (xxx) xxx-xx-xx\nEmail: support@university.edu');
               }}
             >
-              <LinearGradient
-                colors={['#F59E0B', '#EF4444']}
+              <View
                 style={{
                   width: isVerySmallScreen ? 48 : 56,
                   height: isVerySmallScreen ? 48 : 56,
                   borderRadius: isVerySmallScreen ? 24 : 28,
+                  backgroundColor: '#F59E0B',
                   justifyContent: 'center',
                   alignItems: 'center',
                   marginBottom: spacing.sm,
-                  shadowColor: Platform.OS === 'android' ? 'transparent' : '#F59E0B',
-                  shadowOffset: { width: 0, height: Platform.OS === 'android' ? 2 : 4 },
-                  shadowOpacity: Platform.OS === 'android' ? 0 : 0.3,
-                  shadowRadius: Platform.OS === 'android' ? 0 : 8,
                   elevation: Platform.OS === 'android' ? 3 : 6,
                 }}
               >
                 <Ionicons name="help-buoy" size={isVerySmallScreen ? 22 : 26} color="#FFFFFF" />
-              </LinearGradient>
+              </View>
               <ThemedText style={{ 
                 fontSize: fontSize.small, 
                 color: colors.text,
@@ -1485,8 +1362,7 @@ export default function HomeScreen() {
                 router.push('/(tabs)/events');
               }}
             >
-              <LinearGradient
-                colors={[colors.primary, '#8B5CF6']}
+              <View
                 style={{
                   width: isVerySmallScreen ? 48 : 56,
                   height: isVerySmallScreen ? 48 : 56,
@@ -1502,7 +1378,7 @@ export default function HomeScreen() {
                 }}
               >
                 <Ionicons name="calendar" size={isVerySmallScreen ? 22 : 26} color="#FFFFFF" />
-              </LinearGradient>
+              </View>
               <ThemedText style={{ 
                 fontSize: fontSize.small, 
                 color: colors.text,
@@ -1523,8 +1399,7 @@ export default function HomeScreen() {
                 router.push('/(tabs)/profile');
               }}
             >
-              <LinearGradient
-                colors={['#10B981', '#059669']}
+              <View
                 style={{
                   width: isVerySmallScreen ? 48 : 56,
                   height: isVerySmallScreen ? 48 : 56,
@@ -1540,7 +1415,7 @@ export default function HomeScreen() {
                 }}
               >
                 <Ionicons name="person-circle" size={isVerySmallScreen ? 22 : 26} color="#FFFFFF" />
-              </LinearGradient>
+              </View>
               <ThemedText style={{ 
                 fontSize: fontSize.small, 
                 color: colors.text,
@@ -1552,8 +1427,8 @@ export default function HomeScreen() {
             </Pressable>
           </View>
           </View>
-        </Animated.View>
-      </AnimatedScrollView>
+        </View>
+      </ScrollView>
     </View>
   );
 }

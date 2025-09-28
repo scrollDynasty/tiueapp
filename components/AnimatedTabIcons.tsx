@@ -99,6 +99,16 @@ export function EventsTabIcon({ focused, onPress }: { focused: boolean; onPress?
   );
 }
 
+export function StudentsTabIcon({ focused, onPress }: { focused: boolean; onPress?: () => void }) {
+  return (
+    <AnimatedTabIcon
+      name={focused ? "people" : "people-outline"}
+      focused={focused}
+      onPress={onPress}
+    />
+  );
+}
+
 export function SettingsTabIcon({ focused, onPress }: { focused: boolean; onPress?: () => void }) {
   return (
     <AnimatedTabIcon
