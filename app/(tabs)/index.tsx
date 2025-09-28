@@ -17,14 +17,9 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
-import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-// Lazy loading для тяжелых компонентов dashboard
-const CircularChart = React.lazy(() => import('@/components/dashboard').then(module => ({ default: module.CircularChart })));
-const CourseProgressCard = React.lazy(() => import('@/components/dashboard').then(module => ({ default: module.CourseProgressCard })));
-const EventsCard = React.lazy(() => import('@/components/dashboard').then(module => ({ default: module.EventsCard })));
-
-import { ActivityIndicator, Image, Platform, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 import Animated, {
   FadeInDown,
   SlideInRight,
@@ -42,9 +37,9 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [gradesData, setGradesData] = useState<any[]>([]);
-  const [gradesLoading, setGradesLoading] = useState(true);
+  const [gradesLoading, setGradesLoading] = useState(false);
   const [coursesData, setCoursesData] = useState<any[]>([]);
-  const [coursesLoading, setCoursesLoading] = useState(true);
+  const [coursesLoading, setCoursesLoading] = useState(false);
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
   const [attendanceLoading, setAttendanceLoading] = useState(false);
   const insets = useSafeAreaInsets();
@@ -315,23 +310,6 @@ export default function HomeScreen() {
     };
   }, [user?.role, newsData.length, eventsData.length, gradesData, gradesLoading, coursesData, coursesLoading, gpaValue]);
 
-  // Skeleton компонент для быстрого LCP
-  const SkeletonWidget = () => (
-    <View style={[styles.statWidget, { backgroundColor: colors.surface, opacity: 0.6 }]}>
-      <View style={[styles.gradientOverlay, { backgroundColor: colors.border }]} />
-      <View style={styles.statWidgetContent}>
-        <View style={[styles.statWidgetIcon, { 
-          width: 24, height: 24, backgroundColor: colors.border, borderRadius: 12 
-        }]} />
-        <View style={{ 
-          width: 40, height: 20, backgroundColor: colors.border, borderRadius: 4, marginBottom: 4 
-        }} />
-        <View style={{ 
-          width: 60, height: 12, backgroundColor: colors.border, borderRadius: 2 
-        }} />
-      </View>
-    </View>
-  );
 
   // Компонент статистического виджета
   const StatWidget = ({ icon, title, value, color, onPress }: {
@@ -819,67 +797,153 @@ export default function HomeScreen() {
               style={{ flex: 1 }}
               onPress={() => user?.role === 'student' ? router.push('/grades') : null}
             >
-              <Suspense fallback={<ActivityIndicator size="small" color="#3B82F6" />}>
-                <CircularChart
-                  value={parseFloat(statsData.grade) || 0}
-                  maxValue={100}
-                  title="Средний балл"
-                  subtitle="из 100"
-                  color="#3B82F6"
-                />
-              </Suspense>
+              {/* Упрощенный виджет для быстрого рендера */}
+              <View style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: spacing.md,
+                backgroundColor: colors.surface,
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: '#3B82F6' + '20',
+              }}>
+                <ThemedText style={{
+                  fontSize: 32,
+                  fontWeight: '700',
+                  color: '#3B82F6',
+                  marginBottom: 4,
+                }}>
+                  {statsData.grade}
+                </ThemedText>
+                <ThemedText style={{
+                  fontSize: 14,
+                  color: colors.text,
+                  fontWeight: '600',
+                  marginBottom: 2,
+                }}>
+                  Средний балл
+                </ThemedText>
+                <ThemedText style={{
+                  fontSize: 12,
+                  color: colors.textSecondary,
+                }}>
+                  из 100
+                </ThemedText>
+              </View>
             </TouchableOpacity>
             <View style={{ flex: 1 }}>
-              <Suspense fallback={<ActivityIndicator size="small" color="#10B981" />}>
-                <CircularChart
-                  value={0}
-                  maxValue={100}
-                  title="Посещаемость"
-                  subtitle="Нет данных в LDAP"
-                  color="#10B981"
-                />
-              </Suspense>
+              {/* Упрощенный виджет для посещаемости */}
+              <View style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: spacing.md,
+                backgroundColor: colors.surface,
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: '#10B981' + '20',
+              }}>
+                <ThemedText style={{
+                  fontSize: 32,
+                  fontWeight: '700',
+                  color: '#10B981',
+                  marginBottom: 4,
+                }}>
+                  -
+                </ThemedText>
+                <ThemedText style={{
+                  fontSize: 14,
+                  color: colors.text,
+                  fontWeight: '600',
+                  marginBottom: 2,
+                }}>
+                  Посещаемость
+                </ThemedText>
+                <ThemedText style={{
+                  fontSize: 12,
+                  color: colors.textSecondary,
+                }}>
+                  Нет данных
+                </ThemedText>
+              </View>
             </View>
           </View>
         </Animated.View>
 
-        {/* Красивый компонент курсов */}
-        <CourseProgressCard 
-          courses={coursesData.map((course: any, index: number) => {
-            // Рассчитываем прогресс на основе оценки или статуса курса
-            let progress = 0;
-            if (course.final_grade && course.final_grade > 0) {
-              progress = Math.min(course.final_grade / 100, 1); // Если есть итоговая оценка
-            } else if (course.status === 'current') {
-              progress = 0.6; // Текущие курсы - 60% прогресса
-            } else if (course.status === 'past') {
-              progress = 1.0; // Завершенные курсы - 100%
-            } else {
-              progress = 0.3; // По умолчанию - 30%
-            }
-            
-            return {
-              id: course.course_id || index,
-              name: course.course_name || course.name || 'Неизвестный курс',
-              progress: progress,
-              instructor: course.instructor || 'Преподаватель не указан',
-              nextClass: course.status === 'current' ? 'В процессе изучения' : 
-                        course.status === 'past' ? 'Курс завершен' : 'Статус неизвестен'
-            };
-          })}
-          onCoursePress={(courseId: number) => {
-            router.push('/courses');
+        {/* Простой список курсов для быстрого рендера */}
+        {user?.role === 'student' && coursesData.length > 0 && (
+        <Animated.View 
+          entering={FadeInDown.duration(200).springify()}
+          style={{
+            marginBottom: spacing.xl,
+            paddingHorizontal: horizontalPadding,
           }}
-          onViewAllPress={() => {
-            router.push('/courses');
-          }}
-          horizontalPadding={horizontalPadding}
-          containerStyle={{ marginBottom: spacing.xl }}
-        />
+        >
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: spacing.md,
+            }}>
+              <ThemedText style={{
+                fontSize: 18,
+                fontWeight: '600',
+                color: colors.text,
+              }}>
+                Мои курсы
+              </ThemedText>
+              <TouchableOpacity
+                onPress={() => router.push('/courses')}
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  backgroundColor: colors.backgroundSecondary,
+                  borderRadius: 12,
+                }}
+              >
+                <ThemedText style={{
+                  fontSize: 12,
+                  color: colors.primary,
+                  fontWeight: '600',
+                }}>
+                  Все курсы
+                </ThemedText>
+              </TouchableOpacity>
+            </View>
+            {coursesData.slice(0, 3).map((course: any, index: number) => (
+              <TouchableOpacity
+                key={course.course_id || index}
+                onPress={() => router.push('/courses')}
+                style={{
+                  backgroundColor: colors.surface,
+                  borderRadius: 12,
+                  padding: spacing.md,
+                  marginBottom: spacing.sm,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                }}
+              >
+                <ThemedText style={{
+                  fontSize: 16,
+                  fontWeight: '600',
+                  color: colors.text,
+                  marginBottom: 4,
+                }}>
+                  {course.course_name || course.name || 'Неизвестный курс'}
+                </ThemedText>
+                <ThemedText style={{
+                  fontSize: 14,
+                  color: colors.textSecondary,
+                }}>
+                  {course.instructor || 'Преподаватель не указан'}
+                </ThemedText>
+              </TouchableOpacity>
+            ))}
+          </Animated.View>
+        )}
 
         {/* Секция новостей с новым дизайном */}
         <Animated.View 
-          entering={FadeInDown.delay(150).duration(250)}
+          entering={FadeInDown.duration(250).springify()}
           style={{
             marginBottom: spacing.xl,
             paddingHorizontal: horizontalPadding,
@@ -964,7 +1028,10 @@ export default function HomeScreen() {
                         <Image 
                           source={{ uri: news.image }}
                           style={{ width: '100%', height: '100%' }}
-                          resizeMode="cover"
+                          contentFit="cover"
+                          priority="low"
+                          cachePolicy="memory-disk"
+                          transition={200}
                         />
                       </View>
                     )}

@@ -208,6 +208,20 @@ export default function AllNewsScreen() {
             showsVerticalScrollIndicator={false}
             refreshing={isLoading}
             onRefresh={() => dispatch(fetchNews())}
+            // Оптимизация для производительности
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={5}
+            updateCellsBatchingPeriod={50}
+            windowSize={10}
+            initialNumToRender={5}
+            getItemLayout={(data, index) => ({
+              length: 180, // Примерная высота карточки новости
+              offset: 180 * index,
+              index,
+            })}
+            maintainVisibleContentPosition={{
+              minIndexForVisible: 0,
+            }}
             removeClippedSubviews={true}
             maxToRenderPerBatch={10}
             initialNumToRender={5}
