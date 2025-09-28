@@ -19,93 +19,67 @@ import { initialWindowMetrics, SafeAreaProvider } from 'react-native-safe-area-c
 import { Provider } from 'react-redux';
 
 // Предотвращаем автоматическое скрытие нативного splash screen
-ExpoSplashScreen.preventAutoHideAsync();
+ExpoSplashScreen.preventAutoHideAsync().catch(() => {
+  // Игнорируем ошибку если splash screen уже был скрыт
+});
+
+// Загружаем шрифты асинхронно без блокировки рендера
+const fontLoadPromise = useFonts({
+  SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+});
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-  const [showSplash, setShowSplash] = React.useState(true);
-  const [splashCompleted, setSplashCompleted] = React.useState(false);
+  const [loaded] = fontLoadPromise;
+  const [appReady, setAppReady] = React.useState(false);
   
-  const { enableImmersiveMode, reactivateImmersiveMode } = useImmersiveMode();
+  const { enableImmersiveMode } = useImmersiveMode();
 
   useEffect(() => {
-    // Настраиваем StatusBar для iOS
+    // Настраиваем StatusBar для iOS без анимации для быстрого применения
     if (Platform.OS === 'ios') {
-      RNStatusBar.setBarStyle(colorScheme === 'dark' ? 'light-content' : 'dark-content', true);
+      RNStatusBar.setBarStyle(colorScheme === 'dark' ? 'light-content' : 'dark-content', false);
     }
     
-    // Дополнительная активация immersive режима после загрузки приложения
-    const timer = setTimeout(() => {
-      enableImmersiveMode();
-    }, 1000);
+    // Активируем immersive режим сразу
+    enableImmersiveMode();
+  }, [enableImmersiveMode, colorScheme]);
 
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [enableImmersiveMode, reactivateImmersiveMode, colorScheme]);
-
-  // Проверяем, показывалась ли уже анимация в этой сессии
+  // Быстрая инициализация приложения
   useEffect(() => {
-    const checkSplashStatus = async () => {
+    const initApp = async () => {
+      if (!loaded) return;
+      
       try {
+        // Проверяем показывался ли splash в этой сессии
         const hasShownSplash = await AsyncStorage.getItem('splashShownInSession');
+        
         if (hasShownSplash === 'true') {
-          // Если анимация уже показывалась в этой сессии, скрываем splash screen
-          setSplashCompleted(true);
-          setShowSplash(false);
+          // Сразу скрываем splash и показываем контент
           await ExpoSplashScreen.hideAsync();
+          setAppReady(true);
         } else {
-          // Если анимация не показывалась, показываем её
-          setShowSplash(true);
-          setSplashCompleted(false);
+          // Показываем кастомный splash максимум на 1.5 секунды
+          setTimeout(async () => {
+            await AsyncStorage.setItem('splashShownInSession', 'true');
+            await ExpoSplashScreen.hideAsync();
+            setAppReady(true);
+          }, 1500);
         }
-      } catch (error) {
-        // Если ошибка, показываем анимацию
-        setShowSplash(true);
-        setSplashCompleted(false);
+      } catch {
+        // При ошибке сразу показываем контент
+        await ExpoSplashScreen.hideAsync();
+        setAppReady(true);
       }
     };
     
-    // Проверяем только после загрузки шрифтов
-    if (loaded) {
-      checkSplashStatus();
-    }
+    initApp();
   }, [loaded]);
 
-  const handleSplashFinish = React.useCallback(async () => {
-    // Скрываем нативный splash screen когда заканчивается кастомный
-    await ExpoSplashScreen.hideAsync();
-    setShowSplash(false);
-    setSplashCompleted(true);
-    
-    // Сохраняем информацию о том, что анимация была показана в этой сессии
-    try {
-      await AsyncStorage.setItem('splashShownInSession', 'true');
-    } catch (error) {
-      // Игнорируем ошибки сохранения
-    }
-  }, []);
 
-  if (!loaded) {
+  // Показываем null пока приложение не готово
+  if (!loaded || !appReady) {
     return null;
-  }
-
-  // Показываем splash screen в первую очередь, до всех остальных компонентов
-  if (showSplash && !splashCompleted) {
-    return (
-      <ErrorBoundary>
-        <Provider store={store}>
-          <ThemeProvider>
-            <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-              <SplashScreen onAnimationFinish={handleSplashFinish} />
-            </SafeAreaProvider>
-          </ThemeProvider>
-        </Provider>
-      </ErrorBoundary>
-    );
   }
 
   return (
