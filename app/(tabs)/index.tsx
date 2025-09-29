@@ -414,7 +414,7 @@ export default function HomeScreen() {
         />
       )}
 
-      <ScrollView
+      <AnimatedScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
@@ -1428,7 +1428,7 @@ export default function HomeScreen() {
           </View>
           </View>
         </View>
-      </ScrollView>
+      </AnimatedScrollView>
     </View>
   );
 }
