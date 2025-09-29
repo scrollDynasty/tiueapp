@@ -730,107 +730,12 @@ export default function HomeScreen() {
             paddingHorizontal: horizontalPadding,
           }}
         >
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginBottom: spacing.md,
-          }}>
-            <View style={{
-              width: isExtraSmallScreen ? 28 : isVerySmallScreen ? 30 : 32,
-              height: isExtraSmallScreen ? 28 : isVerySmallScreen ? 30 : 32,
-              borderRadius: isExtraSmallScreen ? 14 : isVerySmallScreen ? 15 : 16,
-              backgroundColor: colors.backgroundSecondary,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginRight: isExtraSmallScreen ? 8 : 12,
-            }}>
-              <Ionicons name="trending-up" size={isExtraSmallScreen ? 14 : 16} color={Platform.OS === 'android' ? colors.textSecondary : "#10B981"} />
-            </View>
-            <ThemedText style={{
-              fontSize: fontSize.title,
-              fontWeight: '600',
-              color: colors.text,
-            }}>
-              Академическая успеваемость
-            </ThemedText>
-          </View>
           
           <View style={{
             flexDirection: isExtraSmallScreen ? 'column' : 'row',
             gap: isExtraSmallScreen ? spacing.md : spacing.lg,
           }}>
-            <TouchableOpacity
-              style={{ flex: 1 }}
-              onPress={() => user?.role === 'student' ? router.push('/grades') : null}
-            >
-              {/* Упрощенный виджет для быстрого рендера */}
-              <View style={{
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: spacing.md,
-                backgroundColor: colors.surface,
-                borderRadius: 16,
-                borderWidth: 1,
-                borderColor: '#3B82F6' + '20',
-              }}>
-                <ThemedText style={{
-                  fontSize: 32,
-                  fontWeight: '700',
-                  color: '#3B82F6',
-                  marginBottom: 4,
-                }}>
-                  {statsData.grade}
-                </ThemedText>
-                <ThemedText style={{
-                  fontSize: 14,
-                  color: colors.text,
-                  fontWeight: '600',
-                  marginBottom: 2,
-                }}>
-                  Средний балл
-                </ThemedText>
-                <ThemedText style={{
-                  fontSize: 12,
-                  color: colors.textSecondary,
-                }}>
-                  из 100
-                </ThemedText>
-              </View>
-            </TouchableOpacity>
             <View style={{ flex: 1 }}>
-              {/* Упрощенный виджет для посещаемости */}
-              <View style={{
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: spacing.md,
-                backgroundColor: colors.surface,
-                borderRadius: 16,
-                borderWidth: 1,
-                borderColor: '#10B981' + '20',
-              }}>
-                <ThemedText style={{
-                  fontSize: 32,
-                  fontWeight: '700',
-                  color: '#10B981',
-                  marginBottom: 4,
-                }}>
-                  -
-                </ThemedText>
-                <ThemedText style={{
-                  fontSize: 14,
-                  color: colors.text,
-                  fontWeight: '600',
-                  marginBottom: 2,
-                }}>
-                  Посещаемость
-                </ThemedText>
-                <ThemedText style={{
-                  fontSize: 12,
-                  color: colors.textSecondary,
-                }}>
-                  Нет данных
-                </ThemedText>
-              </View>
             </View>
           </View>
         </View>
@@ -1375,6 +1280,7 @@ export default function HomeScreen() {
                   shadowOpacity: Platform.OS === 'android' ? 0 : 0.3,
                   shadowRadius: Platform.OS === 'android' ? 0 : 8,
                   elevation: Platform.OS === 'android' ? 3 : 6,
+                  backgroundColor: colors.primary,
                 }}
               >
                 <Ionicons name="calendar" size={isVerySmallScreen ? 22 : 26} color="#FFFFFF" />
@@ -1412,6 +1318,7 @@ export default function HomeScreen() {
                   shadowOpacity: Platform.OS === 'android' ? 0 : 0.3,
                   shadowRadius: Platform.OS === 'android' ? 0 : 8,
                   elevation: Platform.OS === 'android' ? 3 : 6,
+                  backgroundColor: '#10B981',
                 }}
               >
                 <Ionicons name="person-circle" size={isVerySmallScreen ? 22 : 26} color="#FFFFFF" />

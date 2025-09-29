@@ -4,7 +4,6 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive } from '@/hooks/useResponsive';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import React from 'react';
 import { Dimensions, Platform, ScrollView, TextInput, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp, SlideInDown } from 'react-native-reanimated';
@@ -19,20 +18,10 @@ export default function ExploreScreen() {
   const { horizontalPadding, isSmallScreen, fontSize, spacing, isVerySmallScreen } = useResponsive();
 
   const handleCategoryPress = (categoryTitle: string) => {
-    if (categoryTitle === 'СТУДЕНТЫ') {
-      router.push('/students');
-    }
     // Добавить другие обработчики категорий при необходимости
   };
 
   const categories = [
-    { 
-      title: "СТУДЕНТЫ", 
-      icon: "person-outline" as const,
-      color: '#06B6D4',
-      bgColor: '#ECFEFF',
-      description: "Поиск студентов"
-    },
     { 
       title: "БИБЛИОТЕКА", 
       icon: "library-outline" as const,
