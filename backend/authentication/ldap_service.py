@@ -56,7 +56,9 @@ class LDAPService:
             default_headers.update(headers)
         
         try:
-            logger.info(f"LDAP API Request: {method} {url}")
+            # Логирование только в режиме отладки
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"LDAP API Request: {method} {url}")
             
             if method.upper() == 'GET':
                 response = requests.get(
@@ -125,7 +127,6 @@ class LDAPService:
             'password': password
         }
         
-        logger.info(f"LDAP login attempt for user: {username}")
         success, response = self._make_request(
             self.endpoints['login'], 
             method='POST', 
@@ -153,7 +154,6 @@ class LDAPService:
             'refresh_token': refresh_token
         }
         
-        logger.info("LDAP token refresh attempt")
         success, response = self._make_request(
             self.endpoints['refresh'], 
             method='POST', 
@@ -181,7 +181,6 @@ class LDAPService:
             'Authorization': f'Bearer {access_token}'
         }
         
-        logger.info("LDAP get user profile")
         success, response = self._make_request(
             self.endpoints['profile'], 
             method='POST',  # Согласно документации это POST
@@ -191,7 +190,7 @@ class LDAPService:
         return success, response
 
     def get_active_courses(self, access_token: str, lang: str = 'en', 
-                          page: int = 1, page_size: int = 10) -> Tuple[bool, Dict]:
+                          page: int = 1, page_size: int = 100) -> Tuple[bool, Dict]:
         """
         Получение активных курсов
         
@@ -199,7 +198,7 @@ class LDAPService:
             access_token: Access token
             lang: Язык (en/ru)
             page: Номер страницы
-            page_size: Размер страницы
+            page_size: Размер страницы (увеличено до 100 для получения всех курсов)
             
         Returns:
             Tuple[bool, Dict]: (success, response_data)
@@ -216,7 +215,6 @@ class LDAPService:
             'take': page_size,
         }
         
-        logger.info(f"LDAP get active courses (page={page}, size={page_size})")
         success, response = self._make_request(
             self.endpoints['courses'], 
             method='GET',
@@ -240,7 +238,6 @@ class LDAPService:
             'Authorization': f'Bearer {access_token}'
         }
         
-        logger.info("LDAP get course grades")
         success, response = self._make_request(
             self.endpoints['grades'], 
             method='GET',
@@ -263,7 +260,6 @@ class LDAPService:
             'Authorization': f'Bearer {access_token}'
         }
         
-        logger.info("LDAP get course attendance")
         success, response = self._make_request(
             self.endpoints['attendance'], 
             method='GET',
