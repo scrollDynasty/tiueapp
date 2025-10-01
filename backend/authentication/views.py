@@ -213,13 +213,10 @@ def ldap_get_user_profile(request):
     
     access_token = auth_header.split(' ')[1]
     
-    logger.info("LDAP get user profile")
-    
     # Получаем профиль через LDAP
     success, ldap_response = ldap_service.get_user_profile(access_token)
     
     if success:
-        logger.info("LDAP user profile retrieved successfully")
         return Response({
             'success': True,
             'data': ldap_response
@@ -285,9 +282,7 @@ def ldap_get_active_courses(request):
     # Параметры запроса
     lang = request.GET.get('lang', 'en')
     page = int(request.GET.get('page', 1))
-    page_size = int(request.GET.get('pageSize', 10))
-    
-    logger.info(f"LDAP get active courses (page={page}, size={page_size})")
+    page_size = int(request.GET.get('pageSize', 100))  # Увеличено до 100 для получения всех курсов
     
     # Получаем курсы через LDAP
     success, ldap_response = ldap_service.get_active_courses(
@@ -295,7 +290,6 @@ def ldap_get_active_courses(request):
     )
     
     if success:
-        logger.info("LDAP active courses retrieved successfully")
         return Response({
             'success': True,
             'data': ldap_response
@@ -333,12 +327,9 @@ def ldap_get_course_grades(request):
     
     access_token = auth_header.split(' ')[1]
     
-    logger.info("LDAP get course grades")
-    
     success, ldap_response = ldap_service.get_course_grades(access_token)
     
     if success:
-        logger.info("LDAP course grades retrieved successfully")
         return Response({
             'success': True,
             'data': ldap_response
@@ -376,12 +367,9 @@ def ldap_get_course_attendance(request):
     
     access_token = auth_header.split(' ')[1]
     
-    logger.info("LDAP get course attendance")
-    
     success, ldap_response = ldap_service.get_course_attendance(access_token)
     
     if success:
-        logger.info("LDAP course attendance retrieved successfully")
         return Response({
             'success': True,
             'data': ldap_response

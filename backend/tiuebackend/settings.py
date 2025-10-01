@@ -47,9 +47,6 @@ env_hosts = [host.strip() for host in env_hosts if host.strip()]
 all_hosts = base_hosts + env_hosts
 ALLOWED_HOSTS = list(set(all_hosts))  # Убираем дубликаты
 
-if DEBUG:
-    print(f"🔧 ALLOWED_HOSTS: {ALLOWED_HOSTS}")
-
 # LDAP Configuration
 LDAP_BASE_URL = config('LDAP_BASE_URL', default='https://my.tiue.uz')
 
