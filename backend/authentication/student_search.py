@@ -72,7 +72,7 @@ def search_students(request):
                             from django.conf import settings
                             student['avatar'] = f"{settings.BASE_URL}{local_user.avatar.url}"
                     except Exception:
-                        pass  # Игнорируем ошибки получения аватарки
+                        pass 
             
             return Response({
                 'success': True,
