@@ -25,12 +25,21 @@ def search_students(request):
     """
     try:
         # Получаем параметры поиска
+        # Получаем Bearer токен
+        auth_header = request.META.get('HTTP_AUTHORIZATION')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return Response({
+                'success': False,
+                'error': 'Bearer токен обязателен'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        access_token = auth_header.split(' ')[1]
+        
+        # Получаем параметры поиска
         query = request.GET.get('q', '')
         course = request.GET.get('course')
         group = request.GET.get('group')
         limit = int(request.GET.get('limit', 50))
-        
-        logger.info(f"Student search request: query='{query}', course={course}, group='{group}', limit={limit}")
         
         # Валидация параметров
         if not query and not course and not group:
@@ -41,6 +50,7 @@ def search_students(request):
         
         # Вызываем LDAP сервис для поиска студентов
         success, ldap_response = ldap_service.search_students(
+            access_token,
             query=query if query else None,
             course=int(course) if course else None,
             group=group if group else None,
@@ -61,19 +71,16 @@ def search_students(request):
                         if local_user and local_user.avatar:
                             from django.conf import settings
                             student['avatar'] = f"{settings.BASE_URL}{local_user.avatar.url}"
-                    except Exception as e:
-                        logger.warning(f"Failed to get avatar for user {username}: {e}")
+                    except Exception:
+                        pass  # Игнорируем ошибки получения аватарки
             
-            logger.info(f"LDAP student search successful: found {len(students)} students")
             return Response({
                 'success': True,
                 'data': students
             }, status=status.HTTP_200_OK)
         else:
-            logger.warning("LDAP student search failed")
             error_message = ldap_response.get('error', 'Не удалось найти студентов')
             
-            # Определяем статус ответа на основе типа ошибки
             if 'timeout' in error_message.lower() or 'connection' in error_message.lower():
                 response_status = status.HTTP_503_SERVICE_UNAVAILABLE
             else:
@@ -84,8 +91,7 @@ def search_students(request):
                 'error': error_message
             }, status=response_status)
             
-    except ValueError as e:
-        logger.error(f"Invalid parameter in student search: {e}")
+    except ValueError:
         return Response({
             'success': False,
             'error': 'Неверные параметры запроса'

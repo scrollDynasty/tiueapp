@@ -30,7 +30,7 @@ class LDAPService:
             'attendance': '/mobile/course-attendance-list',
             'messages': '/mobile/messages-list',
             'image': '/mobile/img',
-            'search_students': '/mobile/search-students',  # Добавляем endpoint для поиска
+            'search_students': '/mobile/students',  # Реальный LDAP endpoint для поиска студентов
         }
         
         # Таймаут для запросов
@@ -80,9 +80,6 @@ class LDAPService:
             else:
                 logger.error(f"Unsupported HTTP method: {method}")
                 return False, {'error': 'Unsupported HTTP method'}
-            
-            logger.info(f"LDAP API Response: {response.status_code}")
-            logger.info(f"LDAP API Response Text: {response.text[:500]}")  # Первые 500 символов
             
             # Проверяем статус ответа
             if response.status_code == 200:
@@ -338,12 +335,14 @@ class LDAPService:
             logger.error(f"LDAP image upload error: {e}")
             return False, {'error': 'Upload failed'}
 
-    def search_students(self, query: Optional[str] = None, course: Optional[int] = None, 
-                       group: Optional[str] = None, limit: int = 50) -> Tuple[bool, Dict]:
+    def search_students(self, access_token: str, query: Optional[str] = None, 
+                       course: Optional[int] = None, group: Optional[str] = None, 
+                       limit: int = 50) -> Tuple[bool, Dict]:
         """
-        Поиск студентов через LDAP
+        Поиск студентов через LDAP API
         
         Args:
+            access_token: Access token для авторизации
             query: поисковый запрос (имя, фамилия, username)
             course: курс (1, 2, 3, 4)
             group: группа (например, IT22-01)
@@ -352,24 +351,107 @@ class LDAPService:
         Returns:
             Tuple[bool, Dict]: (success, response_data)
         """
+        headers = {
+            'Authorization': f'Bearer {access_token}'
+        }
+        
+        params = {
+            'page': 1,
+            'pageSize': 100, 
+            'skip': 0,
+            'take': 100
+        }
+        
+        if query:
+            filters = [
+                {"field": "display_name", "operator": "contains", "value": query}, 
+                {"field": "uid", "operator": "contains", "value": query},
+                {"field": "mail", "operator": "contains", "value": query}
+            ]
+            params['filter'] = json.dumps({"logic": "or", "filters": filters})
+
         try:
-            # Формируем параметры запроса
-            params = {}
-            if query:
-                params['search'] = query
-            if course:
-                params['course'] = course
-            if group:
-                params['group'] = group
-            if limit:
-                params['limit'] = limit
             
-            logger.info(f"LDAP student search with params: {params}")
+            success, response = self._make_request(
+                self.endpoints['search_students'],
+                method='GET',
+                headers=headers,
+                params=params
+            )
             
-            # Временная заглушка - LDAP API не предоставляет endpoint для поиска студентов
-            # TODO: Уточнить у администратора LDAP какой endpoint использовать для поиска студентов
+            if not success:
+                return False, {'error': 'Failed to search students', 'students': []}
             
-            # Примеры студентов в реальном LDAP формате (как в data-student-profile)
+            # Обрабатываем ответ от LDAP
+            if isinstance(response, list):
+                students_data = response
+            elif isinstance(response, dict):
+                students_data = response.get('data', [])
+            else:
+                students_data = []
+            
+            # Преобразуем формат данных для фронтенда с одновременной фильтрацией
+            formatted_students = []
+            for student in students_data:
+                # Извлекаем курс один раз и кэшируем
+                department = student.get('department', 'no info')
+                student_course = self._extract_course_from_department(department)
+                
+                # Фильтруем по курсу (если указан)
+                if course and student_course != course:
+                    continue
+                
+                # Фильтруем по группе/department (если указан)
+                if group and department != group:
+                    continue
+                
+                # Обрабатываем имя
+                display_name = student.get('display_name', '')
+                name_parts = [p for p in display_name.strip().split() if p]
+                
+                # В LDAP формат: "ИМЯ ФАМИЛИЯ" (например, "SABINA SULAYMONOVA")
+                if len(name_parts) >= 2:
+                    first_name = name_parts[0].title()
+                    last_name = ' '.join(name_parts[1:]).title()
+                elif len(name_parts) == 1:
+                    first_name = name_parts[0].title()
+                    last_name = ''
+                else:
+                    first_name = ''
+                    last_name = ''
+                
+                formatted_student = {
+                    'id': student.get('uid', ''),
+                    'username': student.get('uid', ''),
+                    'email': student.get('mail', ''),
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'full_name': display_name,
+                    'student': {
+                        'group': {
+                            'name': department,
+                            'course': student_course
+                        },
+                        'course': student_course,
+                        'department': department,
+                        'status': student.get('status', 'Students'),
+                        'student_id': student.get('student_id', 0)
+                    }
+                }
+                formatted_students.append(formatted_student)
+            
+            return True, {'students': formatted_students}
+            
+        except Exception as e:
+            logger.error(f"LDAP student search error: {e}")
+            return False, {'error': str(e), 'students': []}
+
+    def _search_students_mock(self, query: Optional[str] = None, course: Optional[int] = None, 
+                             group: Optional[str] = None, limit: int = 50) -> Tuple[bool, Dict]:
+        """
+        Mock реализация поиска студентов (fallback если LDAP не работает)
+        """
+        try:
             mock_students = [
                 {
                     'uid': 'u24215',
@@ -404,7 +486,7 @@ class LDAPService:
                     'uid': 'u24218',
                     'email': 'u24218@tiue.uz',
                     'full_name': 'NAZAROVA DILFUZA BAKHTIYOROVNA', 
-                    'group': 'RC-24-01',
+                    'group': 'RC-24-01',    
                     'jshr': '51403056520013',
                     'department': 'RC 24-01',
                     'yonalishCon': 'Biznes Boshqaruvi'
@@ -420,82 +502,97 @@ class LDAPService:
                 }
             ]
             
-            # Фильтруем по поисковому запросу
-            filtered_students = []
+            # Применяем фильтры к mock данным
+            filtered_students = mock_students
+            
             if query:
                 query_lower = query.lower()
-                for student in mock_students:
-                    # Поиск по username (uid)
-                    if query_lower in student['uid'].lower():
-                        filtered_students.append(student)
-                        continue
-                    
-                    # Поиск по имени и фамилии
-                    full_name_lower = student['full_name'].lower()
-                    if query_lower in full_name_lower:
-                        filtered_students.append(student)
-                        continue
-                        
-                    # Поиск по email
-                    if query_lower in student['email'].lower():
-                        filtered_students.append(student)
-                        continue
-            else:
-                filtered_students = mock_students
-                
-            # Применяем фильтр по курсу
+                filtered_students = [
+                    s for s in filtered_students
+                    if query_lower in s['uid'].lower() or 
+                       query_lower in s['full_name'].lower() or 
+                       query_lower in s['email'].lower()
+                ]
+            
             if course:
-                filtered_students = [s for s in filtered_students 
-                                   if self._extract_course_from_group(s.get('group', '')) == course]
+                filtered_students = [
+                    s for s in filtered_students 
+                    if self._extract_course_from_group(s.get('group', '')) == course
+                ]
             
             # Применяем фильтр по группе
             if group:
                 filtered_students = [s for s in filtered_students 
                                    if s.get('group', '') == group]
             
+            if group:
+                filtered_students = [
+                    s for s in filtered_students 
+                    if s.get('group', '') == group
+                ]
+            
             # Ограничиваем количество результатов
             filtered_students = filtered_students[:limit]
             
-            # Преобразуем формат данных для фронтенда
+            # Преобразуем формат данных
             formatted_students = []
             for student in filtered_students:
-                formatted_student = {
-                    'id': student.get('uid', ''),
-                    'username': student.get('uid', ''),
-                    'email': student.get('email', ''),
-                    'first_name': self._extract_first_name(student.get('full_name', '')),
-                    'last_name': self._extract_last_name(student.get('full_name', '')),
+                formatted_students.append({
+                    'id': student['uid'],
+                    'username': student['uid'],
+                    'email': student['email'],
+                    'first_name': self._extract_first_name(student['full_name']),
+                    'last_name': self._extract_last_name(student['full_name']),
+                    'full_name': student['full_name'],
                     'student': {
                         'group': {
                             'name': student.get('group', ''),
                             'course': self._extract_course_from_group(student.get('group', ''))
                         },
-                        'course': self._extract_course_from_group(student.get('group', ''))
+                        'course': self._extract_course_from_group(student.get('group', '')),
+                        'department': student.get('department', ''),
+                        'yonalish': student.get('yonalishCon', '')
                     }
-                }
-                formatted_students.append(formatted_student)
+                })
             
-            logger.info(f"Student search completed: found {len(formatted_students)} students")
             return True, {'students': formatted_students}
             
         except Exception as e:
-            logger.error(f"LDAP student search error: {e}")
-            return False, {'error': 'Search failed'}
+            logger.error(f"Mock student search error: {e}")
+            return False, {'error': str(e), 'students': []}
 
     def _extract_first_name(self, full_name: str) -> str:
-        """Извлекает имя из полного имени в формате 'ФАМИЛИЯ ИМЯ ОТЧЕСТВО'"""
+        """
+        Извлекает имя из полного имени
+        Форматы: 
+        - 'ФАМИЛИЯ ИМЯ ОТЧЕСТВО' -> 'Имя'
+        - 'Иванов Иван Иванович' -> 'Иван'
+        - 'USER  1 USER' -> 'User'
+        """
         if not full_name:
             return ''
-        parts = full_name.strip().split(' ')
-        # Второе слово - это имя
-        return parts[1].title() if len(parts) > 1 else ''
+        # Убираем лишние пробелы и разбиваем
+        parts = [p for p in full_name.strip().split(' ') if p]
+        
+        # Если есть хотя бы 2 слова, второе - имя
+        if len(parts) > 1:
+            return parts[1].title()
+        # Если только одно слово, возвращаем его
+        return parts[0].title() if parts else ''
 
     def _extract_last_name(self, full_name: str) -> str:
-        """Извлекает фамилию из полного имени в формате 'ФАМИЛИЯ ИМЯ ОТЧЕСТВО'"""
+        """
+        Извлекает фамилию из полного имени
+        Форматы:
+        - 'ФАМИЛИЯ ИМЯ ОТЧЕСТВО' -> 'Фамилия'
+        - 'Иванов Иван Иванович' -> 'Иванов'
+        - 'USER  1 USER' -> 'User'
+        """
         if not full_name:
             return ''
-        parts = full_name.strip().split(' ')
-        # Первое слово - это фамилия
+        # Убираем лишние пробелы и разбиваем
+        parts = [p for p in full_name.strip().split(' ') if p]
+        # Первое слово всегда фамилия
         return parts[0].title() if parts else ''
 
     def _extract_course_from_group(self, group_name: str) -> int:
@@ -509,6 +606,54 @@ class LDAPService:
             year = int(match.group(1))
             current_year = 25  # 2025
             return max(1, current_year - year + 1)
+        return 1
+
+    def _extract_course_from_department(self, department: str) -> int:
+        """
+        Извлекает курс из department в формате LDAP
+        
+        ВАЖНО: В LDAP все студенты имеют "Year 1", поэтому извлекаем курс из префикса!
+        
+        Примеры:
+        - 'BM_01 EN Year1' -> 1 (из BM_01 берём 01 = 2025 год поступления = 1 курс)
+        - 'BM_02 EN Year1' -> 2 (из BM_02 берём 02 = 2024 год = 2 курс)
+        - 'IT_03 UZ Year 1' -> 3 (из IT_03 берём 03 = 2023 год = 3 курс)
+        - 'ED_04 EN Year1' -> 4 (из ED_04 берём 04 = 2022 год = 4 курс)
+        - 'RU_Y1_BM' -> 1 (из _Y1_ берём 1)
+        - 'RU_Y2_IT' -> 2 (из _Y2_ берём 2)
+        - 'IFP' -> 1 (нет информации)
+        - 'Sirtqi / Заочная' -> 1 (заочная форма)
+        """
+        if not department:
+            return 1
+        
+        import re
+        
+        # Вариант 1: Префикс с номером (BM_01, IT_03, ED_02)
+        # Формат: XX_YY где YY - последние 2 цифры года поступления
+        match = re.search(r'[A-Z]{2,3}_(\d{2})', department)
+        if match:
+            year_suffix = int(match.group(1))
+            # 01 = 2025 (1 курс), 02 = 2024 (2 курс), 03 = 2023 (3 курс), 04 = 2022 (4 курс)
+            # Считаем: текущий год (25) - год поступления + 1
+            current_year_suffix = 25  # 2025
+            course = current_year_suffix - year_suffix + 1
+            
+            # Ограничиваем 1-4 курсом
+            if 1 <= course <= 4:
+                return course
+        
+        # Вариант 2: Y\d формат (RU_Y1_BM, RU_Y2_IT)
+        match = re.search(r'_Y(\d)_', department, re.IGNORECASE)
+        if match:
+            return int(match.group(1))
+        
+        # Вариант 3: Year\d или Year \d (как fallback, но в LDAP все Year 1)
+        match = re.search(r'Year\s*(\d)', department, re.IGNORECASE)
+        if match:
+            return int(match.group(1))
+        
+        # Если не найдено, возвращаем 1 по умолчанию
         return 1
 
 
