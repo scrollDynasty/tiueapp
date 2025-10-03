@@ -213,14 +213,6 @@ export default function StudentsScreen() {
             {student.first_name} {student.last_name}
           </ThemedText>
           
-          <ThemedText style={{
-            fontSize: fontSize.small,
-            color: colors.textSecondary,
-            marginBottom: 2,
-          }}>
-            @{student.username}
-          </ThemedText>
-          
           {student.student?.group && (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
               <LinearGradient
@@ -299,7 +291,15 @@ export default function StudentsScreen() {
             marginBottom: spacing.md,
           }}>
             <TouchableOpacity
-              onPress={() => router.back()}
+              onPress={() => {
+                // Проверяем можем ли вернуться назад
+                if (router.canGoBack()) {
+                  router.back();
+                } else {
+                  // Если нет истории - переходим на explore
+                  router.push('/(tabs)/explore');
+                }
+              }}
               style={{
                 width: 40,
                 height: 40,
@@ -405,7 +405,7 @@ export default function StudentsScreen() {
               />
             </LinearGradient>
             <TextInput
-              placeholder="Поиск по имени, фамилии или username..."
+              placeholder="Поиск по имени или фамилии..."
               value={searchQuery}
               onChangeText={setSearchQuery}
               style={{
@@ -607,7 +607,7 @@ export default function StudentsScreen() {
               textAlign: 'center',
               lineHeight: 24,
             }}>
-              Введите имя, фамилию или username{'\n'}студента для поиска
+              Введите имя или фамилию{('\n')}студента для поиска
             </ThemedText>
           </Animated.View>
         )}

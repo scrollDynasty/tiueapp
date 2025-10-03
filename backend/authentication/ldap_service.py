@@ -184,10 +184,6 @@ class LDAPService:
             headers=headers
         )
         
-        # Логируем поля профиля для отладки аватарок
-        if success and logger.isEnabledFor(logging.DEBUG):
-            logger.debug(f"LDAP profile response keys: {response.keys() if isinstance(response, dict) else 'not a dict'}")
-        
         return success, response
 
     def get_active_courses(self, access_token: str, lang: str = 'en', 
@@ -395,10 +391,6 @@ class LDAPService:
             # Преобразуем формат данных для фронтенда с фильтрацией по группе
             formatted_students = []
             for student in students_data:
-                # Логируем сырые данные от LDAP для отладки
-                if logger.isEnabledFor(logging.DEBUG):
-                    logger.debug(f"LDAP student raw data: {student}")
-                
                 department = student.get('department', 'no info')
                 
                 # Фильтруем по группе/department (если указан)

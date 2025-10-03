@@ -57,33 +57,10 @@ def search_students(request):
         if success:
             students = ldap_response.get('students', [])
             
-            # Обогащаем данные студентов аватарками - используем ТОТ ЖЕ метод что и в getCurrentUser
+            # Пока не устанавливаем аватарки - пользователи видят заглушки
+            # Аватарки будут только у тех кто загрузил через профиль
             for student in students:
-                username = student.get('uid', '')
-                if username:
-                    try:
-                        from users.models import CustomUser
-                        
-                        # Получаем пользователя из локальной БД
-                        local_user = CustomUser.objects.filter(username=username).first()
-                        
-                        if local_user and local_user.avatar:
-                            # Есть локально загруженная аватарка - формируем полный URL
-                            base_url = getattr(settings, 'BASE_URL', 'https://mobile.tiue.uz')
-                            avatar_url = f"{base_url.rstrip('/')}{local_user.avatar.url}"
-                            student['avatar'] = avatar_url
-                            logger.debug(f"Avatar for {username}: {avatar_url}")
-                        else:
-                            # Нет локальной аватарки - используем LDAP URL
-                            ldap_base_url = getattr(settings, 'LDAP_BASE_URL', 'https://my.tiue.uz')
-                            avatar_url = f"{ldap_base_url}/mobile/img/{username}"
-                            student['avatar'] = avatar_url
-                            logger.debug(f"LDAP avatar for {username}: {avatar_url}")
-                            
-                    except Exception as e:
-                        logger.error(f"Error getting avatar for {username}: {e}")
-                        # При ошибке - null (покажем инициалы)
-                        student['avatar'] = None 
+                student['avatar'] = None
             
             return Response({
                 'success': True,
