@@ -93,25 +93,8 @@ export default function StudentProfileScreen() {
           }
         }
 
-        // Формируем правильный URL для аватарки
-        let avatarUrl = studentData.avatar;
-        
-        if (avatarUrl && avatarUrl.startsWith('http')) {
-          // Уже полный URL - используем как есть
-          avatarUrl = avatarUrl;
-        } else if (avatarUrl && avatarUrl.startsWith('/api/')) {
-          // Убираем /api/ из начала
-          avatarUrl = `${API_BASE_URL}${avatarUrl.substring(4)}`;
-        } else if (avatarUrl && avatarUrl.startsWith('/media/')) {
-          // Путь к media - напрямую в Nginx
-          avatarUrl = `https://mobile.tiue.uz${avatarUrl}`;
-        } else if (avatarUrl && avatarUrl.startsWith('/')) {
-          // Относительный путь
-          avatarUrl = `${API_BASE_URL}${avatarUrl}`;
-        } else {
-          // Нет аватарки - покажем инициалы
-          avatarUrl = null;
-        }
+        // Backend возвращает полный URL аватарки - используем как есть
+        const avatarUrl = studentData.avatar || null;
 
         const profileData: StudentProfile = {
           id: studentData.id || studentData.username || id,

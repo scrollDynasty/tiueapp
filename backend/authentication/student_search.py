@@ -57,38 +57,33 @@ def search_students(request):
         if success:
             students = ldap_response.get('students', [])
             
-            # Обогащаем данные студентов аватарками
+            # Обогащаем данные студентов аватарками - используем ТОТ ЖЕ метод что и в getCurrentUser
             for student in students:
                 username = student.get('uid', '')
                 if username:
-                    # Формируем URL через наш API endpoint (как в getCurrentUser)
-                    # Это обеспечит единообразный подход к аватаркам
-                    base_url = settings.BASE_URL
-                    avatar_api_url = f"{base_url}/users/avatar/{username}/"
-                    
-                    # Делаем запрос к нашему API для получения аватарки
                     try:
                         from users.models import CustomUser
-                        from users.views import get_user_avatar_data
                         
-                        # Получаем данные аватарки напрямую
+                        # Получаем пользователя из локальной БД
                         local_user = CustomUser.objects.filter(username=username).first()
+                        
                         if local_user and local_user.avatar:
-                            # Есть локальная аватарка
-                            avatar_url = f"{base_url}{local_user.avatar.url}"
+                            # Есть локально загруженная аватарка - формируем полный URL
+                            base_url = getattr(settings, 'BASE_URL', 'https://mobile.tiue.uz')
+                            avatar_url = f"{base_url.rstrip('/')}{local_user.avatar.url}"
                             student['avatar'] = avatar_url
-                            logger.debug(f"Local avatar for {username}: {avatar_url}")
+                            logger.debug(f"Avatar for {username}: {avatar_url}")
                         else:
-                            # Нет локальной аватарки - формируем URL на LDAP сервер
+                            # Нет локальной аватарки - используем LDAP URL
                             ldap_base_url = getattr(settings, 'LDAP_BASE_URL', 'https://my.tiue.uz')
                             avatar_url = f"{ldap_base_url}/mobile/img/{username}"
                             student['avatar'] = avatar_url
-                            logger.debug(f"LDAP avatar URL for {username}: {avatar_url}")
+                            logger.debug(f"LDAP avatar for {username}: {avatar_url}")
+                            
                     except Exception as e:
-                        # Если ошибка - используем LDAP URL
-                        ldap_base_url = getattr(settings, 'LDAP_BASE_URL', 'https://my.tiue.uz')
-                        student['avatar'] = f"{ldap_base_url}/mobile/img/{username}"
-                        logger.error(f"Error getting avatar for {username}: {e}") 
+                        logger.error(f"Error getting avatar for {username}: {e}")
+                        # При ошибке - null (покажем инициалы)
+                        student['avatar'] = None 
             
             return Response({
                 'success': True,

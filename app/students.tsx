@@ -77,33 +77,14 @@ export default function StudentsScreen() {
       });
 
       if (response.success && response.data) {
-        console.log('[Search] Full response:', JSON.stringify(response.data[0], null, 2)); // Логируем первого студента полностью
+        console.log('[Search] Full response:', JSON.stringify(response.data[0], null, 2));
         
         const studentsData = response.data.map((student: any) => {
-          // Правильно формируем URL аватарки
-          let avatarUrl = student.avatar;
+          // Backend уже возвращает полный URL аватарки (как в getCurrentUser)
+          // Просто используем его без дополнительных преобразований
+          const avatarUrl = student.avatar || null;
           
-          // Логируем исходные данные для отладки
-          console.log(`[Student ${student.username}] Original avatar:`, avatarUrl);
-          
-          if (avatarUrl && avatarUrl.startsWith('http')) {
-            // Уже полный URL - оставляем как есть
-            avatarUrl = avatarUrl;
-          } else if (avatarUrl && avatarUrl.startsWith('/media/')) {
-            // Путь к media - напрямую в Nginx (без /api)
-            avatarUrl = `https://mobile.tiue.uz${avatarUrl}`;
-          } else if (avatarUrl && avatarUrl.startsWith('/api/')) {
-            // Убираем /api/ из начала, так как API_BASE_URL уже содержит /api
-            avatarUrl = `${API_BASE_URL}${avatarUrl.substring(4)}`;
-          } else if (avatarUrl && avatarUrl.startsWith('/')) {
-            // Относительный путь без /api/ - добавляем API_BASE_URL
-            avatarUrl = `${API_BASE_URL}${avatarUrl}`;
-          } else {
-            // Если нет аватарки - оставляем null, покажем инициалы
-            avatarUrl = null;
-          }
-          
-          console.log(`[Student ${student.username}] Final avatar:`, avatarUrl);
+          console.log(`[Student ${student.username}] Avatar from backend:`, avatarUrl);
 
           // Заменяем @tiue.local на @tiue.uz
           let email = student.email;

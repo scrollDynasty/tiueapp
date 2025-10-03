@@ -78,20 +78,8 @@ export default function StudentsScreen() {
 
       if (response.success && response.data) {
         const studentsData = response.data.map((student: any) => {
-          // Правильно формируем URL аватарки
-          let avatarUrl = student.avatar;
-          
-          if (avatarUrl && avatarUrl.startsWith('http')) {
-            avatarUrl = avatarUrl;
-          } else if (avatarUrl && avatarUrl.startsWith('/api/')) {
-            avatarUrl = `${API_BASE_URL}${avatarUrl.substring(4)}`;
-          } else if (avatarUrl && avatarUrl.startsWith('/media/')) {
-            avatarUrl = `https://mobile.tiue.uz${avatarUrl}`;
-          } else if (avatarUrl && avatarUrl.startsWith('/')) {
-            avatarUrl = `${API_BASE_URL}${avatarUrl}`;
-          } else {
-            avatarUrl = null;
-          }
+          // Backend возвращает полный URL аватарки - используем как есть
+          const avatarUrl = student.avatar || null;
 
           // Заменяем @tiue.local на @tiue.uz
           let email = student.email;
