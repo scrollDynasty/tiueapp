@@ -217,6 +217,18 @@ def ldap_get_user_profile(request):
     success, ldap_response = ldap_service.get_user_profile(access_token)
     
     if success:
+        # Добавляем URL аватарки из LDAP сервера
+        from django.conf import settings
+        ldap_base_url = getattr(settings, 'LDAP_BASE_URL', 'https://my.tiue.uz')
+        
+        # Получаем username из профиля
+        username = ldap_response.get('uid') or ldap_response.get('username')
+        if username:
+            # Формируем URL аватарки на LDAP сервере
+            avatar_url = f"{ldap_base_url}/mobile/img/{username}"
+            ldap_response['avatar'] = avatar_url
+            logger.info(f"Avatar URL for {username}: {avatar_url}")
+        
         return Response({
             'success': True,
             'data': ldap_response

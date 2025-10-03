@@ -184,6 +184,10 @@ class LDAPService:
             headers=headers
         )
         
+        # Логируем поля профиля для отладки аватарок
+        if success and logger.isEnabledFor(logging.DEBUG):
+            logger.debug(f"LDAP profile response keys: {response.keys() if isinstance(response, dict) else 'not a dict'}")
+        
         return success, response
 
     def get_active_courses(self, access_token: str, lang: str = 'en', 
@@ -336,16 +340,14 @@ class LDAPService:
             return False, {'error': 'Upload failed'}
 
     def search_students(self, access_token: str, query: Optional[str] = None, 
-                       course: Optional[int] = None, group: Optional[str] = None, 
-                       limit: int = 50) -> Tuple[bool, Dict]:
+                       group: Optional[str] = None, limit: int = 50) -> Tuple[bool, Dict]:
         """
         Поиск студентов через LDAP API
         
         Args:
             access_token: Access token для авторизации
             query: поисковый запрос (имя, фамилия, username)
-            course: курс (1, 2, 3, 4)
-            group: группа (например, IT22-01)
+            group: группа/department (например, BM_01 EN Year1)
             limit: максимальное количество результатов
             
         Returns:
@@ -390,16 +392,14 @@ class LDAPService:
             else:
                 students_data = []
             
-            # Преобразуем формат данных для фронтенда с одновременной фильтрацией
+            # Преобразуем формат данных для фронтенда с фильтрацией по группе
             formatted_students = []
             for student in students_data:
-                # Извлекаем курс один раз и кэшируем
-                department = student.get('department', 'no info')
-                student_course = self._extract_course_from_department(department)
+                # Логируем сырые данные от LDAP для отладки
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(f"LDAP student raw data: {student}")
                 
-                # Фильтруем по курсу (если указан)
-                if course and student_course != course:
-                    continue
+                department = student.get('department', 'no info')
                 
                 # Фильтруем по группе/department (если указан)
                 if group and department != group:
@@ -429,10 +429,8 @@ class LDAPService:
                     'full_name': display_name,
                     'student': {
                         'group': {
-                            'name': department,
-                            'course': student_course
+                            'name': department
                         },
-                        'course': student_course,
                         'department': department,
                         'status': student.get('status', 'Students'),
                         'student_id': student.get('student_id', 0)
@@ -446,7 +444,7 @@ class LDAPService:
             logger.error(f"LDAP student search error: {e}")
             return False, {'error': str(e), 'students': []}
 
-    def _search_students_mock(self, query: Optional[str] = None, course: Optional[int] = None, 
+    def _search_students_mock(self, query: Optional[str] = None, 
                              group: Optional[str] = None, limit: int = 50) -> Tuple[bool, Dict]:
         """
         Mock реализация поиска студентов (fallback если LDAP не работает)
@@ -514,21 +512,11 @@ class LDAPService:
                        query_lower in s['email'].lower()
                 ]
             
-            if course:
-                filtered_students = [
-                    s for s in filtered_students 
-                    if self._extract_course_from_group(s.get('group', '')) == course
-                ]
-            
-            # Применяем фильтр по группе
-            if group:
-                filtered_students = [s for s in filtered_students 
-                                   if s.get('group', '') == group]
-            
+            # Применяем фильтр по группе/department
             if group:
                 filtered_students = [
                     s for s in filtered_students 
-                    if s.get('group', '') == group
+                    if s.get('department', '') == group or s.get('group', '') == group
                 ]
             
             # Ограничиваем количество результатов
@@ -606,54 +594,6 @@ class LDAPService:
             year = int(match.group(1))
             current_year = 25  # 2025
             return max(1, current_year - year + 1)
-        return 1
-
-    def _extract_course_from_department(self, department: str) -> int:
-        """
-        Извлекает курс из department в формате LDAP
-        
-        ВАЖНО: В LDAP все студенты имеют "Year 1", поэтому извлекаем курс из префикса!
-        
-        Примеры:
-        - 'BM_01 EN Year1' -> 1 (из BM_01 берём 01 = 2025 год поступления = 1 курс)
-        - 'BM_02 EN Year1' -> 2 (из BM_02 берём 02 = 2024 год = 2 курс)
-        - 'IT_03 UZ Year 1' -> 3 (из IT_03 берём 03 = 2023 год = 3 курс)
-        - 'ED_04 EN Year1' -> 4 (из ED_04 берём 04 = 2022 год = 4 курс)
-        - 'RU_Y1_BM' -> 1 (из _Y1_ берём 1)
-        - 'RU_Y2_IT' -> 2 (из _Y2_ берём 2)
-        - 'IFP' -> 1 (нет информации)
-        - 'Sirtqi / Заочная' -> 1 (заочная форма)
-        """
-        if not department:
-            return 1
-        
-        import re
-        
-        # Вариант 1: Префикс с номером (BM_01, IT_03, ED_02)
-        # Формат: XX_YY где YY - последние 2 цифры года поступления
-        match = re.search(r'[A-Z]{2,3}_(\d{2})', department)
-        if match:
-            year_suffix = int(match.group(1))
-            # 01 = 2025 (1 курс), 02 = 2024 (2 курс), 03 = 2023 (3 курс), 04 = 2022 (4 курс)
-            # Считаем: текущий год (25) - год поступления + 1
-            current_year_suffix = 25  # 2025
-            course = current_year_suffix - year_suffix + 1
-            
-            # Ограничиваем 1-4 курсом
-            if 1 <= course <= 4:
-                return course
-        
-        # Вариант 2: Y\d формат (RU_Y1_BM, RU_Y2_IT)
-        match = re.search(r'_Y(\d)_', department, re.IGNORECASE)
-        if match:
-            return int(match.group(1))
-        
-        # Вариант 3: Year\d или Year \d (как fallback, но в LDAP все Year 1)
-        match = re.search(r'Year\s*(\d)', department, re.IGNORECASE)
-        if match:
-            return int(match.group(1))
-        
-        # Если не найдено, возвращаем 1 по умолчанию
         return 1
 
 
