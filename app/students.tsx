@@ -297,7 +297,6 @@ export default function StudentsScreen() {
                 if (router.canGoBack()) {
                   router.back();
                 } else {
-                  // Если нет истории (например, после перезагрузки) - переходим на explore
                   router.push('/(tabs)/explore');
                 }
               }}

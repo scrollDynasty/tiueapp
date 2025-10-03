@@ -185,24 +185,25 @@ tiueapp/
 
 ### Frontend Commands
 ```bash
-# Start in development mode
-npm start
+# Development (без обфускации)
+npm start                # Start Expo Dev Server
+npm run android          # Run on Android (debug)
+npm run ios              # Run on iOS (debug)
+npm run web              # Run in web browser
 
-# Run on Android
-npm run android
+# Production (с обфускацией)
+npm run android:prod     # Android release build (obfuscated)
+npm run ios:prod         # iOS release build (obfuscated)
+npm run build:android    # EAS Build for Google Play
+npm run build:ios        # EAS Build for App Store
 
-# Run on iOS
-npm run ios
-
-# Run in web browser
-npm run web
-
-# Code linting
-npm run lint
-
-# Reset project to initial state
-npm run reset-project
+# Utilities
+npm run lint             # Code linting
+npm run reset-project    # Reset project to initial state
 ```
+
+> 🔒 **Code Obfuscation**: Production builds автоматически используют обфускацию кода.  
+> Подробнее: [OBFUSCATION.md](./OBFUSCATION.md)
 
 ### Backend Commands
 ```bash

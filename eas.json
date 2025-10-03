@@ -6,7 +6,10 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "NODE_ENV": "development"
+      }
     },
     "preview": {
       "distribution": "internal",
@@ -14,6 +17,9 @@
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease",
         "image": "latest"
+      },
+      "env": {
+        "NODE_ENV": "production"
       }
     },
     "production": {
@@ -21,6 +27,9 @@
       "android": {
         "buildType": "app-bundle",
         "image": "latest"
+      },
+      "env": {
+        "NODE_ENV": "production"
       }
     }
   },
