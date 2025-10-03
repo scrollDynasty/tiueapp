@@ -1,6 +1,7 @@
 import logging
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -19,12 +20,10 @@ def search_students(request):
     
     Query parameters:
     - q: поисковый запрос (имя, фамилия, username)
-    - course: курс (1, 2, 3, 4)
-    - group: группа (например, IT22-01)
+    - group: группа/department (например, BM_01 EN Year1)
     - limit: максимальное количество результатов (по умолчанию 50)
     """
     try:
-        # Получаем параметры поиска
         # Получаем Bearer токен
         auth_header = request.META.get('HTTP_AUTHORIZATION')
         if not auth_header or not auth_header.startswith('Bearer '):
@@ -37,12 +36,11 @@ def search_students(request):
         
         # Получаем параметры поиска
         query = request.GET.get('q', '')
-        course = request.GET.get('course')
         group = request.GET.get('group')
         limit = int(request.GET.get('limit', 50))
         
         # Валидация параметров
-        if not query and not course and not group:
+        if not query and not group:
             return Response({
                 'success': False,
                 'error': 'Необходимо указать хотя бы один параметр поиска'
@@ -52,7 +50,6 @@ def search_students(request):
         success, ldap_response = ldap_service.search_students(
             access_token,
             query=query if query else None,
-            course=int(course) if course else None,
             group=group if group else None,
             limit=limit
         )
@@ -60,19 +57,38 @@ def search_students(request):
         if success:
             students = ldap_response.get('students', [])
             
-            # Обогащаем данные студентов аватарками из локальной БД
+            # Обогащаем данные студентов аватарками
             for student in students:
                 username = student.get('uid', '')
                 if username:
+                    # Формируем URL через наш API endpoint (как в getCurrentUser)
+                    # Это обеспечит единообразный подход к аватаркам
+                    base_url = settings.BASE_URL
+                    avatar_api_url = f"{base_url}/users/avatar/{username}/"
+                    
+                    # Делаем запрос к нашему API для получения аватарки
                     try:
-                        # Пытаемся найти пользователя в локальной БД для получения аватарки
                         from users.models import CustomUser
+                        from users.views import get_user_avatar_data
+                        
+                        # Получаем данные аватарки напрямую
                         local_user = CustomUser.objects.filter(username=username).first()
                         if local_user and local_user.avatar:
-                            from django.conf import settings
-                            student['avatar'] = f"{settings.BASE_URL}{local_user.avatar.url}"
-                    except Exception:
-                        pass 
+                            # Есть локальная аватарка
+                            avatar_url = f"{base_url}{local_user.avatar.url}"
+                            student['avatar'] = avatar_url
+                            logger.debug(f"Local avatar for {username}: {avatar_url}")
+                        else:
+                            # Нет локальной аватарки - формируем URL на LDAP сервер
+                            ldap_base_url = getattr(settings, 'LDAP_BASE_URL', 'https://my.tiue.uz')
+                            avatar_url = f"{ldap_base_url}/mobile/img/{username}"
+                            student['avatar'] = avatar_url
+                            logger.debug(f"LDAP avatar URL for {username}: {avatar_url}")
+                    except Exception as e:
+                        # Если ошибка - используем LDAP URL
+                        ldap_base_url = getattr(settings, 'LDAP_BASE_URL', 'https://my.tiue.uz')
+                        student['avatar'] = f"{ldap_base_url}/mobile/img/{username}"
+                        logger.error(f"Error getting avatar for {username}: {e}") 
             
             return Response({
                 'success': True,

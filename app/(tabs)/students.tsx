@@ -1,4 +1,5 @@
 import { ThemedText } from '@/components/ThemedText';
+import { getApiBaseUrl } from '@/config/environment';
 import { getThemeColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAppSelector } from '@/hooks/redux';
@@ -9,17 +10,19 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    Platform,
-    ScrollView,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Image,
+  Platform,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const API_BASE_URL = getApiBaseUrl();
 
 interface Student {
   id: string;
@@ -31,9 +34,8 @@ interface Student {
   student?: {
     group?: {
       name: string;
-      course: number;
     };
-    course?: number;
+    department?: string;
   };
 }
 
@@ -54,16 +56,14 @@ export default function StudentsScreen() {
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
-  // Получаем уникальные курсы и группы для фильтрации
-  const courses = [...new Set(students.map(s => s.student?.course).filter(Boolean))].sort();
+  // Получаем уникальные группы для фильтрации
   const groups = [...new Set(students.map(s => s.student?.group?.name).filter(Boolean))].sort();
 
   const searchStudents = async () => {
-    if (!searchQuery.trim() && !selectedCourse && !selectedGroup) {
+    if (!searchQuery.trim() && !selectedGroup) {
       setFilteredStudents([]);
       return;
     }
@@ -72,24 +72,48 @@ export default function StudentsScreen() {
     try {
       const response = await authApi.searchStudents({
         query: searchQuery.trim() || undefined,
-        course: selectedCourse || undefined,
         group: selectedGroup || undefined,
         limit: 50
       });
 
       if (response.success && response.data) {
-        const studentsData = response.data.map((student: any) => ({
-          id: student.id || student.username,
-          username: student.username,
-          email: student.email,
-          first_name: student.first_name || '',
-          last_name: student.last_name || '',
-          avatar: student.avatar,
-          student: student.student || {
-            group: student.group ? { name: student.group, course: student.course || 1 } : undefined,
-            course: student.course || 1
+        const studentsData = response.data.map((student: any) => {
+          // Правильно формируем URL аватарки
+          let avatarUrl = student.avatar;
+          
+          if (avatarUrl && avatarUrl.startsWith('http')) {
+            avatarUrl = avatarUrl;
+          } else if (avatarUrl && avatarUrl.startsWith('/api/')) {
+            avatarUrl = `${API_BASE_URL}${avatarUrl.substring(4)}`;
+          } else if (avatarUrl && avatarUrl.startsWith('/media/')) {
+            avatarUrl = `https://mobile.tiue.uz${avatarUrl}`;
+          } else if (avatarUrl && avatarUrl.startsWith('/')) {
+            avatarUrl = `${API_BASE_URL}${avatarUrl}`;
+          } else {
+            avatarUrl = null;
           }
-        }));
+
+          // Заменяем @tiue.local на @tiue.uz
+          let email = student.email;
+          if (email && email.includes('@tiue.local')) {
+            email = email.replace('@tiue.local', '@tiue.uz');
+          } else if (!email || !email.includes('@tiue.uz')) {
+            email = `${student.username}@tiue.uz`;
+          }
+
+          return {
+            id: student.id || student.username,
+            username: student.username,
+            email: email,
+            first_name: student.first_name || '',
+            last_name: student.last_name || '',
+            avatar: avatarUrl,
+            student: student.student || {
+              group: student.group ? { name: student.group } : undefined,
+              department: student.department
+            }
+          };
+        });
         
         setStudents(studentsData);
         setFilteredStudents(studentsData);
@@ -107,27 +131,45 @@ export default function StudentsScreen() {
 
   useEffect(() => {
     searchStudents();
-  }, [searchQuery, selectedCourse, selectedGroup]);
+  }, [searchQuery, selectedGroup]);
 
   const renderStudentCard = (student: Student, index: number) => (
-    <Animated.View
+    <TouchableOpacity
       key={student.id}
-      entering={FadeInDown.delay(index * 100).duration(600)}
-      style={{
-        backgroundColor: colors.surface,
-        borderRadius: 16,
-        padding: spacing.md,
-        marginBottom: spacing.sm,
-        shadowColor: Platform.OS === 'android' ? 'transparent' : colors.primary,
-        shadowOffset: { width: 0, height: Platform.OS === 'android' ? 2 : 4 },
-        shadowOpacity: Platform.OS === 'android' ? 0 : 0.1,
-        shadowRadius: Platform.OS === 'android' ? 0 : 8,
-        elevation: Platform.OS === 'android' ? 2 : 4,
-        borderWidth: 1,
-        borderColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
+      activeOpacity={0.7}
+      onPress={() => {
+        // Переход к профилю студента
+        router.push({
+          pathname: '/student-profile/[id]',
+          params: {
+            id: student.id,
+            username: student.username,
+            email: student.email,
+            first_name: student.first_name,
+            last_name: student.last_name,
+            avatar: student.avatar || '',
+            student: JSON.stringify(student.student || {})
+          }
+        });
       }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <Animated.View
+        entering={FadeInDown.delay(index * 100).duration(600)}
+        style={{
+          backgroundColor: colors.surface,
+          borderRadius: 16,
+          padding: spacing.md,
+          marginBottom: spacing.sm,
+          shadowColor: Platform.OS === 'android' ? 'transparent' : colors.primary,
+          shadowOffset: { width: 0, height: Platform.OS === 'android' ? 2 : 4 },
+          shadowOpacity: Platform.OS === 'android' ? 0 : 0.1,
+          shadowRadius: Platform.OS === 'android' ? 0 : 8,
+          elevation: Platform.OS === 'android' ? 2 : 4,
+          borderWidth: 1,
+          borderColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
+        }}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         {/* Аватар */}
         <View style={{
           width: isVerySmallScreen ? 50 : 60,
@@ -140,8 +182,14 @@ export default function StudentsScreen() {
         }}>
           {student.avatar ? (
             <Image
-              source={{ uri: student.avatar }}
+              source={{ 
+                uri: student.avatar,
+                cache: 'force-cache' // Кэширование изображений
+              }}
               style={{ width: '100%', height: '100%' }}
+              onError={(error) => {
+                console.log(`Failed to load avatar for ${student.username}`);
+              }}
             />
           ) : (
             <LinearGradient
@@ -193,7 +241,6 @@ export default function StudentsScreen() {
                   paddingHorizontal: 8,
                   paddingVertical: 4,
                   borderRadius: 8,
-                  marginRight: 8,
                 }}
               >
                 <ThemedText style={{
@@ -204,23 +251,12 @@ export default function StudentsScreen() {
                   {student.student.group.name}
                 </ThemedText>
               </LinearGradient>
-              
-              <ThemedText style={{
-                fontSize: fontSize.small - 2,
-                color: colors.textSecondary,
-              }}>
-                {student.student.course} курс
-              </ThemedText>
             </View>
           )}
         </View>
 
-        {/* Кнопка действий */}
-        <TouchableOpacity
-          onPress={() => {
-            // Здесь можно добавить действие (добавить в друзья, отправить сообщение и т.д.)
-            Alert.alert('Информация', `Профиль ${student.first_name} ${student.last_name}`);
-          }}
+        {/* Иконка перехода */}
+        <View
           style={{
             width: 40,
             height: 40,
@@ -232,10 +268,11 @@ export default function StudentsScreen() {
             borderColor: `${colors.primary}30`,
           }}
         >
-          <Ionicons name="person-add" size={18} color={colors.primary} />
-        </TouchableOpacity>
-      </View>
-    </Animated.View>
+          <Ionicons name="chevron-forward" size={18} color={colors.primary} />
+        </View>
+        </View>
+      </Animated.View>
+    </TouchableOpacity>
   );
 
   return (
@@ -438,25 +475,24 @@ export default function StudentsScreen() {
               {/* Фильтр "Все" */}
               <TouchableOpacity
                 onPress={() => {
-                  setSelectedCourse(null);
                   setSelectedGroup(null);
                 }}
                 style={{
                   paddingHorizontal: spacing.md,
                   paddingVertical: spacing.sm,
                   borderRadius: 20,
-                  backgroundColor: !selectedCourse && !selectedGroup 
+                  backgroundColor: !selectedGroup 
                     ? colors.primary 
                     : `${colors.primary}15`,
                   borderWidth: 1,
-                  borderColor: !selectedCourse && !selectedGroup 
+                  borderColor: !selectedGroup 
                     ? colors.primary 
                     : `${colors.primary}30`,
                 }}
               >
                 <ThemedText style={{
                   fontSize: fontSize.small,
-                  color: !selectedCourse && !selectedGroup 
+                  color: !selectedGroup 
                     ? '#FFFFFF' 
                     : colors.primary,
                   fontWeight: '500',
@@ -464,39 +500,6 @@ export default function StudentsScreen() {
                   Все
                 </ThemedText>
               </TouchableOpacity>
-
-              {/* Фильтры по курсам */}
-              {[1, 2, 3, 4].map(course => (
-                <TouchableOpacity
-                  key={course}
-                  onPress={() => {
-                    setSelectedCourse(selectedCourse === course ? null : course);
-                    setSelectedGroup(null);
-                  }}
-                  style={{
-                    paddingHorizontal: spacing.md,
-                    paddingVertical: spacing.sm,
-                    borderRadius: 20,
-                    backgroundColor: selectedCourse === course 
-                      ? colors.primary 
-                      : `${colors.primary}15`,
-                    borderWidth: 1,
-                    borderColor: selectedCourse === course 
-                      ? colors.primary 
-                      : `${colors.primary}30`,
-                  }}
-                >
-                  <ThemedText style={{
-                    fontSize: fontSize.small,
-                    color: selectedCourse === course 
-                      ? '#FFFFFF' 
-                      : colors.primary,
-                    fontWeight: '500',
-                  }}>
-                    {course} курс
-                  </ThemedText>
-                </TouchableOpacity>
-              ))}
             </View>
           </ScrollView>
         </Animated.View>
@@ -533,7 +536,7 @@ export default function StudentsScreen() {
             
             {filteredStudents.map((student, index) => renderStudentCard(student, index))}
           </Animated.View>
-        ) : searchQuery.trim() || selectedCourse || selectedGroup ? (
+        ) : searchQuery.trim() || selectedGroup ? (
           <Animated.View 
             entering={FadeInDown.duration(600)}
             style={{
