@@ -1,6 +1,3 @@
 // Global type declarations for React Native environment
-
-declare var __DEV__: boolean | undefined;
-
-// Utility function to safely check if we're in development mode
-declare function isDevelopmentMode(): boolean;
+// __DEV__ is a compile-time constant provided by React Native bundler
+declare var __DEV__: boolean;
