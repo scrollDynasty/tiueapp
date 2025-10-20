@@ -115,7 +115,7 @@ export default function GradesScreen() {
         setCourses(coursesArray);
       }
     } catch (error) {
-      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      if (__DEV__) {
         console.error('🎓 [Grades Screen] Error fetching grades data:', error);
       }
     } finally {

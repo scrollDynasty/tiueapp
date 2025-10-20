@@ -50,7 +50,7 @@ export default function ProfileScreen() {
       dispatch(clearCredentials());
       router.replace('/login');
     } catch (error) {
-      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      if (__DEV__) {
         console.error('❌ Logout error:', error);
       }
       // При ошибке показываем уведомление только если компонент еще смонтирован

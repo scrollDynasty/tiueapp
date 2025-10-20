@@ -43,7 +43,7 @@ const ldapConfig = {
 // __DEV__ автоматически определяется React Native
 // Добавляем флаг для принудительного использования продакшн режима
 const forceProduction = false; // Установите false для использования локального сервера
-const isDevelopment = forceProduction ? false : (typeof __DEV__ !== 'undefined' && __DEV__);
+const isDevelopment = forceProduction ? false : __DEV__;
 
 // Экспортируем конфигурацию в зависимости от окружения
 export const config: EnvironmentConfig = isDevelopment ? developmentConfig : productionConfig;

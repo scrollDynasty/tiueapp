@@ -112,7 +112,7 @@ export default function HomeScreen() {
         setGradesData([]);
       }
     } catch (error) {
-      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      if (__DEV__) {
         console.error('🎓 Error fetching grades:', error);
       }
       // В случае ошибки устанавливаем пустой массив
@@ -152,7 +152,7 @@ export default function HomeScreen() {
         setCoursesData([]);
       }
     } catch (error) {
-      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      if (__DEV__) {
         console.error('📚 Error fetching courses:', error);
       }
       setCoursesData([]);
@@ -186,7 +186,7 @@ export default function HomeScreen() {
         ]);
       }
     } catch (error) {
-      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      if (__DEV__) {
         console.error('🔄 Error refreshing data:', error);
       }
     }

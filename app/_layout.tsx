@@ -95,7 +95,7 @@ export default function RootLayout() {
               />
               <ErrorBoundary onError={(error, errorInfo) => {
                 // В продакшене можно отправить в систему мониторинга
-                if (typeof __DEV__ !== 'undefined' && __DEV__) {
+                if (__DEV__) {
                   console.error('🚨 App Error:', error);
                 }
               }}>
