@@ -28,7 +28,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: any) {
     // Логирование ошибки только в dev режиме
-    if (__DEV__) {
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
       console.error('🚨 Error caught by ErrorBoundary:', error);
       console.error('📋 Error info:', errorInfo);
     }
@@ -66,7 +66,7 @@ export class ErrorBoundary extends Component<Props, State> {
               Произошла неожиданная ошибка. Мы работаем над её исправлением.
             </Text>
 
-            {__DEV__ && this.state.error && (
+            {typeof __DEV__ !== 'undefined' && __DEV__ && this.state.error && (
               <View style={styles.errorDetails}>
                 <Text style={styles.errorText}>
                   {this.state.error.toString()}
