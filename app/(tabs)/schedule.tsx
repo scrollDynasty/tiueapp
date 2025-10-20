@@ -309,7 +309,7 @@ export default function ScheduleScreen() {
         });
       }
     } catch (error) {
-      if (__DEV__) {
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
         console.error('📅 Error fetching schedule:', error);
       }
       // В случае ошибки устанавливаем пустое расписание

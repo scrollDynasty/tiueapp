@@ -70,17 +70,17 @@ export const navigationLogger = {
 // Утилита для измерения производительности
 export const performanceLogger = {
   start: (label: string) => {
-    if (__DEV__) {
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
       console.time(label);
     }
   },
   end: (label: string) => {
-    if (__DEV__) {
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
       console.timeEnd(label);
     }
   },
   mark: (label: string, message?: string) => {
-    if (__DEV__) {
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
       const timestamp = performance.now();
       logger.debug(`⏱️ ${label}: ${timestamp.toFixed(2)}ms${message ? ` - ${message}` : ''}`);
     }

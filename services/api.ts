@@ -253,7 +253,7 @@ class ApiService {
         data: { user, token: access_token },
       };
     } catch (error) {
-      if (__DEV__) {
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
         console.error('❌ Login error:', error);
       }
       return {
@@ -301,7 +301,7 @@ class ApiService {
         AsyncStorage.removeItem('ldap_refresh_token'),
       ]);
     } catch (error) {
-      if (__DEV__) {
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
         console.error('❌ Error clearing tokens:', error);
       }
     }
@@ -499,7 +499,7 @@ class ApiService {
         data: user,
       };
     } catch (error) {
-      if (__DEV__) {
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
         console.error('❌ Failed to get LDAP user:', error);
       }
       return {
@@ -856,7 +856,7 @@ class ApiService {
         let imageUri = eventData.image.uri;
 
         if (!imageUri) {
-          if (__DEV__) {
+          if (typeof __DEV__ !== 'undefined' && __DEV__) {
             console.warn('⚠️ createEvent(): image object missing uri');
           }
         } else if (imageUri.startsWith('/')) {
@@ -893,7 +893,7 @@ class ApiService {
             body: formData,
           });
         } catch (networkErr: any) {
-          if (__DEV__) {
+          if (typeof __DEV__ !== 'undefined' && __DEV__) {
             console.error('🌐 createEvent(): network layer failure', networkErr?.message || networkErr);
           }
           try {
@@ -914,7 +914,7 @@ class ApiService {
             }
             return { success: false, error: 'Сеть недоступна (multipart) и fallback не удался' };
           } catch (fbErr) {
-            if (__DEV__) {
+            if (typeof __DEV__ !== 'undefined' && __DEV__) {
               console.error('❌ createEvent(): fallback failed', fbErr);
             }
             return { success: false, error: 'Сеть недоступна (multipart)' };
@@ -925,13 +925,13 @@ class ApiService {
         try {
           data = await apiResponse.json();
         } catch (parseErr) {
-          if (__DEV__) {
+          if (typeof __DEV__ !== 'undefined' && __DEV__) {
             console.error('🧩 createEvent(): JSON parse failed', parseErr);
           }
         }
 
         if (!apiResponse.ok) {
-          if (__DEV__) {
+          if (typeof __DEV__ !== 'undefined' && __DEV__) {
             console.error('❌ createEvent(): server responded with error status', apiResponse.status, data);
           }
           return { success: false, error: data?.error || data?.message || `HTTP ${apiResponse.status}` };
