@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { authApi } from '../../services/api';
 import { News } from '../../types';
+import { cache, cacheKeys, cacheTTL } from '../../utils/cache';
 
 interface NewsState {
   items: News[];
@@ -16,13 +17,31 @@ const initialState: NewsState = {
   error: null,
 };
 
-// Async thunks для работы с API
+// ОПТИМИЗАЦИЯ: Async thunks с кешированием для быстрой загрузки
 export const fetchNews = createAsyncThunk(
   'news/fetchNews',
   async (_, { rejectWithValue }) => {
     try {
+      // Сначала пытаемся получить из кеша
+      const cachedNews = await cache.get<News[]>(cacheKeys.news);
+      
+      if (cachedNews) {
+        // Возвращаем кешированные данные сразу
+        // и обновляем в фоне
+        authApi.getNews().then(response => {
+          if (response.success && response.data) {
+            cache.set(cacheKeys.news, response.data, cacheTTL.short);
+          }
+        }).catch(() => {});
+        
+        return cachedNews;
+      }
+      
+      // Если кеша нет, загружаем с сервера
       const response = await authApi.getNews();
       if (response.success && response.data) {
+        // Сохраняем в кеш
+        await cache.set(cacheKeys.news, response.data, cacheTTL.short);
         return response.data;
       } else {
         return rejectWithValue(response.error || 'Failed to fetch news');

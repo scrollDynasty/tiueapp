@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { authApi } from '../../services/api';
 import { Event } from '../../types';
+import { cache, cacheKeys, cacheTTL } from '../../utils/cache';
 
 interface EventsState {
   items: Event[];
@@ -16,13 +17,30 @@ const initialState: EventsState = {
   error: null,
 };
 
-// Async thunks для работы с API
+// ОПТИМИЗАЦИЯ: Async thunks с кешированием для быстрой загрузки
 export const fetchEvents = createAsyncThunk(
   'events/fetchEvents',
   async (_, { rejectWithValue }) => {
     try {
+      // Сначала пытаемся получить из кеша
+      const cachedEvents = await cache.get<Event[]>(cacheKeys.events);
+      
+      if (cachedEvents) {
+        // Возвращаем кешированные данные сразу и обновляем в фоне
+        authApi.getEvents().then(response => {
+          if (response.success && response.data) {
+            cache.set(cacheKeys.events, response.data, cacheTTL.short);
+          }
+        }).catch(() => {});
+        
+        return cachedEvents;
+      }
+      
+      // Если кеша нет, загружаем с сервера
       const response = await authApi.getEvents();
       if (response.success && response.data) {
+        // Сохраняем в кеш
+        await cache.set(cacheKeys.events, response.data, cacheTTL.short);
         return response.data;
       } else {
         return rejectWithValue(response.error || 'Failed to fetch events');

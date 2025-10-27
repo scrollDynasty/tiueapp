@@ -108,7 +108,7 @@ export const useImmersiveMode = () => {
     appState.current = nextAppState;
   }, [enableImmersiveMode]);
 
-  // Слушатель изменения видимости навигации
+  // ОПТИМИЗАЦИЯ: Слушатель изменения видимости навигации - уменьшена частота проверок
   useEffect(() => {
     if (Platform.OS !== 'android') return;
 
@@ -126,7 +126,6 @@ export const useImmersiveMode = () => {
           if (visibility === 'visible' && isImmersiveActive.current) {
             // Навигация стала видимой - НЕ запускаем автоскрытие, оставляем как есть
             isImmersiveActive.current = false;
-            // scheduleAutoHide(); // Отключено для постоянного immersive режима
           }
         }
       } catch (error) {
@@ -134,8 +133,8 @@ export const useImmersiveMode = () => {
       }
     };
 
-    // Оптимизированная частота проверки - 2 секунды для экономии батареи
-    checkInterval = setInterval(handleNavigationVisibilityChange, 2000);
+    // ОПТИМИЗАЦИЯ: Увеличена частота проверки до 5 секунд для экономии ресурсов
+    checkInterval = setInterval(handleNavigationVisibilityChange, 5000);
 
     return () => {
       if (checkInterval) {

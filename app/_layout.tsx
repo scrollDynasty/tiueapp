@@ -1,11 +1,9 @@
 import AuthGuard from '@/components/AuthGuard';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { SplashScreen } from '@/components/SplashScreen';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useImmersiveMode } from '@/hooks/useSystemBars';
 import { store } from '@/store';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -23,14 +21,14 @@ ExpoSplashScreen.preventAutoHideAsync().catch(() => {
   // Игнорируем ошибку если splash screen уже был скрыт
 });
 
-// Загружаем шрифты асинхронно без блокировки рендера
-const fontLoadPromise = useFonts({
-  SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-});
-
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const [loaded] = fontLoadPromise;
+  
+  // Загружаем шрифты асинхронно без блокировки рендера
+  const [loaded] = useFonts({
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+  });
+  
   const [appReady, setAppReady] = React.useState(false);
   
   const { enableImmersiveMode } = useImmersiveMode();
@@ -51,24 +49,12 @@ export default function RootLayout() {
       if (!loaded) return;
       
       try {
-        // Проверяем показывался ли splash в этой сессии
-        const hasShownSplash = await AsyncStorage.getItem('splashShownInSession');
-        
-        if (hasShownSplash === 'true') {
-          // Сразу скрываем splash и показываем контент
-          await ExpoSplashScreen.hideAsync();
-          setAppReady(true);
-        } else {
-          // Показываем кастомный splash максимум на 1.5 секунды
-          setTimeout(async () => {
-            await AsyncStorage.setItem('splashShownInSession', 'true');
-            await ExpoSplashScreen.hideAsync();
-            setAppReady(true);
-          }, 1500);
-        }
+        // ОПТИМИЗАЦИЯ: Удаляем проверку AsyncStorage и сразу показываем контент
+        // Пользователь предпочитает быструю загрузку вместо анимации splash
+        await ExpoSplashScreen.hideAsync();
+        setAppReady(true);
       } catch {
         // При ошибке сразу показываем контент
-        await ExpoSplashScreen.hideAsync();
         setAppReady(true);
       }
     };
@@ -77,9 +63,13 @@ export default function RootLayout() {
   }, [loaded]);
 
 
-  // Показываем null пока приложение не готово
+  // Показываем loader пока приложение не готово (вместо null)
   if (!loaded || !appReady) {
-    return null;
+    return (
+      <View style={styles.container}>
+        {/* Пустой контейнер вместо null для сохранения структуры хуков */}
+      </View>
+    );
   }
 
   return (

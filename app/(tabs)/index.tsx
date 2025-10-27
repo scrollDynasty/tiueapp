@@ -22,8 +22,8 @@ import { Image } from 'expo-image';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, {
-  useAnimatedScrollHandler,
-  useSharedValue
+    useAnimatedScrollHandler,
+    useSharedValue
 } from 'react-native-reanimated';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
@@ -162,17 +162,30 @@ export default function HomeScreen() {
   }, [user?.role, validateCourseData]);
 
 
-  // Загружаем данные при монтировании компонента максимально быстро
+  // ОПТИМИЗАЦИЯ: Используем ленивую загрузку данных с приоритезацией
   useEffect(() => {
     if (user) {
-      // Загружаем все данные параллельно без задержек для максимальной скорости
-      dispatch(fetchNews());
-      dispatch(fetchEvents());
-      fetchGrades();
-      fetchCourses();
+      // Приоритет 1: Сначала загружаем только критически важные данные (новости и события)
+      // Это даст пользователю увидеть контент быстрее
+      const loadCriticalData = async () => {
+        await Promise.all([
+          dispatch(fetchNews()),
+          dispatch(fetchEvents())
+        ]);
+      };
+      
+      loadCriticalData();
+      
+      // Приоритет 2: Загружаем оценки и курсы с небольшой задержкой
+      // Это снизит нагрузку на сервер и ускорит начальную загрузку
+      const loadSecondaryData = setTimeout(() => {
+        fetchGrades();
+        fetchCourses();
+      }, 500); // 500ms задержка для вторичных данных
+      
+      return () => clearTimeout(loadSecondaryData);
     }
-
-  }, [dispatch, user]);
+  }, [dispatch, user, fetchGrades, fetchCourses]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

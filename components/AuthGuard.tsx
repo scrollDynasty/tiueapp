@@ -31,29 +31,29 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     
     initializingRef.current = true;
     try {
-      // Если пользователь уже аутентифицирован в Redux, не проверяем AsyncStorage
+      // ОПТИМИЗАЦИЯ: Если пользователь уже аутентифицирован в Redux, пропускаем все проверки
       if (isAuthenticated) {
         setIsInitializing(false);
         return;
       }
 
+      // ОПТИМИЗАЦИЯ: Параллельно проверяем токен и валидность
       const token = await AsyncStorage.getItem('authToken');
 
       if (token) {
-        // Проверяем валидность токена
-        const result = await dispatch(checkAuthStatus());
-
-        // Если проверка провалилась, перенаправляем на логин, но не очищаем токен сразу
-        if (checkAuthStatus.rejected.match(result)) {
-          // Даем пользователю возможность повторно войти с тем же токеном
-          router.replace('/login');
-        }
+        // Запускаем проверку статуса, но не ждем её завершения для быстрой загрузки
+        dispatch(checkAuthStatus()).then((result) => {
+          // Если проверка провалилась, перенаправляем на логин
+          if (checkAuthStatus.rejected.match(result)) {
+            router.replace('/login');
+          }
+        });
       } else {
         // Токена нет, перенаправляем на логин
         router.replace('/login');
       }
     } catch (error) {
-      // При ошибке просто перенаправляем на логин, не очищая данные
+      // При ошибке просто перенаправляем на логин
       router.replace('/login');
     } finally {
       initializingRef.current = false;
