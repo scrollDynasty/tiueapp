@@ -37,6 +37,32 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env
+*.env
+backend/*.env
+backend/server.env
+backend/.env*
+
+# SSL Certificates and keys
+cert/
+*.crt
+*.pem
+*.key
+*.p12
+*.jks
+
+# Keystore files
+*.keystore
+android/app/debug.keystore
+android/app/release.keystore
+
+# iOS environment
+ios/.xcode.env
+ios/.xcode.env.local
+
+# Secrets
+*secret*
+*.secret
 
 # typescript
 *.tsbuildinfo
