@@ -19,9 +19,9 @@ export function SectionHeader({ title, actionText, onActionPress }: SectionHeade
       <Text style={[styles.title, { color: colors.text }]}>
         {title}
       </Text>
-      
+
       {actionText && onActionPress && (
-        <Pressable 
+        <Pressable
           onPress={onActionPress}
           style={({ pressed }) => [
             styles.actionButton,
@@ -45,17 +45,17 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     paddingHorizontal: SPACING.containerHorizontal,
   },
-  
+
   title: {
     ...TYPOGRAPHY.h3,
     letterSpacing: -0.3,
   },
-  
+
   actionButton: {
     paddingVertical: SPACING.xs,
     paddingHorizontal: SPACING.sm,
   },
-  
+
   actionText: {
     ...TYPOGRAPHY.body2,
   },

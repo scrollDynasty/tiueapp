@@ -3,7 +3,6 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { authApi } from '../../services/api';
 import { AuthState, LoginCredentials, User } from '../../types';
 
-// Async thunks for LDAP authentication
 export const loginUser = createAsyncThunk<
   { user: User; token: string },
   LoginCredentials,
@@ -13,7 +12,7 @@ export const loginUser = createAsyncThunk<
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await authApi.login(credentials);
-      
+
       if (response.success && response.data) {
         return response.data;
       } else {
@@ -30,14 +29,14 @@ export const logoutUser = createAsyncThunk<void, void>(
   async (_, { rejectWithValue }) => {
     try {
       await authApi.logout();
-      // Очищаем флаг показа анимации при выходе, чтобы при следующем входе анимация показалась
+
       await AsyncStorage.removeItem('splashShownInSession');
     } catch (error) {
-      // Даже если API logout не работает, мы все равно выходим локально
+
       try {
         await AsyncStorage.removeItem('splashShownInSession');
       } catch (storageError) {
-        // Игнорируем ошибки работы с хранилищем
+
       }
     }
   }
@@ -55,11 +54,11 @@ export const checkAuthStatus = createAsyncThunk<
       if (response.success && response.data) {
         return response.data;
       } else {
-        // Не очищаем токен сразу, даем возможность повторного входа
+
         return rejectWithValue('Not authenticated');
       }
     } catch (error) {
-      // Не очищаем токен при ошибке, пусть пользователь попробует снова
+
       return rejectWithValue('Failed to check auth status');
     }
   }
@@ -95,7 +94,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Login
+
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -114,7 +113,7 @@ const authSlice = createSlice({
         state.user = null;
         state.token = null;
       })
-      // Logout
+
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
         state.token = null;
@@ -122,13 +121,13 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(logoutUser.rejected, (state) => {
-        // Даже если logout не удался, все равно выходим локально
+
         state.user = null;
         state.token = null;
         state.isAuthenticated = false;
         state.error = null;
       })
-      // Check auth status
+
       .addCase(checkAuthStatus.pending, (state) => {
         state.loading = true;
       })
@@ -146,7 +145,6 @@ const authSlice = createSlice({
   },
 });
 
-// Добавляем action для обновления аватара
 const updateUserAvatar = (avatarUrl: string) => (dispatch: any, getState: any) => {
   const { auth } = getState();
   if (auth.user) {

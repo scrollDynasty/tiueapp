@@ -275,7 +275,7 @@ export const tasksStyles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '600',
   },
-  // Добавляем отсутствующие стили
+
   taskSubjectText: {
     ...TYPOGRAPHY.body2,
     color: Colors.light.primary,

@@ -20,10 +20,10 @@ export function QuickAction({ title, icon, gradient, onPress }: QuickActionProps
   const ActionContent = () => (
     <View style={styles.content}>
       <View style={[styles.iconContainer, { backgroundColor: gradient ? 'rgba(255, 255, 255, 0.2)' : colors.backgroundSecondary }]}>
-        <Ionicons 
-          name={icon} 
-          size={28} 
-          color={gradient ? '#FFFFFF' : colors.primary} 
+        <Ionicons
+          name={icon}
+          size={28}
+          color={gradient ? '#FFFFFF' : colors.primary}
         />
       </View>
       <Text style={[styles.title, { color: gradient ? '#FFFFFF' : colors.text }]}>
@@ -38,9 +38,9 @@ export function QuickAction({ title, icon, gradient, onPress }: QuickActionProps
   ];
 
   if (gradient && Platform.OS !== 'android') {
-    // На Android убираем градиенты - используем обычный вид
+
     return (
-      <Pressable 
+      <Pressable
         onPress={onPress}
         style={({ pressed }) => [
           containerStyle,
@@ -60,7 +60,7 @@ export function QuickAction({ title, icon, gradient, onPress }: QuickActionProps
   }
 
   return (
-    <Pressable 
+    <Pressable
       onPress={onPress}
       style={({ pressed }) => [
         containerStyle,
@@ -78,28 +78,28 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     flex: 1,
     minHeight: hp(14),
-    // Условные тени - только для iOS, на Android минимальные
+
     ...Platform.select({
       android: {
-        elevation: 2, // Минимальная тень на Android
+        elevation: 2,
         shadowColor: 'transparent',
       },
-      ios: SHADOWS.medium, // Красивые тени на iOS
+      ios: SHADOWS.medium,
       default: SHADOWS.medium,
     }),
   },
-  
+
   gradient: {
     flex: 1,
     borderRadius: SIZES.border.large,
   },
-  
+
   content: {
     flex: 1,
     ...LAYOUT.center,
     padding: SPACING.lg,
   },
-  
+
   iconContainer: {
     width: wp(16),
     height: wp(16),
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     ...LAYOUT.center,
     marginBottom: SPACING.md,
   },
-  
+
   title: {
     ...TYPOGRAPHY.h4,
     textAlign: 'center',

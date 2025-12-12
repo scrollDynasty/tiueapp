@@ -22,8 +22,8 @@ interface CourseProgressCardProps {
   horizontalPadding?: number;
 }
 
-export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({ 
-  courses, 
+export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
+  courses,
   onCoursePress,
   onViewAllPress,
   containerStyle,
@@ -33,10 +33,10 @@ export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
   const colors = getThemeColors(isDarkMode);
 
   const getProgressColor = (progress: number) => {
-    if (progress >= 0.8) return '#10B981'; // Green
-    if (progress >= 0.6) return '#F59E0B'; // Yellow
-    if (progress >= 0.4) return '#EF4444'; // Red
-    return '#6B7280'; // Gray
+    if (progress >= 0.8) return '#10B981';
+    if (progress >= 0.6) return '#F59E0B';
+    if (progress >= 0.4) return '#EF4444';
+    return '#6B7280';
   };
 
   const styles = StyleSheet.create({
@@ -91,7 +91,7 @@ export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
       overflow: 'hidden',
       borderWidth: 1,
       borderColor: '#8B5CF6' + '15',
-      marginHorizontal: 2, // Небольшой отступ для тени
+      marginHorizontal: 2,
     },
     courseContent: {
       padding: 20,
@@ -178,7 +178,7 @@ export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
           </View>
           <ThemedText style={styles.headerTitle}>Курсы</ThemedText>
         </View>
-        
+
         <View style={styles.emptyState}>
           <View style={styles.emptyIcon}>
             <Ionicons name="book-outline" size={28} color="#8B5CF6" />
@@ -199,7 +199,7 @@ export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
           <Ionicons name="book" size={20} color="#FFFFFF" />
         </View>
         <ThemedText style={styles.headerTitle}>Курсы</ThemedText>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.viewAllButton}
           onPress={onViewAllPress}
           activeOpacity={0.7}
@@ -212,10 +212,10 @@ export const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
         {courses.slice(0, 4).map((course, index) => {
           const progressColor = getProgressColor(course.progress);
           const progressPercentage = Math.round(course.progress * 100);
-          
+
           return (
-            <Animated.View 
-              key={course.id} 
+            <Animated.View
+              key={course.id}
               entering={FadeInDown.delay(700 + index * 100)}
             >
               <TouchableOpacity

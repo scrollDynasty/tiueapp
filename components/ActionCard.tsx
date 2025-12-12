@@ -27,13 +27,13 @@ interface ActionCardProps {
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export function ActionCard({ 
-  title, 
-  icon, 
-  onPress, 
-  style, 
+export function ActionCard({
+  title,
+  icon,
+  onPress,
+  style,
   gradientColors = ['#3B82F6', '#8B5CF6'],
-  iconColor = '#FFFFFF' 
+  iconColor = '#FFFFFF'
 }: ActionCardProps) {
   const scale = useSharedValue(1);
   const pressed = useSharedValue(0);
@@ -48,7 +48,7 @@ export function ActionCard({
       damping: 18,
       stiffness: 220,
       mass: 1,
-    }); 
+    });
     pressed.value = withTiming(1, { duration: 160 });
     runOnJS(Haptics.impactAsync)(Haptics.ImpactFeedbackStyle.Light);
   };
@@ -89,9 +89,9 @@ export function ActionCard({
     return {
       transform: [{ scale: scale.value }],
       shadowOpacity,
-      borderColor: Platform.OS === 'android' 
-        ? colors.border // На Android всегда нейтральная граница
-        : (pressed.value > 0.5 ? colors.primary : colors.border), // iOS - анимация
+      borderColor: Platform.OS === 'android'
+        ? colors.border
+        : (pressed.value > 0.5 ? colors.primary : colors.border),
     };
   });
 
@@ -122,7 +122,7 @@ export function ActionCard({
           height: isSmall ? 110 : 130,
           borderRadius: borderRadius.lg,
           borderWidth: 1,
-          // Оптимизированные тени для платформ
+
           ...Platform.select({
             android: {
               elevation: isSmall ? 2 : 3,
@@ -154,9 +154,9 @@ export function ActionCard({
         style,
       ]}
     >
-      {/* Фон карточки */}
+      {}
       {Platform.OS === 'android' ? (
-        // Android - простой фон
+
         <Animated.View
           style={{
             position: 'absolute',
@@ -169,7 +169,7 @@ export function ActionCard({
           }}
         />
       ) : (
-        // iOS - красивый градиент
+
         <LinearGradient
           colors={gradientColors ?? ['#3B82F6', '#8B5CF6'] as const}
           start={{ x: 0, y: 0 }}
@@ -195,15 +195,15 @@ export function ActionCard({
           overflow: 'hidden',
         }}
       >
-        {/* Контент карточки */}
+        {}
         <Animated.View style={iconStyle}>
-          <Ionicons 
-            name={icon} 
-            size={isSmall ? 20 : 24} 
+          <Ionicons
+            name={icon}
+            size={isSmall ? 20 : 24}
             color={Platform.OS === 'android' ? colors.primary : iconColor}
           />
         </Animated.View>
-        
+
         <ThemedText
           style={{
             fontSize: typography.xs,

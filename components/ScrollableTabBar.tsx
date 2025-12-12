@@ -29,8 +29,8 @@ export const ScrollableTabBar: React.FC<ScrollableTabBarProps> = ({
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView 
-        horizontal 
+      <ScrollView
+        horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.scrollView}
         contentContainerStyle={[styles.contentContainer, { paddingHorizontal: spacing.md }]}
@@ -40,22 +40,22 @@ export const ScrollableTabBar: React.FC<ScrollableTabBarProps> = ({
             key={tab.key}
             style={[
               styles.tab,
-              { 
+              {
                 backgroundColor: activeTab === tab.key ? colors.primary : 'transparent',
                 marginHorizontal: spacing.xs / 2,
               }
             ]}
             onPress={() => onTabPress(tab.key)}
           >
-            <Ionicons 
+            <Ionicons
               name={tab.icon}
               size={isSmallScreen ? 20 : 24}
               color={activeTab === tab.key ? colors.background : colors.primary}
             />
-            <ThemedText 
+            <ThemedText
               style={[
                 styles.tabText,
-                { 
+                {
                   color: activeTab === tab.key ? colors.background : colors.primary,
                   fontSize: isSmallScreen ? 12 : 14,
                   marginTop: spacing.xs / 2,

@@ -29,7 +29,6 @@ interface StudentCardProps {
   index: number;
 }
 
-// Мемоизированная карточка студента для оптимизации
 const StudentCard = memo(({ student, index }: StudentCardProps) => {
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
@@ -68,7 +67,7 @@ const StudentCard = memo(({ student, index }: StudentCardProps) => {
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        {/* Аватар */}
+        {}
         <View style={{
           width: isVerySmallScreen ? 50 : 60,
           height: isVerySmallScreen ? 50 : 60,
@@ -107,7 +106,7 @@ const StudentCard = memo(({ student, index }: StudentCardProps) => {
           )}
         </View>
 
-        {/* Информация о студенте */}
+        {}
         <View style={{ flex: 1 }}>
           <ThemedText style={{
             fontSize: fontSize.body,
@@ -117,7 +116,7 @@ const StudentCard = memo(({ student, index }: StudentCardProps) => {
           }}>
             {student.first_name} {student.last_name}
           </ThemedText>
-          
+
           <ThemedText style={{
             fontSize: fontSize.small,
             color: colors.textSecondary,
@@ -125,7 +124,7 @@ const StudentCard = memo(({ student, index }: StudentCardProps) => {
           }}>
             @{student.username}
           </ThemedText>
-          
+
           {student.student?.group && (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
               <LinearGradient
@@ -148,7 +147,7 @@ const StudentCard = memo(({ student, index }: StudentCardProps) => {
           )}
         </View>
 
-        {/* Кнопка действий */}
+        {}
         <TouchableOpacity
           onPress={handlePress}
           style={{
@@ -168,7 +167,7 @@ const StudentCard = memo(({ student, index }: StudentCardProps) => {
     </Animated.View>
   );
 }, (prevProps, nextProps) => {
-  // Оптимизация: обновляем только если изменились данные студента
+
   return prevProps.student.id === nextProps.student.id &&
          prevProps.student.avatar === nextProps.student.avatar &&
          prevProps.student.first_name === nextProps.student.first_name &&

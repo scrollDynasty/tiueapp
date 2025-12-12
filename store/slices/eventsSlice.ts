@@ -17,29 +17,27 @@ const initialState: EventsState = {
   error: null,
 };
 
-// ОПТИМИЗАЦИЯ: Async thunks с кешированием для быстрой загрузки
 export const fetchEvents = createAsyncThunk(
   'events/fetchEvents',
   async (_, { rejectWithValue }) => {
     try {
-      // Сначала пытаемся получить из кеша
+
       const cachedEvents = await cache.get<Event[]>(cacheKeys.events);
-      
+
       if (cachedEvents) {
-        // Возвращаем кешированные данные сразу и обновляем в фоне
+
         authApi.getEvents().then(response => {
           if (response.success && response.data) {
             cache.set(cacheKeys.events, response.data, cacheTTL.short);
           }
         }).catch(() => {});
-        
+
         return cachedEvents;
       }
-      
-      // Если кеша нет, загружаем с сервера
+
       const response = await authApi.getEvents();
       if (response.success && response.data) {
-        // Сохраняем в кеш
+
         await cache.set(cacheKeys.events, response.data, cacheTTL.short);
         return response.data;
       } else {
@@ -53,15 +51,15 @@ export const fetchEvents = createAsyncThunk(
 
 export const createEvent = createAsyncThunk(
   'events/createEvent',
-  async (eventData: { 
-    title: string; 
-    description: string; 
-    location: string; 
-    date: string; 
-    time: string; 
-    category: string; 
+  async (eventData: {
+    title: string;
+    description: string;
+    location: string;
+    date: string;
+    time: string;
+    category: string;
     max_participants?: number;
-    image?: any; // Добавляем поддержку изображений
+    image?: any;
   }, { rejectWithValue }) => {
     try {
       const response = await authApi.createEvent(eventData);
@@ -81,14 +79,14 @@ export const deleteEvent = createAsyncThunk(
   async (eventId: string, { rejectWithValue, getState }) => {
     try {
       const response = await authApi.deleteEvent(eventId);
-      
+
       if (response.success) {
         return eventId;
       } else {
         return rejectWithValue(response.error || 'Failed to delete event');
       }
     } catch (error) {
-      // Если это локальное событие (начинается с local_), удаляем его локально
+
       if (String(eventId).startsWith('local_')) {
         return eventId;
       }
@@ -119,12 +117,12 @@ const eventsSlice = createSlice({
         }
       }
     },
-    // Оставляем локальный addEvent для offline режима
+
     addEvent: (state, action: PayloadAction<Event>) => {
       if (!Array.isArray(state.items)) {
         state.items = [];
       }
-      // Добавляем событие в начало массива для лучшего UX
+
       state.items.unshift(action.payload);
     },
     clearError: (state) => {
@@ -133,78 +131,72 @@ const eventsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch events
+
       .addCase(fetchEvents.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
       .addCase(fetchEvents.fulfilled, (state, action) => {
-        
+
         state.isLoading = false;
-        // Django REST Framework возвращает данные в формате {results: [...]}
+
         const payload = action.payload as any;
         const eventsArray = payload?.results || payload;
         const newEvents = Array.isArray(eventsArray) ? eventsArray : [];
-        
-        
+
         state.items = newEvents;
-        
+
       })
       .addCase(fetchEvents.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      // Create event
+
       .addCase(createEvent.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(createEvent.fulfilled, (state, action) => {        
+      .addCase(createEvent.fulfilled, (state, action) => {
         state.isLoading = false;
         if (!Array.isArray(state.items)) {
           state.items = [];
         }
-        
-        // Проверяем, нет ли уже такого события в списке (по ID)
+
         const existingEventIndex = state.items.findIndex(item => item.id === action.payload.id);
         if (existingEventIndex !== -1) {
           state.items[existingEventIndex] = action.payload;
         } else {
-          // Добавляем событие в начало массива для лучшего UX
+
           state.items.unshift(action.payload);
         }
-        
+
       })
       .addCase(createEvent.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      // Delete event
+
       .addCase(deleteEvent.pending, (state) => {
-        // НЕ устанавливаем isLoading в true для удаления, чтобы не блокировать UI
+
         state.error = null;
       })
-      .addCase(deleteEvent.fulfilled, (state, action) => {        
-        // НЕ изменяем isLoading здесь, оставляем его как есть
-        // state.isLoading = false;
-        
-        // Фильтруем события, убирая удаленное по точному совпадению ID
+      .addCase(deleteEvent.fulfilled, (state, action) => {
+
         if (Array.isArray(state.items)) {
           const beforeCount = state.items.length;
           const eventId = String(action.payload);
           const filteredItems = state.items.filter(item => String(item.id) !== eventId);
-                    
-          // Создаем полностью новый массив для обеспечения реактивности
+
           state.items = [...filteredItems];
           const afterCount = state.items.length;
-          
+
           if (beforeCount === afterCount) {
           }
         }
-        
+
       })
       .addCase(deleteEvent.rejected, (state, action) => {
-        // НЕ изменяем isLoading здесь тоже
+
         state.error = action.payload as string;
       });
   },

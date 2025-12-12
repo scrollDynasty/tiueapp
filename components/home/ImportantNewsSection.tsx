@@ -77,7 +77,7 @@ export const ImportantNewsSection = React.memo(({ news }: ImportantNewsSectionPr
           </ThemedText>
         </Pressable>
       </View>
-      
+
       <View style={styles.newsContainer}>
         {news.map((newsItem, index) => (
           <NewsCard

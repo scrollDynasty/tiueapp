@@ -28,10 +28,10 @@ class LDAPAuthService {
         AsyncStorage.getItem('ldap_access_token'),
         AsyncStorage.getItem('ldap_refresh_token')
       ]);
-      
+
       this.accessToken = access;
       this.refreshToken = refresh;
-      
+
       if (isDebugMode()) {
       }
     } catch (error) {
@@ -42,11 +42,10 @@ class LDAPAuthService {
   }
 
   private async makeRequest<T>(
-    url: string, 
+    url: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     try {
-
 
       const response = await fetch(url, {
         ...options,
@@ -69,7 +68,6 @@ class LDAPAuthService {
         };
       }
 
-
       return {
         success: true,
         data: data,
@@ -90,9 +88,9 @@ class LDAPAuthService {
     url: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
-    // Получаем актуальный токен (с автоматическим обновлением если нужно)
+
     const token = await this.getValidAccessToken();
-    
+
     if (!token) {
       return {
         success: false,
@@ -110,35 +108,31 @@ class LDAPAuthService {
   }
 
   private async getValidAccessToken(): Promise<string | null> {
-    // Если токен есть и он свежий, возвращаем его
+
     if (this.accessToken && this.isTokenValid(this.accessToken)) {
       return this.accessToken;
     }
 
-    // Если уже идет процесс обновления токена, ждем его
     if (this.tokenRefreshPromise) {
       return this.tokenRefreshPromise;
     }
 
-    // Запускаем обновление токена
     this.tokenRefreshPromise = this.refreshAccessToken();
     const newToken = await this.tokenRefreshPromise;
     this.tokenRefreshPromise = null;
-    
+
     return newToken;
   }
 
   private isTokenValid(token: string): boolean {
     try {
-      // JWT токен состоит из трех частей, разделенных точками
+
       const parts = token.split('.');
       if (parts.length !== 3) return false;
 
-      // Декодируем payload (вторая часть)
       const payload = JSON.parse(atob(parts[1]));
       const currentTime = Math.floor(Date.now() / 1000);
-      
-      // Проверяем, что токен не истек (с запасом 5 минут)
+
       return payload.exp && payload.exp > (currentTime + 300);
     } catch (error) {
       if (isDebugMode()) {
@@ -169,22 +163,20 @@ class LDAPAuthService {
 
       if (response.success && response.data?.access_token) {
         this.accessToken = response.data.access_token;
-        
-        // Обновляем refresh token если он пришел в ответе
+
         if (response.data.refresh_token) {
           this.refreshToken = response.data.refresh_token;
           await AsyncStorage.setItem('ldap_refresh_token', this.refreshToken);
         }
-        
+
         await AsyncStorage.setItem('ldap_access_token', this.accessToken);
-        
-        
+
         return this.accessToken;
       } else {
         if (isDebugMode()) {
           console.error('❌ Failed to refresh token:', response.error);
         }
-        // Очищаем невалидные токены
+
         await this.clearTokens();
         return null;
       }
@@ -196,8 +188,6 @@ class LDAPAuthService {
       return null;
     }
   }
-
-  // Публичные методы для авторизации
 
   async login(credentials: LoginCredentials): Promise<ApiResponse<LDAPLoginResponse>> {
     try {
@@ -211,7 +201,7 @@ class LDAPAuthService {
       );
 
       if (response.success && response.data) {
-        // Сохраняем токены
+
         this.accessToken = response.data.access_token;
         this.refreshToken = response.data.refresh_token;
 
@@ -236,7 +226,6 @@ class LDAPAuthService {
 
   async logout(): Promise<void> {
 
-
     await this.clearTokens();
   }
 
@@ -250,7 +239,7 @@ class LDAPAuthService {
         AsyncStorage.removeItem('ldap_access_token'),
         AsyncStorage.removeItem('ldap_refresh_token'),
       ]);
-      
+
     } catch (error) {
       if (isDebugMode()) {
         console.error('❌ Failed to clear tokens:', error);
@@ -262,8 +251,6 @@ class LDAPAuthService {
     const token = await this.getValidAccessToken();
     return !!token;
   }
-
-  // Методы для работы с LDAP API
 
   async getUserProfile(): Promise<ApiResponse<LDAPUserProfile>> {
     return this.makeAuthenticatedRequest<LDAPUserProfile>(
@@ -324,7 +311,7 @@ class LDAPAuthService {
 
   async uploadImage(imageData: any): Promise<ApiResponse<any>> {
     const token = await this.getValidAccessToken();
-    
+
     if (!token) {
       return {
         success: false,
@@ -338,7 +325,7 @@ class LDAPAuthService {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
-        body: imageData, // FormData for image upload
+        body: imageData,
       });
 
       const data = await response.json();
@@ -363,6 +350,5 @@ class LDAPAuthService {
   }
 }
 
-// Экспортируем singleton instance
 export const ldapAuthService = new LDAPAuthService();
 export default LDAPAuthService;

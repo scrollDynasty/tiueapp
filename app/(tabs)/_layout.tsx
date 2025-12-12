@@ -21,10 +21,9 @@ export default function TabLayout() {
   const colors = getThemeColors(isDarkMode);
   const insets = useSafeAreaInsets();
   const isVerySmallScreen = width < 470;
-  
-  // Фикс для Dynamic Island - добавляем отступ сверху
+
   const topPadding = Platform.OS === 'ios' && insets.top >= 59 ? 10 : 0;
-  
+
   const screenOptions = useMemo(() => ({
     tabBarActiveTintColor: colors.primary,
     tabBarInactiveTintColor: colors.tabIconDefault,
@@ -33,23 +32,23 @@ export default function TabLayout() {
       backgroundColor: colors.surface,
       borderTopWidth: 1,
       borderTopColor: colors.border,
-      // Ультра компактная высота для Android
-      height: Platform.OS === 'android' 
-        ? (isVerySmallScreen ? 50 : 58) 
+
+      height: Platform.OS === 'android'
+        ? (isVerySmallScreen ? 50 : 58)
         : (isVerySmallScreen ? 85 : 95),
-      // Правильные отступы снизу - убираем insets для Android полностью
+
       paddingBottom: Platform.OS === 'android'
-        ? (isVerySmallScreen ? 4 : 6) // Минимальные внутренние отступы
+        ? (isVerySmallScreen ? 4 : 6)
         : insets.bottom + (isVerySmallScreen ? 12 : 16),
       paddingTop: Platform.OS === 'android'
-        ? (isVerySmallScreen ? 3 : 4) // Минимальные отступы сверху
+        ? (isVerySmallScreen ? 3 : 4)
         : (isVerySmallScreen ? 12 : 16),
       position: 'absolute' as const,
-      // ПРИНУДИТЕЛЬНО убираем все отступы снизу для Android
+
       bottom: 0,
       left: 0,
       right: 0,
-      // Убираем margin bottom для Android
+
       marginBottom: Platform.OS === 'android' ? 0 : undefined,
       elevation: isDarkMode ? 8 : 0,
       shadowOpacity: isDarkMode ? 0.3 : 0,
@@ -116,7 +115,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="students"
         options={{
-          href: null, 
+          href: null,
         }}
       />
     </Tabs>

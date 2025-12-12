@@ -50,7 +50,7 @@ export function ConfirmationModal({
           style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
           onPress={onCancel}
         />
-        
+
         <Animated.View
           entering={SlideInDown.duration(300).springify()}
           exiting={SlideOutDown.duration(200)}
@@ -70,7 +70,7 @@ export function ConfirmationModal({
             elevation: 8,
           }}
         >
-          {/* Иконка */}
+          {}
           <View
             style={{
               width: 64,
@@ -90,7 +90,7 @@ export function ConfirmationModal({
             />
           </View>
 
-          {/* Заголовок */}
+          {}
           <ThemedText
             style={{
               fontSize: 20,
@@ -102,7 +102,7 @@ export function ConfirmationModal({
             {title}
           </ThemedText>
 
-          {/* Сообщение */}
+          {}
           <ThemedText
             style={{
               fontSize: 16,
@@ -115,9 +115,9 @@ export function ConfirmationModal({
             {message}
           </ThemedText>
 
-          {/* Кнопки */}
+          {}
           <View style={{ flexDirection: 'row', gap: 12 }}>
-            {/* Кнопка отмены */}
+            {}
             <Pressable
               onPress={onCancel}
               style={{
@@ -141,7 +141,7 @@ export function ConfirmationModal({
               </ThemedText>
             </Pressable>
 
-            {/* Кнопка подтверждения */}
+            {}
             <Pressable
               onPress={onConfirm}
               style={{

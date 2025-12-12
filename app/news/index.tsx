@@ -31,28 +31,24 @@ export default function AllNewsScreen() {
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const { fontSize, spacing, isVerySmallScreen } = useResponsive();
-  
-  // Анимационные значения
+
   const headerOpacity = useSharedValue(1);
   const headerScale = useSharedValue(1);
 
   React.useEffect(() => {
     dispatch(fetchNews());
-    
-    // Анимация появления хедера
+
     headerScale.value = withSpring(1, {
       damping: 15,
       stiffness: 150
     });
   }, [dispatch, headerScale]);
 
-  // Стили для анимированного хедера
   const animatedHeaderStyle = useAnimatedStyle(() => ({
     opacity: headerOpacity.value,
     transform: [{ scale: headerScale.value }]
   }));
 
-  // Мемоизированные стили для NewsCard
   const newsCardStyle = React.useMemo(() => ({
     marginBottom: spacing.md,
     marginHorizontal: spacing.xs,
@@ -71,7 +67,6 @@ export default function AllNewsScreen() {
     }),
   }), [spacing.md, spacing.xs, isDarkMode]);
 
-  // Мемоизированный рендер элемента новости для предотвращения ненужных ре-рендеров
   const renderNewsItem = React.useCallback(({ item: news, index }: { item: any; index: number }) => (
     <Animated.View
       entering={FadeInUp.delay(index * 100).springify()}
@@ -93,24 +88,24 @@ export default function AllNewsScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Градиентный фон */}
+      {}
       <LinearGradient
-        colors={isDarkMode 
-          ? ['#0F172A', '#1E293B', '#334155'] 
+        colors={isDarkMode
+          ? ['#0F172A', '#1E293B', '#334155']
           : ['#F8FAFC', '#E2E8F0', '#CBD5E1']
         }
         style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
-      
+
       <SafeAreaView style={{ flex: 1 }}>
-        {/* Красивый Header с градиентом */}
-        <Animated.View 
+        {}
+        <Animated.View
           style={[animatedHeaderStyle]}
         >
           <LinearGradient
-            colors={isDarkMode 
+            colors={isDarkMode
               ? ['rgba(15,23,42,0.95)', 'rgba(30,41,59,0.90)', 'rgba(51,65,85,0.85)']
               : ['rgba(255,255,255,0.95)', 'rgba(248,250,252,0.90)', 'rgba(241,245,249,0.85)']
             }
@@ -155,13 +150,13 @@ export default function AllNewsScreen() {
                 <Ionicons name="arrow-back" size={isVerySmallScreen ? 20 : 24} color={colors.text} />
               </Pressable>
             </Animated.View>
-            
-            <Animated.View 
+
+            <Animated.View
               entering={FadeInLeft.delay(200).duration(500)}
               style={{ flex: 1 }}
             >
-              <ThemedText style={{ 
-                ...Typography.displayH1, 
+              <ThemedText style={{
+                ...Typography.displayH1,
                 color: colors.text,
                 fontSize: isVerySmallScreen ? fontSize.title : 28,
                 marginBottom: 4
@@ -177,14 +172,14 @@ export default function AllNewsScreen() {
                 borderRadius: 12,
                 alignSelf: 'flex-start'
               }}>
-                <Ionicons 
-                  name="newspaper" 
-                  size={isVerySmallScreen ? 14 : 16} 
-                  color={isDarkMode ? '#A5B4FC' : '#6366F1'} 
+                <Ionicons
+                  name="newspaper"
+                  size={isVerySmallScreen ? 14 : 16}
+                  color={isDarkMode ? '#A5B4FC' : '#6366F1'}
                   style={{ marginRight: 6 }}
                 />
-                <ThemedText style={{ 
-                  ...Typography.caption, 
+                <ThemedText style={{
+                  ...Typography.caption,
                   color: isDarkMode ? '#A5B4FC' : '#6366F1',
                   fontSize: fontSize.small,
                 }}>
@@ -195,27 +190,27 @@ export default function AllNewsScreen() {
           </LinearGradient>
         </Animated.View>
 
-        {/* Список новостей */}
+        {}
         {newsData.length > 0 ? (
           <FlatList
             data={newsData}
             renderItem={renderNewsItem}
             keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={{ 
+            contentContainerStyle={{
               padding: spacing.md,
-              paddingBottom: spacing.xl 
+              paddingBottom: spacing.xl
             }}
             showsVerticalScrollIndicator={false}
             refreshing={isLoading}
             onRefresh={() => dispatch(fetchNews())}
-            // Оптимизация для производительности
+
             removeClippedSubviews={true}
             maxToRenderPerBatch={5}
             updateCellsBatchingPeriod={50}
             windowSize={10}
             initialNumToRender={5}
             getItemLayout={(data, index) => ({
-              length: 180, // Примерная высота карточки новости
+              length: 180,
               offset: 180 * index,
               index,
             })}
@@ -228,18 +223,18 @@ export default function AllNewsScreen() {
             windowSize={10}
           />
         ) : (
-          <Animated.View 
+          <Animated.View
             entering={FadeInDown.delay(600).duration(800).springify()}
-            style={{ 
-              flex: 1, 
-              justifyContent: 'center', 
+            style={{
+              flex: 1,
+              justifyContent: 'center',
               alignItems: 'center',
               padding: spacing.xl
             }}
           >
-            {/* Красивый Empty State */}
+            {}
             <LinearGradient
-              colors={isDarkMode 
+              colors={isDarkMode
                 ? ['rgba(99,102,241,0.1)', 'rgba(139,92,246,0.1)']
                 : ['rgba(99,102,241,0.05)', 'rgba(139,92,246,0.05)']
               }
@@ -252,15 +247,15 @@ export default function AllNewsScreen() {
                 marginBottom: spacing.lg
               }}
             >
-              <Ionicons 
-                name="newspaper-outline" 
-                size={isVerySmallScreen ? 48 : 64} 
-                color={isDarkMode ? '#A5B4FC' : '#6366F1'} 
+              <Ionicons
+                name="newspaper-outline"
+                size={isVerySmallScreen ? 48 : 64}
+                color={isDarkMode ? '#A5B4FC' : '#6366F1'}
               />
             </LinearGradient>
-            
-            <ThemedText style={{ 
-              ...Typography.titleH2, 
+
+            <ThemedText style={{
+              ...Typography.titleH2,
               color: colors.text,
               fontSize: fontSize.title,
               marginBottom: spacing.sm,
@@ -268,8 +263,8 @@ export default function AllNewsScreen() {
             }}>
               No News Yet
             </ThemedText>
-            <ThemedText style={{ 
-              ...Typography.body, 
+            <ThemedText style={{
+              ...Typography.body,
               color: colors.textSecondary,
               fontSize: fontSize.body,
               textAlign: 'center',

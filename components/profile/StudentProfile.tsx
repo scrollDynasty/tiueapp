@@ -25,19 +25,17 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
   const [coursesData, setCoursesData] = React.useState<any[]>([]);
   const [uploadingAvatar, setUploadingAvatar] = React.useState(false);
   const [currentAvatar, setCurrentAvatar] = React.useState<string | null>(user?.avatar || null);
-  
+
   const { theme, isDarkMode, setTheme } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
   const dispatch = useAppDispatch();
   const { token } = useAppSelector((state) => state.auth);
 
-  // Обновляем локальную аватарку когда пользователь изменяется
   React.useEffect(() => {
     setCurrentAvatar(user?.avatar || null);
   }, [user?.avatar]);
 
-  // Загружаем данные студента для статистики
   React.useEffect(() => {
     const fetchStudentData = async () => {
       if (user?.role === 'student') {
@@ -56,8 +54,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           if (coursesResponse.success && coursesResponse.data) {
             const responseData = coursesResponse.data as any || {};
             const coursesArray = Array.isArray(responseData.data) ? responseData.data : [];
-            
-            // Показываем все курсы без ограничений
+
             setCoursesData(coursesArray);
           }
         } catch (error) {
@@ -69,7 +66,6 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
     fetchStudentData();
   }, [user]);
 
-  // Расчет GPA
   const calculateGPA = React.useCallback((grades: any[]) => {
     if (grades.length === 0) return 0;
     const total = grades.reduce((sum, grade) => {
@@ -77,8 +73,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
     }, 0);
     return Math.round((total / grades.length) * 100) / 100;
   }, []);
-  
-  // Функция для получения инициалов
+
   const getInitials = React.useCallback((firstName?: string, lastName?: string, username?: string): string => {
     if (firstName && lastName) {
       return `${firstName[0]}${lastName[0]}`.toUpperCase();
@@ -88,27 +83,25 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
     return 'СТ';
   }, []);
 
-  // Функция для загрузки аватара
   const pickImage = React.useCallback(async () => {
     try {
-      // Запрашиваем разрешение на доступ к медиатеке
+
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
+
       if (permissionResult.granted === false) {
         Alert.alert('Разрешение требуется', 'Разрешите доступ к фотографиям для загрузки аватара');
         return;
       }
 
-      // Открываем выбор изображения
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [1, 1], // Квадратное изображение для аватара
+        aspect: [1, 1],
         quality: 0.8,
       });
 
       if (!result.canceled && result.assets[0]) {
-        // Прямо загружаем аватар
+
         await uploadAvatar(result.assets[0]);
       }
     } catch (error) {
@@ -117,26 +110,23 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
     }
   }, []);
 
-  // Функция для загрузки аватара
   const uploadAvatar = React.useCallback(async (imageAsset: ImagePicker.ImagePickerAsset) => {
     try {
       setUploadingAvatar(true);
-      
+
       const response = await authApi.uploadAvatar(imageAsset);
-      
+
       if (response.success && response.data?.avatar_url) {
-        // Мгновенно обновляем локальную аватарку
+
         setCurrentAvatar(response.data.avatar_url);
-        
-        // Обновляем аватар в Redux store
+
         dispatch(setCredentials({
           user: { ...user, avatar: response.data.avatar_url },
           token: token || ''
         }));
-        
-        // Принудительно очищаем кеш пользователя в API для следующих запросов
+
         authApi.clearUserCache();
-        
+
         Alert.alert('Успешно', 'Аватар обновлен');
       } else {
         Alert.alert('Ошибка', response.error || 'Не удалось загрузить аватар');
@@ -149,14 +139,13 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
     }
   }, [dispatch]);
 
-  
   const displayInfo = React.useMemo(() => {
-    // Используем данные из LDAP профиля если они есть
+
     const ldapProfile = user.ldap_profile;
     const name = ldapProfile?.full_name || `${user.first_name} ${user.last_name}`.trim() || user.username;
     const groupName = ldapProfile?.group || user.student?.group?.name;
     const course = user.student?.course || 1;
-    
+
     return {
       name,
       subtitle: groupName ? `Группа ${groupName} • ${course} курс` : 'Студент',
@@ -165,14 +154,13 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
     };
   }, [user.first_name, user.last_name, user.username, user.student, user.ldap_profile, getInitials]);
 
-
   return (
     <>
-      {/* Новый дизайн верхней части профиля */}
+      {}
       <Animated.View entering={SlideInRight.duration(400)} style={{ marginTop: Spacing.m, marginBottom: Spacing.m }}>
-        {/* Фоновый градиент */}
+        {}
         <LinearGradient
-          colors={isDarkMode 
+          colors={isDarkMode
             ? ['#1E40AF', '#3B82F6', '#60A5FA']
             : ['#EFF6FF', '#DBEAFE', '#BFDBFE']
           }
@@ -184,9 +172,9 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
             marginBottom: Spacing.l,
           }}
         >
-          {/* Верхняя строка с аватаром и меню */}
+          {}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: Spacing.m }}>
-            {/* Аватарка с возможностью загрузки */}
+            {}
             <View
               style={{
                 width: isVerySmallScreen ? 70 : 80,
@@ -241,8 +229,8 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                   </ThemedText>
                 </LinearGradient>
               )}
-              
-              {/* Кнопка изменения аватара */}
+
+              {}
               <Pressable
                 onPress={pickImage}
                 style={{
@@ -259,8 +247,8 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 <Ionicons name="camera" size={14} color="white" />
               </Pressable>
             </View>
-            
-            {/* Меню настроек (три черточки как в Instagram) */}
+
+            {}
             <TouchableOpacity
               onPress={() => setSettingsMenuVisible(true)}
               style={{
@@ -269,17 +257,17 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)',
               }}
             >
-              <Ionicons 
-                name="menu-outline" 
-                size={24} 
-                color={isDarkMode ? '#FFFFFF' : '#1E40AF'} 
+              <Ionicons
+                name="menu-outline"
+                size={24}
+                color={isDarkMode ? '#FFFFFF' : '#1E40AF'}
               />
             </TouchableOpacity>
           </View>
 
-          {/* Имя и информация */}
+          {}
           <View style={{ marginBottom: Spacing.m }}>
-            <ThemedText 
+            <ThemedText
               numberOfLines={2}
               style={{
               fontSize: isVerySmallScreen ? 18 : 22,
@@ -290,8 +278,8 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
             }}>
                 {displayInfo.name}
               </ThemedText>
-              
-            <ThemedText 
+
+            <ThemedText
               numberOfLines={1}
               style={{
               fontSize: isVerySmallScreen ? 13 : 15,
@@ -301,44 +289,44 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 {displayInfo.subtitle}
               </ThemedText>
 
-            {/* Студенческая информация */}
+            {}
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {user.ldap_profile?.yonalishCon && (
-                    <View style={{ 
+                    <View style={{
                   backgroundColor: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
-                  paddingHorizontal: isVerySmallScreen ? 8 : 12, 
-                  paddingVertical: isVerySmallScreen ? 4 : 6, 
+                  paddingHorizontal: isVerySmallScreen ? 8 : 12,
+                  paddingVertical: isVerySmallScreen ? 4 : 6,
                   borderRadius: 16,
                   flex: 1,
                   maxWidth: isVerySmallScreen ? '45%' : 'auto',
                 }}>
-                  <ThemedText 
+                  <ThemedText
                     numberOfLines={1}
-                    style={{ 
-                    fontSize: isVerySmallScreen ? 10 : 12, 
+                    style={{
+                    fontSize: isVerySmallScreen ? 10 : 12,
                     fontWeight: '600',
-                    color: isDarkMode ? '#FFFFFF' : '#1E40AF' 
+                    color: isDarkMode ? '#FFFFFF' : '#1E40AF'
                   }}>
                     {user.ldap_profile.yonalishCon}
                   </ThemedText>
                 </View>
                   )}
-              
+
               {user.ldap_profile?.group && (
-                    <View style={{ 
+                    <View style={{
                   backgroundColor: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
-                  paddingHorizontal: isVerySmallScreen ? 8 : 12, 
-                  paddingVertical: isVerySmallScreen ? 4 : 6, 
+                  paddingHorizontal: isVerySmallScreen ? 8 : 12,
+                  paddingVertical: isVerySmallScreen ? 4 : 6,
                   borderRadius: 16,
                   flex: 1,
                   maxWidth: isVerySmallScreen ? '45%' : 'auto',
                 }}>
-                  <ThemedText 
+                  <ThemedText
                     numberOfLines={1}
-                    style={{ 
-                    fontSize: isVerySmallScreen ? 10 : 12, 
+                    style={{
+                    fontSize: isVerySmallScreen ? 10 : 12,
                     fontWeight: '600',
-                    color: isDarkMode ? '#FFFFFF' : '#1E40AF' 
+                    color: isDarkMode ? '#FFFFFF' : '#1E40AF'
                   }}>
                     Группа {user.ldap_profile.group}
                   </ThemedText>
@@ -346,20 +334,20 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                   )}
 
               {user.student?.course && (
-                <View style={{ 
+                <View style={{
                   backgroundColor: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.6)',
-                  paddingHorizontal: isVerySmallScreen ? 8 : 12, 
-                  paddingVertical: isVerySmallScreen ? 4 : 6, 
+                  paddingHorizontal: isVerySmallScreen ? 8 : 12,
+                  paddingVertical: isVerySmallScreen ? 4 : 6,
                   borderRadius: 16,
                   flex: 1,
                   maxWidth: isVerySmallScreen ? '45%' : 'auto',
                 }}>
-                  <ThemedText 
+                  <ThemedText
                     numberOfLines={1}
-                    style={{ 
-                    fontSize: isVerySmallScreen ? 10 : 12, 
+                    style={{
+                    fontSize: isVerySmallScreen ? 10 : 12,
                     fontWeight: '600',
-                    color: isDarkMode ? '#FFFFFF' : '#1E40AF' 
+                    color: isDarkMode ? '#FFFFFF' : '#1E40AF'
                   }}>
                     {user.student.course} курс
                   </ThemedText>
@@ -368,9 +356,9 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
             </View>
           </View>
 
-          {/* Академическая статистика с реальными данными */}
-          <View style={{ 
-            flexDirection: 'row', 
+          {}
+          <View style={{
+            flexDirection: 'row',
             backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.7)',
             borderRadius: 20,
             padding: Spacing.m,
@@ -390,16 +378,16 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                   {gradesData.length > 0 ? Math.round(calculateGPA(gradesData)) : '0'}
                 </ThemedText>
               </View>
-              <ThemedText style={{ 
-                fontSize: 11, 
+              <ThemedText style={{
+                fontSize: 11,
                 fontWeight: '600',
-                color: isDarkMode ? 'rgba(255,255,255,0.8)' : '#1E40AF', 
-                textAlign: 'center' 
+                color: isDarkMode ? 'rgba(255,255,255,0.8)' : '#1E40AF',
+                textAlign: 'center'
               }}>
                 Средний балл
               </ThemedText>
             </View>
-            
+
             <View style={{ alignItems: 'center', flex: 1 }}>
               <View style={{
                 width: 40,
@@ -414,16 +402,16 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                   {new Set(coursesData.map((course: any) => course.course_name || course.name)).size}
                 </ThemedText>
               </View>
-              <ThemedText style={{ 
-                fontSize: 11, 
+              <ThemedText style={{
+                fontSize: 11,
                 fontWeight: '600',
-                color: isDarkMode ? 'rgba(255,255,255,0.8)' : '#1E40AF', 
-                textAlign: 'center' 
+                color: isDarkMode ? 'rgba(255,255,255,0.8)' : '#1E40AF',
+                textAlign: 'center'
               }}>
                 Предметов
               </ThemedText>
             </View>
-            
+
             <View style={{ alignItems: 'center', flex: 1 }}>
               <View style={{
                 width: 40,
@@ -438,11 +426,11 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                   Нет
                 </ThemedText>
               </View>
-              <ThemedText style={{ 
-                fontSize: 11, 
+              <ThemedText style={{
+                fontSize: 11,
                 fontWeight: '600',
-                color: isDarkMode ? 'rgba(255,255,255,0.8)' : '#1E40AF', 
-                textAlign: 'center' 
+                color: isDarkMode ? 'rgba(255,255,255,0.8)' : '#1E40AF',
+                textAlign: 'center'
               }}>
                 Посещаемость
               </ThemedText>
@@ -451,7 +439,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
         </LinearGradient>
       </Animated.View>
 
-      {/* Основная информация студента */}
+      {}
       <Animated.View entering={FadeInDown.duration(500).delay(150)} style={{ marginBottom: Spacing.l }}>
         <View style={{
           flexDirection: 'row',
@@ -469,15 +457,15 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           }}>
             <Ionicons name="school" size={16} color={colors.primary} />
           </View>
-          <ThemedText style={{ 
-            fontSize: isVerySmallScreen ? 16 : 18, 
+          <ThemedText style={{
+            fontSize: isVerySmallScreen ? 16 : 18,
             fontWeight: '500',
             color: colors.text,
           }}>
             Основная информация
           </ThemedText>
         </View>
-          
+
           <View style={{
           backgroundColor: colors.surface,
           borderRadius: isVerySmallScreen ? 16 : 20,
@@ -485,27 +473,27 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
             borderWidth: 1,
           borderColor: colors.border,
         }}>
-          {/* Курс */}
-          <View style={{ 
-            flexDirection: isVerySmallScreen ? 'column' : 'row', 
-            justifyContent: 'space-between', 
-            alignItems: isVerySmallScreen ? 'flex-start' : 'center', 
-            marginBottom: 16 
+          {}
+          <View style={{
+            flexDirection: isVerySmallScreen ? 'column' : 'row',
+            justifyContent: 'space-between',
+            alignItems: isVerySmallScreen ? 'flex-start' : 'center',
+            marginBottom: 16
           }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isVerySmallScreen ? 4 : 0 }}>
               <Ionicons name="school-outline" size={isVerySmallScreen ? 18 : 20} color={colors.primary} />
-              <ThemedText style={{ 
-                fontSize: isVerySmallScreen ? 14 : 16, 
-                color: colors.text, 
-                marginLeft: isVerySmallScreen ? 8 : 12, 
-                fontWeight: '600' 
+              <ThemedText style={{
+                fontSize: isVerySmallScreen ? 14 : 16,
+                color: colors.text,
+                marginLeft: isVerySmallScreen ? 8 : 12,
+                fontWeight: '600'
               }}>
                 Курс
                 </ThemedText>
             </View>
-            <ThemedText style={{ 
-              fontSize: isVerySmallScreen ? 14 : 16, 
-              color: colors.primary, 
+            <ThemedText style={{
+              fontSize: isVerySmallScreen ? 14 : 16,
+              color: colors.primary,
               fontWeight: '500',
               marginLeft: isVerySmallScreen ? 26 : 0
             }}>
@@ -513,29 +501,29 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 </ThemedText>
               </View>
 
-          {/* Группа */}
-          <View style={{ 
-            flexDirection: isVerySmallScreen ? 'column' : 'row', 
-            justifyContent: 'space-between', 
-            alignItems: isVerySmallScreen ? 'flex-start' : 'center', 
-            marginBottom: 16 
+          {}
+          <View style={{
+            flexDirection: isVerySmallScreen ? 'column' : 'row',
+            justifyContent: 'space-between',
+            alignItems: isVerySmallScreen ? 'flex-start' : 'center',
+            marginBottom: 16
           }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isVerySmallScreen ? 4 : 0 }}>
               <Ionicons name="people-outline" size={isVerySmallScreen ? 18 : 20} color={colors.primary} />
-              <ThemedText style={{ 
-                fontSize: isVerySmallScreen ? 14 : 16, 
-                color: colors.text, 
-                marginLeft: isVerySmallScreen ? 8 : 12, 
-                fontWeight: '600' 
+              <ThemedText style={{
+                fontSize: isVerySmallScreen ? 14 : 16,
+                color: colors.text,
+                marginLeft: isVerySmallScreen ? 8 : 12,
+                fontWeight: '600'
               }}>
                 Группа
                 </ThemedText>
             </View>
-            <ThemedText 
+            <ThemedText
               numberOfLines={1}
-              style={{ 
-                fontSize: isVerySmallScreen ? 14 : 16, 
-                color: colors.primary, 
+              style={{
+                fontSize: isVerySmallScreen ? 14 : 16,
+                color: colors.primary,
                 fontWeight: '500',
                 marginLeft: isVerySmallScreen ? 26 : 0,
                 flex: isVerySmallScreen ? 1 : 0
@@ -544,29 +532,29 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 </ThemedText>
               </View>
 
-          {/* Факультет/Специальность */}
-          <View style={{ 
-            flexDirection: isVerySmallScreen ? 'column' : 'row', 
-            justifyContent: 'space-between', 
-            alignItems: isVerySmallScreen ? 'flex-start' : 'center', 
-            marginBottom: 16 
+          {}
+          <View style={{
+            flexDirection: isVerySmallScreen ? 'column' : 'row',
+            justifyContent: 'space-between',
+            alignItems: isVerySmallScreen ? 'flex-start' : 'center',
+            marginBottom: 16
           }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isVerySmallScreen ? 4 : 0 }}>
               <Ionicons name="library-outline" size={isVerySmallScreen ? 18 : 20} color={colors.primary} />
-              <ThemedText style={{ 
-                fontSize: isVerySmallScreen ? 14 : 16, 
-                color: colors.text, 
-                marginLeft: isVerySmallScreen ? 8 : 12, 
-                fontWeight: '600' 
+              <ThemedText style={{
+                fontSize: isVerySmallScreen ? 14 : 16,
+                color: colors.text,
+                marginLeft: isVerySmallScreen ? 8 : 12,
+                fontWeight: '600'
               }}>
                 Специальность
                 </ThemedText>
             </View>
-            <ThemedText 
+            <ThemedText
               numberOfLines={isVerySmallScreen ? 2 : 1}
-              style={{ 
-              fontSize: isVerySmallScreen ? 12 : 14, 
-              color: colors.primary, 
+              style={{
+              fontSize: isVerySmallScreen ? 12 : 14,
+              color: colors.primary,
               fontWeight: '600',
               textAlign: isVerySmallScreen ? 'left' : 'right',
               flex: 1,
@@ -576,29 +564,29 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 </ThemedText>
               </View>
 
-          {/* Email */}
+          {}
           {(user.ldap_profile?.email || user.email) && (
-            <View style={{ 
-              flexDirection: isVerySmallScreen ? 'column' : 'row', 
-              justifyContent: 'space-between', 
-              alignItems: isVerySmallScreen ? 'flex-start' : 'center' 
+            <View style={{
+              flexDirection: isVerySmallScreen ? 'column' : 'row',
+              justifyContent: 'space-between',
+              alignItems: isVerySmallScreen ? 'flex-start' : 'center'
             }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isVerySmallScreen ? 4 : 0 }}>
                 <Ionicons name="mail-outline" size={isVerySmallScreen ? 18 : 20} color={colors.primary} />
-                <ThemedText style={{ 
-                  fontSize: isVerySmallScreen ? 14 : 16, 
-                  color: colors.text, 
-                  marginLeft: isVerySmallScreen ? 8 : 12, 
-                  fontWeight: '600' 
+                <ThemedText style={{
+                  fontSize: isVerySmallScreen ? 14 : 16,
+                  color: colors.text,
+                  marginLeft: isVerySmallScreen ? 8 : 12,
+                  fontWeight: '600'
                 }}>
                   Email
                 </ThemedText>
               </View>
-              <ThemedText 
+              <ThemedText
                 numberOfLines={1}
-                style={{ 
-                fontSize: isVerySmallScreen ? 12 : 14, 
-                color: colors.primary, 
+                style={{
+                fontSize: isVerySmallScreen ? 12 : 14,
+                color: colors.primary,
                 fontWeight: '600',
                 textAlign: isVerySmallScreen ? 'left' : 'right',
                 flex: 1,
@@ -611,7 +599,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
         </View>
       </Animated.View>
 
-      {/* Академическая информация */}
+      {}
       <Animated.View entering={FadeInDown.duration(500).delay(200)} style={{ marginBottom: Spacing.l }}>
         <View style={{
           flexDirection: 'row',
@@ -629,15 +617,15 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           }}>
             <Ionicons name="analytics" size={16} color={colors.primary} />
           </View>
-          <ThemedText style={{ 
-            fontSize: isVerySmallScreen ? 16 : 18, 
+          <ThemedText style={{
+            fontSize: isVerySmallScreen ? 16 : 18,
             fontWeight: '500',
             color: colors.text,
           }}>
             Академическая информация
                 </ThemedText>
               </View>
-        
+
         <View style={{
           backgroundColor: colors.surface,
           borderRadius: isVerySmallScreen ? 16 : 20,
@@ -645,27 +633,27 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           borderWidth: 1,
           borderColor: colors.border,
         }}>
-          {/* Текущий семестр */}
-          <View style={{ 
-            flexDirection: isVerySmallScreen ? 'column' : 'row', 
-            justifyContent: 'space-between', 
-            alignItems: isVerySmallScreen ? 'flex-start' : 'center', 
-            marginBottom: 16 
+          {}
+          <View style={{
+            flexDirection: isVerySmallScreen ? 'column' : 'row',
+            justifyContent: 'space-between',
+            alignItems: isVerySmallScreen ? 'flex-start' : 'center',
+            marginBottom: 16
           }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: isVerySmallScreen ? 4 : 0 }}>
               <Ionicons name="calendar-outline" size={isVerySmallScreen ? 18 : 20} color={colors.primary} />
-              <ThemedText style={{ 
-                fontSize: isVerySmallScreen ? 14 : 16, 
-                color: colors.text, 
-                marginLeft: isVerySmallScreen ? 8 : 12, 
-                fontWeight: '600' 
+              <ThemedText style={{
+                fontSize: isVerySmallScreen ? 14 : 16,
+                color: colors.text,
+                marginLeft: isVerySmallScreen ? 8 : 12,
+                fontWeight: '600'
               }}>
                 Семестр
                 </ThemedText>
             </View>
-            <ThemedText style={{ 
-              fontSize: isVerySmallScreen ? 14 : 16, 
-              color: colors.primary, 
+            <ThemedText style={{
+              fontSize: isVerySmallScreen ? 14 : 16,
+              color: colors.primary,
               fontWeight: '500',
               marginLeft: isVerySmallScreen ? 26 : 0
             }}>
@@ -673,7 +661,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 </ThemedText>
               </View>
 
-          {/* Средний балл (GPA) */}
+          {}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Ionicons name="trophy-outline" size={20} color={colors.primary} />
@@ -686,7 +674,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 </ThemedText>
               </View>
 
-          {/* Статус студента */}
+          {}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Ionicons name="checkmark-circle-outline" size={20} color={colors.primary} />
@@ -708,7 +696,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           </View>
         </Animated.View>
 
-      {/* Основные кнопки действий */}
+      {}
       <Animated.View entering={FadeInDown.duration(500).delay(300)} style={{ marginBottom: Spacing.l }}>
         <View style={{
           flexDirection: 'row',
@@ -726,17 +714,17 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           }}>
             <Ionicons name="apps" size={16} color={colors.primary} />
           </View>
-          <ThemedText style={{ 
-            fontSize: isVerySmallScreen ? 16 : 18, 
+          <ThemedText style={{
+            fontSize: isVerySmallScreen ? 16 : 18,
             fontWeight: '500',
             color: colors.text,
           }}>
             Быстрые действия
         </ThemedText>
         </View>
-        
+
         <View style={{ gap: 12 }}>
-          {/* Первая строка кнопок */}
+          {}
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <TouchableOpacity
               onPress={pickImage}
@@ -752,16 +740,16 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 opacity: uploadingAvatar ? 0.6 : 1,
               }}
             >
-              <Ionicons 
-                name={uploadingAvatar ? "hourglass-outline" : "person-circle-outline"} 
-                size={24} 
-                color={colors.primary} 
+              <Ionicons
+                name={uploadingAvatar ? "hourglass-outline" : "person-circle-outline"}
+                size={24}
+                color={colors.primary}
               />
               <ThemedText style={{ fontSize: 14, color: colors.text, marginTop: 8, fontWeight: '600' }}>
                 {uploadingAvatar ? 'Загрузка...' : 'Изменить аватар'}
               </ThemedText>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               onPress={() => router.push('/(tabs)/schedule')}
               style={{
@@ -781,7 +769,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
             </TouchableOpacity>
           </View>
 
-          {/* Вторая строка кнопок */}
+          {}
           <View style={{ flexDirection: 'row', gap: 12 }}>
             <TouchableOpacity
               onPress={() => Alert.alert('Связаться', 'Функция связи будет доступна в следующих версиях')}
@@ -800,7 +788,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
                 Связаться
               </ThemedText>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
               onPress={async () => {
                 try {
@@ -833,7 +821,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
         </View>
       </Animated.View>
 
-      {/* Блок "Достижения" */}
+      {}
       <Animated.View entering={FadeInDown.duration(500).delay(350)} style={{ marginBottom: Spacing.l }}>
         <View style={{
           flexDirection: 'row',
@@ -851,22 +839,22 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           }}>
             <Ionicons name="trophy" size={16} color={colors.primary} />
           </View>
-          <ThemedText style={{ 
-            fontSize: isVerySmallScreen ? 16 : 18, 
+          <ThemedText style={{
+            fontSize: isVerySmallScreen ? 16 : 18,
             fontWeight: '500',
             color: colors.text,
           }}>
             Достижения
         </ThemedText>
         </View>
-        
-        <ScrollView 
-          horizontal 
+
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingRight: 20 }}
           style={{ marginBottom: Spacing.m }}
         >
-          {/* Академические достижения */}
+          {}
           <View style={{
             backgroundColor: colors.surface,
             borderRadius: 16,
@@ -973,9 +961,9 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
         </ScrollView>
       </Animated.View>
 
-      {/* Компактная кнопка выхода */}
-      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ 
-        marginTop: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l 
+      {}
+      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{
+        marginTop: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l
       }}>
         <Pressable
           onPress={onLogout}
@@ -992,13 +980,13 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
             opacity: pressed ? 0.9 : 1,
           })}
         >
-          <Ionicons 
-            name="log-out-outline" 
-            size={20} 
-            color="white" 
-            style={{ marginRight: 8 }} 
+          <Ionicons
+            name="log-out-outline"
+            size={20}
+            color="white"
+            style={{ marginRight: 8 }}
           />
-          <ThemedText style={{ 
+          <ThemedText style={{
             fontSize: 16,
             fontWeight: '600',
             color: 'white',
@@ -1008,8 +996,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
         </Pressable>
       </Animated.View>
 
-
-      {/* Меню настроек (выпадающее) */}
+      {}
       <Modal
         visible={settingsMenuVisible}
         animationType="fade"
@@ -1021,7 +1008,7 @@ export const StudentProfile = React.memo(({ user, onLogout }: StudentProfileProp
           onPress={() => setSettingsMenuVisible(false)}
         >
           <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'flex-end', paddingTop: 100, paddingRight: 20 }}>
-            <Animated.View 
+            <Animated.View
               entering={FadeInDown.duration(300)}
               style={{
                 backgroundColor: colors.surface,

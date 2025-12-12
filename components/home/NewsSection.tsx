@@ -67,7 +67,7 @@ export const NewsSection = React.memo(({ news }: NewsSectionProps) => {
       borderRadius: borderRadius.lg,
       padding: spacing.lg,
       alignItems: 'center',
-      // Оптимизированные тени для платформ
+
       ...Platform.select({
         android: {
           elevation: 2,
@@ -146,10 +146,10 @@ export const NewsSection = React.memo(({ news }: NewsSectionProps) => {
         ) : (
           <View style={styles.emptyState}>
             <View style={styles.emptyIconContainer}>
-              <Ionicons 
-                name="newspaper-outline" 
-                size={isSmall ? 28 : 32} 
-                color={colors.primary} 
+              <Ionicons
+                name="newspaper-outline"
+                size={isSmall ? 28 : 32}
+                color={colors.primary}
               />
             </View>
             <ThemedText style={styles.emptyTitle}>

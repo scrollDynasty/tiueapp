@@ -12,17 +12,15 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from './ThemedText';
-// Условный импорт для веб-платформы
+
 let LottieView: any;
 if (Platform.OS === 'web') {
-  // Для веб используем простую анимацию вместо Lottie
+
   LottieView = null;
 } else {
   LottieView = require('lottie-react-native').default;
 }
 
-// Удаляем неиспользуемый компонент SplashScreen
-// Теперь используем только нативный splash screen
 export function SplashScreen() {
   return null;
 

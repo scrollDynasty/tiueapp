@@ -4,7 +4,6 @@ import { Event, Grade, News, Schedule, Student, Task } from './index';
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
-// Селекторы с типизацией
 export const selectStudent = (state: RootState) => state.student as { profile: Student | null; isLoading: boolean; error: string | null };
 export const selectSchedule = (state: RootState) => state.schedule as { items: Schedule[]; selectedDay: string; isLoading: boolean; error: string | null };
 export const selectScheduleItems = (state: RootState) => (state.schedule as { items: Schedule[]; selectedDay: string; isLoading: boolean; error: string | null }).items;

@@ -15,28 +15,28 @@ interface SettingsItemProps {
   rightComponent?: React.ReactNode;
 }
 
-export const SettingsItem = React.memo(({ 
-  title, 
-  subtitle, 
-  icon, 
-  onPress, 
-  showArrow = true, 
-  rightComponent 
+export const SettingsItem = React.memo(({
+  title,
+  subtitle,
+  icon,
+  onPress,
+  showArrow = true,
+  rightComponent
 }: SettingsItemProps) => {
   const { isDarkMode } = useTheme();
   const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
-  
+
   const handlePress = React.useCallback(() => {
     if (onPress) {
       onPress();
     }
   }, [onPress]);
-  
+
   return (
     <Pressable
       onPress={handlePress}
       style={({ pressed }) => ({
-        backgroundColor: pressed 
+        backgroundColor: pressed
           ? isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
           : isDarkMode ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
         borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 11 : 12,
@@ -59,10 +59,10 @@ export const SettingsItem = React.memo(({
           marginRight: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
         }}
       >
-        <Ionicons 
-          name={icon} 
-          size={isVerySmallScreen ? 18 : isSmallScreen ? 19 : 20} 
-          color={isDarkMode ? '#8B5CF6' : '#6366F1'} 
+        <Ionicons
+          name={icon}
+          size={isVerySmallScreen ? 18 : isSmallScreen ? 19 : 20}
+          color={isDarkMode ? '#8B5CF6' : '#6366F1'}
         />
       </View>
 
@@ -89,10 +89,10 @@ export const SettingsItem = React.memo(({
       </View>
 
       {rightComponent || (showArrow && (
-        <Ionicons 
-          name="chevron-forward" 
-          size={isVerySmallScreen ? 16 : isSmallScreen ? 17 : 18} 
-          color={isDarkMode ? '#64748B' : '#94A3B8'} 
+        <Ionicons
+          name="chevron-forward"
+          size={isVerySmallScreen ? 16 : isSmallScreen ? 17 : 18}
+          color={isDarkMode ? '#64748B' : '#94A3B8'}
         />
       ))}
     </Pressable>

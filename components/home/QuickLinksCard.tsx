@@ -28,7 +28,7 @@ const quickLinks = [
   {
     id: 'settings',
     icon: 'settings' as const,
-    label: 'Настройки', 
+    label: 'Настройки',
     color: '#10B981',
     action: () => router.push('/(tabs)/profile'),
   },
@@ -45,7 +45,7 @@ export const QuickLinksCard = React.memo(() => {
       backgroundColor: colors.surface,
       borderRadius: borderRadius.lg,
       padding: spacing.md,
-      // Оптимизированные тени для платформ
+
       ...Platform.select({
         android: {
           elevation: 2,
@@ -96,17 +96,17 @@ export const QuickLinksCard = React.memo(() => {
   });
 
   return (
-    <Animated.View 
+    <Animated.View
       entering={FadeInDown.delay(800)}
       style={styles.container}
     >
       <View style={styles.linksContainer}>
         {quickLinks.map((link) => (
-          <Pressable 
+          <Pressable
             key={link.id}
             style={styles.linkItem}
             onPress={link.action}
-            android_ripple={{ 
+            android_ripple={{
               color: `${link.color}20`,
               borderless: false,
               radius: 30
@@ -114,16 +114,16 @@ export const QuickLinksCard = React.memo(() => {
           >
             <View style={[
               styles.iconContainer,
-              { 
-                backgroundColor: Platform.OS === 'android' 
-                  ? colors.backgroundSecondary // Нейтральный фон на Android
-                  : (isDarkMode ? `${link.color}25` : `${link.color}15`) // Цветной на iOS
+              {
+                backgroundColor: Platform.OS === 'android'
+                  ? colors.backgroundSecondary
+                  : (isDarkMode ? `${link.color}25` : `${link.color}15`)
               }
             ]}>
-              <Ionicons 
-                name={link.icon} 
-                size={isSmall ? 20 : 22} 
-                color={Platform.OS === 'android' ? colors.textSecondary : link.color} // Нейтральные иконки на Android
+              <Ionicons
+                name={link.icon}
+                size={isSmall ? 20 : 22}
+                color={Platform.OS === 'android' ? colors.textSecondary : link.color}
               />
             </View>
             <ThemedText style={styles.linkLabel}>

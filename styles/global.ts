@@ -1,10 +1,8 @@
 import { Colors } from '@/constants/Colors';
 import { Dimensions, Platform, StyleSheet } from 'react-native';
 
-// Получаем размеры экрана
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Responsive breakpoints
 export const BREAKPOINTS = {
   sm: 320,
   md: 375,
@@ -12,7 +10,6 @@ export const BREAKPOINTS = {
   xl: 768,
 } as const;
 
-// Функции для адаптивного дизайна
 export const wp = (percentage: number) => {
   const value = (percentage * SCREEN_WIDTH) / 100;
   return Math.round(value);
@@ -23,7 +20,6 @@ export const hp = (percentage: number) => {
   return Math.round(value);
 };
 
-// Адаптивные размеры шрифтов
 export const responsiveFontSize = (size: number) => {
   if (SCREEN_WIDTH < BREAKPOINTS.sm) return size * 0.85;
   if (SCREEN_WIDTH < BREAKPOINTS.md) return size * 0.9;
@@ -31,7 +27,6 @@ export const responsiveFontSize = (size: number) => {
   return size * 1.1;
 };
 
-// Адаптивные отступы
 export const SPACING = {
   xs: wp(1),
   sm: wp(2),
@@ -39,7 +34,7 @@ export const SPACING = {
   lg: wp(6),
   xl: wp(8),
   xxl: wp(12),
-  // Фиксированные отступы для элементов UI
+
   containerHorizontal: wp(5),
   containerVertical: hp(2),
   cardPadding: wp(4),
@@ -127,21 +122,20 @@ export const TYPOGRAPHY = {
   },
 } as const;
 
-// Современные тени для разных платформ - оптимизированы для Android
 export const SHADOWS = {
   small: {
-    // Для web используем boxShadow
+
     ...Platform.select({
       web: {
         boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
       },
       android: {
-        // Минимальные тени для Android
+
         elevation: 2,
-        shadowColor: 'transparent', // Убираем iOS тени на Android
+        shadowColor: 'transparent',
       },
       default: {
-        // iOS - оставляем красивые тени
+
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -156,12 +150,12 @@ export const SHADOWS = {
         boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.15)',
       },
       android: {
-        // Умеренные тени для Android
+
         elevation: 3,
         shadowColor: 'transparent',
       },
       default: {
-        // iOS - красивые тени
+
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
@@ -176,12 +170,12 @@ export const SHADOWS = {
         boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.2)',
       },
       android: {
-        // Средние тени для Android
+
         elevation: 4,
         shadowColor: 'transparent',
       },
       default: {
-        // iOS - красивые тени
+
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.2,
@@ -192,7 +186,6 @@ export const SHADOWS = {
   },
 };
 
-// Глобальные стили
 export const createGlobalStyles = (colors: typeof Colors.light) => StyleSheet.create({
   container: {
     flex: 1,
@@ -248,7 +241,7 @@ export const createGlobalStyles = (colors: typeof Colors.light) => StyleSheet.cr
   marginVertical: {
     marginVertical: SPACING.md,
   },
-  // Современные карточки с красивыми тенями
+
   card: {
     backgroundColor: colors.card,
     borderRadius: SIZES.border.large,
@@ -270,7 +263,7 @@ export const createGlobalStyles = (colors: typeof Colors.light) => StyleSheet.cr
     marginVertical: SPACING.lg,
     ...SHADOWS.large,
   },
-  // Современные кнопки с градиентами
+
   button: {
     height: SIZES.button.medium,
     borderRadius: SIZES.border.large,
@@ -333,7 +326,6 @@ export const createGlobalStyles = (colors: typeof Colors.light) => StyleSheet.cr
   },
 });
 
-// Утилиты для адаптивного дизайна
 export const LAYOUT = StyleSheet.create({
   container: {
     flex: 1,
@@ -384,7 +376,7 @@ export const LAYOUT = StyleSheet.create({
   flex3: {
     flex: 3,
   },
-  // Адаптивные контейнеры
+
   containerPadding: {
     paddingHorizontal: SPACING.containerHorizontal,
     paddingVertical: SPACING.containerVertical,
@@ -400,9 +392,8 @@ export const LAYOUT = StyleSheet.create({
   },
 });
 
-// Responsive helpers
 export const RESPONSIVE = {
-  // Width percentages
+
   w10: wp(10),
   w20: wp(20),
   w25: wp(25),
@@ -415,8 +406,7 @@ export const RESPONSIVE = {
   w80: wp(80),
   w90: wp(90),
   w100: wp(100),
-  
-  // Height percentages
+
   h10: hp(10),
   h20: hp(20),
   h25: hp(25),
@@ -429,36 +419,33 @@ export const RESPONSIVE = {
   h80: hp(80),
   h90: hp(90),
   h100: hp(100),
-  
-  // Screen dimensions
+
   screenWidth: SCREEN_WIDTH,
   screenHeight: SCREEN_HEIGHT,
-  
-  // Is small screen?
+
   isSmallScreen: SCREEN_WIDTH < BREAKPOINTS.md,
   isLargeScreen: SCREEN_WIDTH > BREAKPOINTS.lg,
 };
 
-// Современные анимации и интерактивность
 export const ANIMATIONS = {
-  // Мягкие переходы
+
   transition: {
     duration: 200,
     useNativeDriver: true,
   },
-  // Пружинные анимации
+
   spring: {
     tension: 100,
     friction: 8,
     useNativeDriver: true,
   },
-  // Плавные появления
+
   fadeIn: {
     opacity: 1,
     duration: 300,
     useNativeDriver: true,
   },
-  // Масштабирование при нажатии
+
   pressScale: {
     scale: 0.98,
     duration: 100,
@@ -466,17 +453,16 @@ export const ANIMATIONS = {
   },
 };
 
-// Современные стили интерактивности
 export const INTERACTIVE = {
-  // Кнопки с эффектами нажатия
+
   touchable: {
     activeOpacity: 0.8,
   },
-  // Карточки с подъемом при нажатии
+
   elevateOnPress: {
     activeOpacity: 0.95,
   },
-  // Плавные переходы для веб
+
   ...(Platform.OS === 'web' && {
     smooth: {
       transition: 'all 0.2s ease-in-out',

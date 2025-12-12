@@ -102,7 +102,7 @@ const NewsCardComponent = ({
               shadowRadius: 8,
             },
             android: {
-              elevation: 3, // Уменьшаем с 12 до 3
+              elevation: 3,
             },
           }),
         },
@@ -152,20 +152,20 @@ const NewsCardComponent = ({
               alignItems: 'center'
             }}>
               <Ionicons name="calendar-outline" size={12} color="#fff" style={{ marginRight: 4 }} />
-              <ThemedText style={[{ 
-                fontSize: fontSize.small, 
-                color: '#fff', 
+              <ThemedText style={[{
+                fontSize: fontSize.small,
+                color: '#fff',
               }, textStyles.title]}>
                 {formatDateYMD(date)}
               </ThemedText>
             </View>
           </View>
         )}
-        
+
         <View style={{ padding: cardPadding }}>
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: spacing.xs }}>
             <LinearGradient
-              colors={isDarkMode 
+              colors={isDarkMode
                 ? ['rgba(99,102,241,0.2)', 'rgba(139,92,246,0.2)']
                 : ['rgba(99,102,241,0.1)', 'rgba(139,92,246,0.1)']
               }
@@ -180,13 +180,13 @@ const NewsCardComponent = ({
                 borderColor: isDarkMode ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.2)',
               }}
             >
-              <Ionicons 
-                name={icon} 
-                size={iconInnerSize} 
-                color={isDarkMode ? '#A5B4FC' : '#6366F1'} 
+              <Ionicons
+                name={icon}
+                size={iconInnerSize}
+                color={isDarkMode ? '#A5B4FC' : '#6366F1'}
               />
             </LinearGradient>
-            
+
             <View style={{ flex: 1 }}>
               <ThemedText
                 style={[{
@@ -199,7 +199,7 @@ const NewsCardComponent = ({
               >
                 {title}
               </ThemedText>
-              
+
               {!image && (
                 <View style={{
                   flexDirection: 'row',
@@ -207,9 +207,9 @@ const NewsCardComponent = ({
                   marginTop: 4
                 }}>
                   <Ionicons name="calendar-outline" size={12} color={colors.textSecondary} style={{ marginRight: 6 }} />
-                  <ThemedText style={[{ 
-                    fontSize: fontSize.small, 
-                    color: colors.textSecondary, 
+                  <ThemedText style={[{
+                    fontSize: fontSize.small,
+                    color: colors.textSecondary,
                   }, textStyles.eventTitle]}>
                     {formatDateYMD(date)}
                   </ThemedText>
@@ -241,7 +241,7 @@ const NewsCardComponent = ({
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs }}>
                 <LinearGradient
-                  colors={isDarkMode 
+                  colors={isDarkMode
                     ? ['rgba(34,197,94,0.2)', 'rgba(16,185,129,0.2)']
                     : ['rgba(34,197,94,0.1)', 'rgba(16,185,129,0.1)']
                   }
@@ -265,7 +265,7 @@ const NewsCardComponent = ({
                   Связанные события ({events.length})
                 </ThemedText>
               </View>
-              
+
               <View style={{ gap: spacing.xs }}>
                 {events.slice(0, 2).map((event, eventIndex) => (
                   <Pressable
@@ -301,7 +301,7 @@ const NewsCardComponent = ({
                     </ThemedText>
                   </Pressable>
                 ))}
-                
+
                 {events.length > 2 && (
                   <ThemedText
                     style={[{
@@ -323,7 +323,6 @@ const NewsCardComponent = ({
   );
 }
 
-// Стили с правильными типами
 const textStyles = {
   title: {} as TextStyle,
   subtitle: {} as TextStyle,

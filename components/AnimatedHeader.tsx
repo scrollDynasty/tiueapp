@@ -20,12 +20,12 @@ interface HeaderProps {
   onNotificationPress?: () => void;
 }
 
-export const AnimatedHeader = React.memo(({ 
-  userName, 
-  avatarUrl, 
+export const AnimatedHeader = React.memo(({
+  userName,
+  avatarUrl,
   notificationCount = 0,
   onAvatarPress,
-  onNotificationPress 
+  onNotificationPress
 }: HeaderProps) => {
   const { isVerySmallScreen } = useResponsive();
   const { isDarkMode } = useTheme();
@@ -33,17 +33,12 @@ export const AnimatedHeader = React.memo(({
   const bellScale = useSharedValue(1);
   const insets = useSafeAreaInsets();
 
-
-
-
   const handleBellPress = () => {
     'worklet';
     bellScale.value = withSpring(1.2, Animation.spring, () => {
       bellScale.value = withSpring(1, Animation.spring);
     });
   };
-
-
 
   return (
     <LinearGradient
@@ -69,14 +64,14 @@ export const AnimatedHeader = React.memo(({
           justifyContent: 'space-between',
           alignItems: 'center',
           paddingHorizontal: Spacing.l,
-          paddingTop: insets.top + 10, // Весь контент заголовка под Dynamic Island + 10px
+          paddingTop: insets.top + 10,
           paddingBottom: Spacing.m,
         }}
       >
-        {/* Приветствие */}
-        <View 
-          style={{ 
-            flex: 1, 
+        {}
+        <View
+          style={{
+            flex: 1,
             paddingRight: 20,
             justifyContent: 'center',
           }}
@@ -90,12 +85,12 @@ export const AnimatedHeader = React.memo(({
               borderLeftColor: 'transparent',
             }}
           >
-            {/* Красивый заголовок TIUE */}
-            <View style={{ 
-              flexDirection: 'row', 
-              alignItems: 'center', 
+            {}
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
               marginBottom: isVerySmallScreen ? 6 : 8,
-              marginTop: 5 // Небольшой отступ сверху чтобы текст не обрезался
+              marginTop: 5
             }}>
               <View style={{
                 backgroundColor: colors.primary + '20',
@@ -111,16 +106,16 @@ export const AnimatedHeader = React.memo(({
                 shadowRadius: 4,
                 elevation: 3,
               }}>
-                <Ionicons 
-                  name="school" 
-                  size={isVerySmallScreen ? 16 : 18} 
-                  color={colors.primary} 
+                <Ionicons
+                  name="school"
+                  size={isVerySmallScreen ? 16 : 18}
+                  color={colors.primary}
                 />
               </View>
               <ThemedText
                 style={{
                   fontSize: isVerySmallScreen ? 28 : 36,
-                  lineHeight: isVerySmallScreen ? 34 : 42, // Добавляем lineHeight чтобы текст не обрезался
+                  lineHeight: isVerySmallScreen ? 34 : 42,
                   fontWeight: '800',
                   color: colors.text,
                   letterSpacing: isVerySmallScreen ? 3 : 4,
@@ -132,12 +127,12 @@ export const AnimatedHeader = React.memo(({
           </View>
         </View>
 
-        {/* Правая часть с уведомлениями и аватаром */}
-        <View style={{ 
-          flexDirection: 'row', 
+        {}
+        <View style={{
+          flexDirection: 'row',
           alignItems: 'center',
         }}>
-        {/* Колокольчик с счётчиком */}
+        {}
         <Pressable
           onPress={() => {
             handleBellPress();
@@ -149,13 +144,13 @@ export const AnimatedHeader = React.memo(({
           }}
         >
           <View>
-            <Ionicons 
-              name="notifications-outline" 
-              size={isVerySmallScreen ? 24 : 28} 
-              color={colors.text} 
+            <Ionicons
+              name="notifications-outline"
+              size={isVerySmallScreen ? 24 : 28}
+              color={colors.text}
             />
           </View>
-          
+
           {notificationCount > 0 && (
             <View
               style={{
@@ -183,7 +178,7 @@ export const AnimatedHeader = React.memo(({
           )}
         </Pressable>
 
-        {/* Аватар с оптимизированной загрузкой */}
+        {}
         <View>
           <Pressable onPress={onAvatarPress}>
             {avatarUrl ? (
@@ -210,10 +205,10 @@ export const AnimatedHeader = React.memo(({
                   alignItems: 'center',
                 }}
               >
-                <Ionicons 
-                  name="person" 
-                  size={isVerySmallScreen ? 20 : 24} 
-                  color={colors.primary} 
+                <Ionicons
+                  name="person"
+                  size={isVerySmallScreen ? 20 : 24}
+                  color={colors.primary}
                 />
               </View>
             )}
@@ -224,7 +219,7 @@ export const AnimatedHeader = React.memo(({
     </LinearGradient>
   );
 }, (prevProps, nextProps) => {
-  // Перерендерить если изменились userName, avatarUrl или notificationCount
+
   return prevProps.userName === nextProps.userName &&
          prevProps.avatarUrl === nextProps.avatarUrl &&
          prevProps.notificationCount === nextProps.notificationCount;

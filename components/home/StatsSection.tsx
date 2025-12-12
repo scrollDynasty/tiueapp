@@ -30,23 +30,23 @@ export const StatsSection = React.memo(({ statsData }: StatsSectionProps) => {
       justifyContent: 'space-between',
       alignItems: 'stretch',
     }}>
-      <StatWidget 
-        icon="book-outline" 
-        title="Курсы" 
-        value={statsData.courses} 
-        color={colors.primary} 
+      <StatWidget
+        icon="book-outline"
+        title="Курсы"
+        value={statsData.courses}
+        color={colors.primary}
       />
-      <StatWidget 
-        icon="calendar-outline" 
-        title="События" 
-        value={statsData.events} 
-        color={colors.success} 
+      <StatWidget
+        icon="calendar-outline"
+        title="События"
+        value={statsData.events}
+        color={colors.success}
       />
-      <StatWidget 
-        icon="trophy-outline" 
-        title={statsData.gradeTitle} 
-        value={statsData.grade} 
-        color={colors.warning} 
+      <StatWidget
+        icon="trophy-outline"
+        title={statsData.gradeTitle}
+        value={statsData.grade}
+        color={colors.warning}
       />
     </View>
   );

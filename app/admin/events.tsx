@@ -12,7 +12,6 @@ import { ActivityIndicator, Alert, Image, Pressable, ScrollView, TextInput, View
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Категории событий (те же что и у студентов)
 const EVENT_CATEGORIES = [
   { key: 'university', label: 'Университет', icon: 'school-outline', color: '#6366F1' },
   { key: 'club', label: 'Клубы', icon: 'people-outline', color: '#8B5CF6' },
@@ -23,8 +22,7 @@ const EVENT_CATEGORIES = [
 
 export default function EventsManagementScreen() {
   const { isDarkMode } = useTheme();
-  
-  // Цвета в бело-синем стиле
+
   const colors = {
     background: isDarkMode ? '#1E3A8A' : '#EFF6FF',
     surface: isDarkMode ? '#2563EB' : '#FFFFFF',
@@ -35,11 +33,11 @@ export default function EventsManagementScreen() {
     error: '#EF4444',
     success: '#10B981',
   };
-  
+
   const { user } = useAppSelector((state) => state.auth);
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
@@ -48,11 +46,9 @@ export default function EventsManagementScreen() {
   const [category, setCategory] = useState('university');
   const [image, setImage] = useState<any>(null);
 
-  // Состояния для удаления события
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<{ id: string; title: string } | null>(null);
 
-  // Загружаем события при открытии страницы
   useEffect(() => {
     loadEvents();
   }, []);
@@ -81,7 +77,6 @@ export default function EventsManagementScreen() {
     });
   };
 
-  // Функция для форматирования даты (дд.мм.гггг)
   const formatDateInput = (text: string) => {
     const cleaned = text.replace(/\D/g, '');
     const match = cleaned.match(/^(\d{0,2})(\d{0,2})(\d{0,4})$/);
@@ -95,7 +90,6 @@ export default function EventsManagementScreen() {
     return text;
   };
 
-  // Функция для форматирования времени (чч:мм)
   const formatTimeInput = (text: string) => {
     const cleaned = text.replace(/\D/g, '');
     const match = cleaned.match(/^(\d{0,2})(\d{0,2})$/);
@@ -110,7 +104,7 @@ export default function EventsManagementScreen() {
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
+
     if (permissionResult.granted === false) {
       Alert.alert('Разрешение требуется', 'Разрешите доступ к фотографиям для загрузки изображений');
       return;
@@ -151,11 +145,10 @@ export default function EventsManagementScreen() {
     try {
       setLoading(true);
       const response = await authApi.createEvent(eventData);
-      
+
       if (response.success) {
         await loadEvents();
-        
-        // Очищаем форму
+
         setTitle('');
         setDescription('');
         setLocation('');
@@ -163,7 +156,7 @@ export default function EventsManagementScreen() {
         setTime('');
         setCategory('university');
         setImage(null);
-        
+
         Alert.alert('Успешно', 'Событие создано');
       } else {
         Alert.alert('Ошибка', response.error || 'Не удалось создать событие');
@@ -186,7 +179,7 @@ export default function EventsManagementScreen() {
 
     try {
       const response = await authApi.deleteEvent(eventToDelete.id);
-      
+
       if (response.success) {
         await loadEvents();
         Alert.alert('Успешно', 'Событие удалено');
@@ -202,7 +195,6 @@ export default function EventsManagementScreen() {
     }
   };
 
-  // Проверяем права доступа
   if (!user || user.role !== 'admin') {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
@@ -232,18 +224,18 @@ export default function EventsManagementScreen() {
 
   return (
     <LinearGradient
-      colors={isDarkMode 
+      colors={isDarkMode
         ? ['#1E3A8A', '#2563EB', '#3B82F6']
         : ['#EFF6FF', '#DBEAFE', '#BFDBFE']
       }
       style={{ flex: 1 }}
     >
       <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView 
-          showsVerticalScrollIndicator={false} 
+        <ScrollView
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={{ padding: 16 }}
         >
-          {/* Заголовок */}
+          {}
           <Animated.View entering={FadeInDown.duration(400)}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24 }}>
               <Pressable
@@ -271,8 +263,8 @@ export default function EventsManagementScreen() {
             </View>
           </Animated.View>
 
-          {/* Форма создания события */}
-          <Animated.View 
+          {}
+          <Animated.View
             entering={FadeInDown.duration(500).delay(200)}
             style={{
               backgroundColor: colors.surface,
@@ -290,7 +282,7 @@ export default function EventsManagementScreen() {
               Создать событие
             </ThemedText>
 
-            {/* Название */}
+            {}
             <View style={{ marginBottom: 16 }}>
               <ThemedText style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8 }}>
                 Название
@@ -310,7 +302,7 @@ export default function EventsManagementScreen() {
               />
             </View>
 
-            {/* Описание */}
+            {}
             <View style={{ marginBottom: 16 }}>
               <ThemedText style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8 }}>
                 Описание
@@ -334,7 +326,7 @@ export default function EventsManagementScreen() {
               />
             </View>
 
-            {/* Место */}
+            {}
             <View style={{ marginBottom: 16 }}>
               <ThemedText style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8 }}>
                 Место проведения
@@ -354,7 +346,7 @@ export default function EventsManagementScreen() {
               />
             </View>
 
-            {/* Дата и время */}
+            {}
             <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
               <View style={{ flex: 1 }}>
                 <ThemedText style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8 }}>
@@ -398,7 +390,7 @@ export default function EventsManagementScreen() {
               </View>
             </View>
 
-            {/* Категория */}
+            {}
             <View style={{ marginBottom: 16 }}>
               <ThemedText style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8 }}>
                 Категория
@@ -418,10 +410,10 @@ export default function EventsManagementScreen() {
                         minWidth: 80,
                       }}
                     >
-                      <Ionicons 
-                        name={cat.icon as any} 
-                        size={16} 
-                        color={category === cat.key ? 'white' : colors.textSecondary} 
+                      <Ionicons
+                        name={cat.icon as any}
+                        size={16}
+                        color={category === cat.key ? 'white' : colors.textSecondary}
                       />
                       <ThemedText style={{
                         fontSize: 12,
@@ -436,12 +428,12 @@ export default function EventsManagementScreen() {
               </ScrollView>
             </View>
 
-            {/* Изображение */}
+            {}
             <View style={{ marginBottom: 24 }}>
               <ThemedText style={{ fontSize: 14, color: colors.textSecondary, marginBottom: 8 }}>
                 Изображение (необязательно)
               </ThemedText>
-              
+
               {image ? (
                 <View>
                   <Image
@@ -501,17 +493,17 @@ export default function EventsManagementScreen() {
                   }}
                 >
                   <Ionicons name="cloud-upload-outline" size={32} color={colors.textSecondary} />
-                  <ThemedText style={{ 
+                  <ThemedText style={{
                     fontSize: 14,
-                    color: colors.textSecondary, 
+                    color: colors.textSecondary,
                     marginTop: 8,
                     textAlign: 'center'
                   }}>
                     Нажмите для выбора изображения
                   </ThemedText>
-                  <ThemedText style={{ 
+                  <ThemedText style={{
                     fontSize: 12,
-                    color: colors.textSecondary, 
+                    color: colors.textSecondary,
                     marginTop: 4,
                     textAlign: 'center'
                   }}>
@@ -521,7 +513,7 @@ export default function EventsManagementScreen() {
               )}
             </View>
 
-            {/* Кнопка создания */}
+            {}
             <Pressable
               onPress={handleCreateEvent}
               disabled={loading}
@@ -535,13 +527,13 @@ export default function EventsManagementScreen() {
               }}
             >
               {loading && (
-                <ActivityIndicator 
-                  size="small" 
-                  color={colors.textSecondary} 
-                  style={{ marginRight: 8 }} 
+                <ActivityIndicator
+                  size="small"
+                  color={colors.textSecondary}
+                  style={{ marginRight: 8 }}
                 />
               )}
-              <ThemedText style={{ 
+              <ThemedText style={{
                 fontSize: 16,
                 fontWeight: '600',
                 color: loading ? colors.textSecondary : 'white'
@@ -551,12 +543,12 @@ export default function EventsManagementScreen() {
             </Pressable>
           </Animated.View>
 
-          {/* Список событий */}
+          {}
           <Animated.View entering={FadeInDown.duration(500).delay(400)}>
             <ThemedText style={{ fontSize: 18, fontWeight: 'bold', color: colors.text, marginBottom: 16 }}>
               Существующие события ({events.length})
             </ThemedText>
-            
+
             {events.length === 0 ? (
               <View style={{
                 backgroundColor: colors.surface,
@@ -641,12 +633,12 @@ export default function EventsManagementScreen() {
           </Animated.View>
         </ScrollView>
 
-        {/* Модальное окно подтверждения удаления */}
+        {}
         <ConfirmationModal
           isVisible={showDeleteConfirm}
           title="Удалить событие?"
           message={
-            eventToDelete 
+            eventToDelete
               ? `Вы уверены, что хотите удалить событие "${eventToDelete.title}"?\n\nЭто действие нельзя отменить!`
               : ''
           }

@@ -54,7 +54,6 @@ const getColorByType = (type: Notification['type']) => {
   }
 };
 
-// Треугольная стрелка для dropdown
 const Triangle = () => (
   <View
     style={{
@@ -78,9 +77,9 @@ const Triangle = () => (
   />
 );
 
-export function NotificationModal({ 
-  isVisible, 
-  onClose, 
+export function NotificationModal({
+  isVisible,
+  onClose,
   notifications = []
 }: NotificationDropdownProps) {
   const opacity = useSharedValue(0);
@@ -100,7 +99,7 @@ export function NotificationModal({
     opacity: opacity.value,
     transform: [
       { scale: scale.value },
-      { 
+      {
         translateY: interpolate(
           scale.value,
           [0.95, 1],
@@ -114,7 +113,7 @@ export function NotificationModal({
 
   return (
     <>
-      {/* Overlay для закрытия */}
+      {}
       <Pressable
         style={{
           position: 'absolute',
@@ -127,12 +126,12 @@ export function NotificationModal({
         onPress={onClose}
       />
 
-      {/* Dropdown container */}
+      {}
       <Animated.View
         style={[
           {
             position: 'absolute',
-            top: 60, // Позиция под кнопкой уведомлений
+            top: 60,
             right: 16,
             width: Math.min(320, screenWidth - 32),
             maxHeight: 400,
@@ -151,10 +150,10 @@ export function NotificationModal({
           animatedStyle
         ]}
       >
-        {/* Треугольная стрелка */}
+        {}
         <Triangle />
 
-        {/* Header */}
+        {}
         <View
           style={{
             flexDirection: 'row',
@@ -165,13 +164,13 @@ export function NotificationModal({
             borderBottomColor: 'rgba(0,0,0,0.06)',
           }}
         >
-          <Ionicons 
-            name="notifications" 
-            size={16} 
+          <Ionicons
+            name="notifications"
+            size={16}
             color={Colors.brandPrimary}
             style={{ marginRight: 8 }}
           />
-          <ThemedText style={{ 
+          <ThemedText style={{
             fontSize: 15,
             color: Colors.textPrimary
           }}>
@@ -179,9 +178,9 @@ export function NotificationModal({
           </ThemedText>
         </View>
 
-        {/* Content */}
+        {}
         {notifications.length === 0 ? (
-          // Empty state
+
           <View
             style={{
               paddingVertical: 32,
@@ -200,10 +199,10 @@ export function NotificationModal({
                 marginBottom: 12,
               }}
             >
-              <Ionicons 
-                name="notifications-off-outline" 
-                size={24} 
-                color={Colors.textSecondary} 
+              <Ionicons
+                name="notifications-off-outline"
+                size={24}
+                color={Colors.textSecondary}
               />
             </View>
             <ThemedText
@@ -227,7 +226,7 @@ export function NotificationModal({
             </ThemedText>
           </View>
         ) : (
-          // Notifications list
+
           <ScrollView
             style={{ maxHeight: 300 }}
             showsVerticalScrollIndicator={false}
@@ -245,10 +244,10 @@ export function NotificationModal({
                   backgroundColor: notification.isRead ? 'transparent' : Colors.brandPrimary + '08',
                 }}
                 onPress={() => {
-                  // Handle notification press
+
                 }}
               >
-                {/* Icon */}
+                {}
                 <View
                   style={{
                     width: 32,
@@ -268,7 +267,7 @@ export function NotificationModal({
                   />
                 </View>
 
-                {/* Content */}
+                {}
                 <View style={{ flex: 1 }}>
                   <View
                     style={{
@@ -288,7 +287,7 @@ export function NotificationModal({
                     >
                       {notification.title}
                     </ThemedText>
-                    
+
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 8 }}>
                       <ThemedText
                         style={{
@@ -311,7 +310,7 @@ export function NotificationModal({
                       )}
                     </View>
                   </View>
-                  
+
                   <ThemedText
                     style={{
                       fontSize: 12,
@@ -327,7 +326,7 @@ export function NotificationModal({
           </ScrollView>
         )}
 
-        {/* Footer */}
+        {}
         {notifications.length > 0 && (
           <View
             style={{
@@ -343,7 +342,7 @@ export function NotificationModal({
                 alignItems: 'center',
               }}
               onPress={() => {
-                // Mark all as read
+
               }}
             >
               <ThemedText

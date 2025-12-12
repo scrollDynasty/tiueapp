@@ -14,7 +14,6 @@ import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, TouchableOpac
 import Animated, { FadeInDown, FadeInUp, SlideInRight } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// Cross-platform Image with retry - мемоизированный компонент
 const ImageWithRetry = React.memo(({ uri, style, resizeMode }: { uri?: string; style?: any; resizeMode?: any }) => {
   const [attempt, setAttempt] = React.useState(0);
   const [failed, setFailed] = React.useState(false);
@@ -24,7 +23,6 @@ const ImageWithRetry = React.memo(({ uri, style, resizeMode }: { uri?: string; s
     setAttempt((s) => s + 1);
   };
 
-  // Убираем cache-busting для предотвращения дублирования запросов
   const getUriWithCacheBuster = (baseUri: string) => {
     return baseUri;
   };
@@ -32,7 +30,7 @@ const ImageWithRetry = React.memo(({ uri, style, resizeMode }: { uri?: string; s
   if (!uri) return null;
 
   if (Platform.OS === 'web') {
-    // Extract numeric width/height from style (if provided) to render attributes and avoid layout shift
+
     let widthAttr: number | undefined;
     let heightAttr: number | undefined;
     if (style && typeof style === 'object') {
@@ -42,7 +40,6 @@ const ImageWithRetry = React.memo(({ uri, style, resizeMode }: { uri?: string; s
       if (typeof w === 'number') widthAttr = Math.round(w as number);
     }
 
-    // eslint-disable-next-line jsx-a11y/alt-text
     return (
       <div>
         <img
@@ -105,36 +102,30 @@ export default function EventsScreen() {
   const insets = useSafeAreaInsets();
   const { isSmallScreen, spacing, fontSize, isVerySmallScreen, isExtraSmallScreen } = useResponsive();
   const dispatch = useAppDispatch();
-  
-  
+
   const { items: events } = useAppSelector((state) => state.events);
   const [filter, setFilter] = useState('all');
 
-  // Мемоизированная фильтрация событий для оптимизации производительности
   const filteredEvents = React.useMemo(() => {
     if (!Array.isArray(events)) return [];
     if (filter === 'all') return events;
     return events.filter(event => event.category === filter);
   }, [events, filter]);
 
-  // Ref для отслеживания размонтирования компонента
   const isMountedRef = React.useRef(true);
 
-  // Cleanup при размонтировании
   React.useEffect(() => {
     return () => {
       isMountedRef.current = false;
     };
   }, []);
 
-  // Мемоизированная функция для изменения фильтра
   const handleFilterChange = React.useCallback((categoryKey: string) => {
     if (isMountedRef.current) {
       setFilter(categoryKey);
     }
   }, []);
 
-  // Загружаем события при открытии страницы
   React.useEffect(() => {
     let isCancelled = false;
 
@@ -156,8 +147,6 @@ export default function EventsScreen() {
       isCancelled = true;
     };
   }, [dispatch]);
-
-  
 
   const getCategoryColor = React.useCallback((category: string) => {
     switch (category) {
@@ -207,9 +196,9 @@ export default function EventsScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Градиентный фон */}
+      {}
       <LinearGradient
-        colors={isDarkMode 
+        colors={isDarkMode
           ? ['#0F172A', '#1E293B', '#334155']
           : ['#FAFAFA', '#F8FAFC', '#EEF2F7']
         }
@@ -217,14 +206,14 @@ export default function EventsScreen() {
         end={{ x: 1, y: 1 }}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       />
-      
+
       <View style={{ flex: 1 }}>
-        {/* Современный Header */}
-        <Animated.View 
+        {}
+        <Animated.View
           entering={FadeInUp.duration(600).springify()}
-          style={[styles.header, { 
+          style={[styles.header, {
             paddingHorizontal: spacing.lg,
-            paddingTop: insets.top + 10 // Контент заголовка под Dynamic Island + 10px
+            paddingTop: insets.top + 10
           }]}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -235,19 +224,19 @@ export default function EventsScreen() {
               borderRadius: 2,
               marginRight: spacing.sm
             }} />
-            <ThemedText style={[styles.title, { 
+            <ThemedText style={[styles.title, {
               fontSize: isExtraSmallScreen ? fontSize.title - 2 : isVerySmallScreen ? fontSize.title : isSmallScreen ? 24 : 28,
-              lineHeight: isExtraSmallScreen ? 20 : isVerySmallScreen ? 24 : isSmallScreen ? 30 : 34, // Добавляем lineHeight чтобы текст не обрезался
+              lineHeight: isExtraSmallScreen ? 20 : isVerySmallScreen ? 24 : isSmallScreen ? 30 : 34,
               letterSpacing: -0.5,
               color: colors.text,
             }]}>
               События
             </ThemedText>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[
-              styles.searchButton, 
-              { 
+              styles.searchButton,
+              {
                 backgroundColor: isDarkMode ? '#374151' : '#F3F4F6',
                 width: isExtraSmallScreen ? 32 : isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
                 height: isExtraSmallScreen ? 32 : isVerySmallScreen ? 36 : isSmallScreen ? 40 : 44,
@@ -263,13 +252,13 @@ export default function EventsScreen() {
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Красивый Category Filter */}
-        <Animated.View 
+        {}
+        <Animated.View
           entering={SlideInRight.delay(200).duration(800)}
           style={{ marginBottom: -10 }}
         >
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             style={[styles.categoryContainer, { paddingHorizontal: spacing.lg }]}
             contentContainerStyle={[styles.categoryContent, { paddingBottom: 0 }]}
@@ -293,11 +282,11 @@ export default function EventsScreen() {
                   onPress={() => handleFilterChange(category.key)}
                 >
                   <LinearGradient
-                    colors={filter === category.key 
-                      ? isDarkMode 
+                    colors={filter === category.key
+                      ? isDarkMode
                         ? ['rgba(99,102,241,0.8)', 'rgba(139,92,246,0.7)']
                         : ['rgba(99,102,241,0.9)', 'rgba(139,92,246,0.8)']
-                      : isDarkMode 
+                      : isDarkMode
                         ? ['rgba(30,41,59,0.8)', 'rgba(51,65,85,0.6)']
                         : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)']
                     }
@@ -308,27 +297,27 @@ export default function EventsScreen() {
                       paddingVertical: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : spacing.md,
                       borderRadius: isVerySmallScreen ? 14 : isSmallScreen ? 16 : 18,
                       borderWidth: 1,
-                      borderColor: filter === category.key 
+                      borderColor: filter === category.key
                         ? isDarkMode ? 'rgba(99,102,241,0.3)' : 'rgba(99,102,241,0.2)'
                         : isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
                     }}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                   >
-                    <Ionicons 
-                      name={category.icon as keyof typeof Ionicons.glyphMap} 
-                      size={isVerySmallScreen ? 14 : isSmallScreen ? 16 : 18} 
-                      color={filter === category.key 
-                        ? '#ffffff' 
+                    <Ionicons
+                      name={category.icon as keyof typeof Ionicons.glyphMap}
+                      size={isVerySmallScreen ? 14 : isSmallScreen ? 16 : 18}
+                      color={filter === category.key
+                        ? '#ffffff'
                         : isDarkMode ? '#E2E8F0' : '#475569'
-                      } 
+                      }
                     />
                     <ThemedText
                       style={[
                         styles.categoryText,
                         {
-                          color: filter === category.key 
-                            ? '#ffffff' 
+                          color: filter === category.key
+                            ? '#ffffff'
                             : isDarkMode ? '#E2E8F0' : '#475569',
                           fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? 14 : 15,
                           marginLeft: 6,
@@ -344,23 +333,23 @@ export default function EventsScreen() {
           </ScrollView>
         </Animated.View>
 
-        {/* Адаптивный Events List */}
-        <ScrollView 
-          style={[styles.eventsList, { 
-            paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : spacing.lg, 
-            marginTop: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg 
-          }]} 
+        {}
+        <ScrollView
+          style={[styles.eventsList, {
+            paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : spacing.lg,
+            marginTop: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg
+          }]}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ 
-            paddingBottom: isVerySmallScreen ? 160 : isSmallScreen ? 140 : 120, // Увеличиваем отступ для новой высоты табов 
-            paddingTop: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg 
+          contentContainerStyle={{
+            paddingBottom: isVerySmallScreen ? 160 : isSmallScreen ? 140 : 120,
+            paddingTop: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg
           }}
         >
           <Animated.View entering={FadeInDown.delay(400).duration(800)}>
             {filteredEvents.length > 0 ? (
               filteredEvents.map((event: Event, index) => (
-                <Animated.View 
-                  key={event.id} 
+                <Animated.View
+                  key={event.id}
                   entering={FadeInUp.delay(index * 50).duration(300)}
                   style={[styles.eventCard, {
                     backgroundColor: 'transparent',
@@ -373,15 +362,15 @@ export default function EventsScreen() {
                     shadowOpacity: 0.1,
                     shadowRadius: 8,
                     elevation: 6,
-                    // Исправлена минимальная высота для лучшей адаптивности
+
                     minHeight: isExtraSmallScreen ? 280 : isVerySmallScreen ? 300 : isSmallScreen ? 350 : 420,
-                    // Добавлены защитные стили
+
                     maxWidth: '100%',
                     width: '100%',
                   }]}
                 >
                   <Pressable onPress={() => handleEventPress(event.id)} style={{ flex: 1 }}>
-                    {/* Современный фон карточки */}
+                    {}
                     <View
                       style={{
                         position: 'absolute',
@@ -395,15 +384,15 @@ export default function EventsScreen() {
                         borderColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
                       }}
                     />
-                    
-                    {/* Содержимое карточки в flex контейнере */}
+
+                    {}
                     <View style={{ flex: 1, justifyContent: 'space-between' }}>
-                      {/* Верхняя часть - изображение и содержимое */}
+                      {}
                       <View>
-                        {/* Адаптивное Event Image */}
+                        {}
                         {event.image && (
                           <View style={{ position: 'relative' }}>
-                            {/* Image (no debug UI) */}
+                            {}
                             <Pressable
                               onPress={() => router.push(`/events/${event.id}`)}
                               style={{ width: '100%' }}
@@ -416,13 +405,13 @@ export default function EventsScreen() {
                                   height: isExtraSmallScreen ? 80 : isVerySmallScreen ? 100 : isSmallScreen ? 120 : 140,
                                   borderTopLeftRadius: isExtraSmallScreen ? 14 : isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
                                   borderTopRightRadius: isExtraSmallScreen ? 14 : isVerySmallScreen ? 16 : isSmallScreen ? 20 : 24,
-                                  // prevent stretching on web
+
                                   objectFit: Platform.OS === 'web' ? 'cover' : undefined,
                                 }}
                                 resizeMode="cover"
                               />
                             </Pressable>
-                            {/* Градиентный оверлей на изображение */}
+                            {}
                             <LinearGradient
                               colors={['transparent', 'rgba(0,0,0,0.2)', 'rgba(0,0,0,0.5)']}
                               style={{
@@ -435,18 +424,18 @@ export default function EventsScreen() {
                             />
                           </View>
                         )}
-                      
+
                         <View style={{
                           padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg,
-                          // Защитные стили для контейнера
+
                           width: '100%',
                           maxWidth: '100%',
                           overflow: 'hidden',
                         }}>
-                          {/* Event Header */}
+                          {}
                           <View style={styles.eventHeader}>
                             <View style={styles.eventInfo}>
-                              <ThemedText style={[styles.eventTitle, { 
+                              <ThemedText style={[styles.eventTitle, {
                                 color: colors.text,
                                 fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? 16 : 18,
                                 marginBottom: spacing.sm,
@@ -458,7 +447,7 @@ export default function EventsScreen() {
                                   colors={[`${getCategoryColor(event.category)}30`, `${getCategoryColor(event.category)}20`]}
                                   style={[
                                     styles.categoryBadge,
-                                    { 
+                                    {
                                       paddingHorizontal: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : spacing.md,
                                       paddingVertical: isVerySmallScreen ? 4 : isSmallScreen ? spacing.xs : spacing.sm,
                                       borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 12 : 16,
@@ -469,7 +458,7 @@ export default function EventsScreen() {
                                 >
                                   <ThemedText style={[
                                     styles.categoryBadgeText,
-                                    { 
+                                    {
                                       color: getCategoryColor(event.category),
                                       fontSize: isVerySmallScreen ? fontSize.small - 2 : isSmallScreen ? 11 : 12,
                                     }
@@ -479,15 +468,15 @@ export default function EventsScreen() {
                                 </LinearGradient>
                               </View>
                             </View>
-                            
+
                             <View style={styles.eventDate}>
-                              <ThemedText style={[styles.dateText, { 
+                              <ThemedText style={[styles.dateText, {
                                 color: colors.primary,
                                 fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? 12 : 14,
                               }]}>
                                 {formatDate(event.date)}
                               </ThemedText>
-                              <ThemedText style={[styles.timeText, { 
+                              <ThemedText style={[styles.timeText, {
                                 color: colors.textSecondary,
                                 fontSize: isVerySmallScreen ? fontSize.small - 1 : isSmallScreen ? 11 : 12,
                               }]}>
@@ -496,8 +485,8 @@ export default function EventsScreen() {
                             </View>
                           </View>
 
-                          {/* Event Description */}
-                          <ThemedText style={[styles.eventDescription, { 
+                          {}
+                          <ThemedText style={[styles.eventDescription, {
                             color: colors.textSecondary,
                             fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? 14 : 15,
                             lineHeight: isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20,
@@ -506,11 +495,11 @@ export default function EventsScreen() {
                             {event.description}
                           </ThemedText>
 
-                          {/* Event Details */}
+                          {}
                           <View style={[styles.eventDetails, { marginBottom: spacing.md }]}>
                             <View style={styles.detailRow}>
                               <Ionicons name="location-outline" size={isVerySmallScreen ? 12 : isSmallScreen ? 14 : 16} color={colors.textSecondary} />
-                              <ThemedText style={[styles.detailText, { 
+                              <ThemedText style={[styles.detailText, {
                                 color: colors.textSecondary,
                                 fontSize: isVerySmallScreen ? fontSize.small - 1 : isSmallScreen ? 13 : 14,
                                 marginLeft: 6,
@@ -518,11 +507,11 @@ export default function EventsScreen() {
                                 {event.location}
                               </ThemedText>
                             </View>
-                            
+
                             {event.maxParticipants && (
                               <View style={styles.detailRow}>
                                 <Ionicons name="people-outline" size={isVerySmallScreen ? 12 : isSmallScreen ? 14 : 16} color={colors.textSecondary} />
-                                <ThemedText style={[styles.detailText, { 
+                                <ThemedText style={[styles.detailText, {
                                   color: colors.textSecondary,
                                   fontSize: isVerySmallScreen ? fontSize.small - 1 : isSmallScreen ? 13 : 14,
                                   marginLeft: 6,
@@ -535,8 +524,8 @@ export default function EventsScreen() {
                         </View>
                       </View>
 
-                      {/* Registration Button - Упрощенный и надежный дизайн */}
-                      <View style={{ 
+                      {}
+                      <View style={{
                         padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg,
                         paddingTop: 0,
                       }}>
@@ -544,7 +533,7 @@ export default function EventsScreen() {
                           style={[
                             styles.registerButton,
                             {
-                              backgroundColor: event.isRegistered 
+                              backgroundColor: event.isRegistered
                                 ? 'transparent'
                                 : colors.primary,
                               borderRadius: isExtraSmallScreen ? 10 : isVerySmallScreen ? 12 : isSmallScreen ? 16 : 20,
@@ -557,7 +546,7 @@ export default function EventsScreen() {
                               shadowOpacity: event.isRegistered ? 0 : 0.3,
                               shadowRadius: event.isRegistered ? 0 : 8,
                               elevation: event.isRegistered ? 0 : 4,
-                              // Защитные стили для предотвращения overflow
+
                               alignSelf: 'stretch',
                               width: '100%',
                               maxWidth: '100%',
@@ -573,9 +562,9 @@ export default function EventsScreen() {
                             justifyContent: 'center',
                             width: '100%',
                           }}>
-                            <Ionicons 
-                              name={event.isRegistered ? "checkmark-circle" : "add-circle"} 
-                              size={isExtraSmallScreen ? 14 : isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} 
+                            <Ionicons
+                              name={event.isRegistered ? "checkmark-circle" : "add-circle"}
+                              size={isExtraSmallScreen ? 14 : isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20}
                               color={event.isRegistered ? colors.primary : '#fff'}
                               style={{ marginRight: 8 }}
                             />
@@ -603,7 +592,7 @@ export default function EventsScreen() {
                 </Animated.View>
               ))
             ) : (
-              <Animated.View 
+              <Animated.View
                 entering={FadeInDown.duration(800).delay(600)}
                 style={{
                   backgroundColor: 'transparent',
@@ -632,9 +621,9 @@ export default function EventsScreen() {
                     borderColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
                   }}
                 />
-                
+
                 <LinearGradient
-                  colors={isDarkMode 
+                  colors={isDarkMode
                     ? ['rgba(99,102,241,0.2)', 'rgba(139,92,246,0.2)']
                     : ['rgba(99,102,241,0.1)', 'rgba(139,92,246,0.1)']
                   }
@@ -651,7 +640,7 @@ export default function EventsScreen() {
                 >
                   <Ionicons name="calendar-outline" size={isSmallScreen ? 32 : 40} color={isDarkMode ? '#A5B4FC' : '#6366F1'} />
                 </LinearGradient>
-                
+
                 <ThemedText style={{
                   fontSize: isSmallScreen ? 16 : 18,
                   color: colors.text,
@@ -709,7 +698,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   eventCard: {
-    // Dynamic styles applied inline
+
   },
   eventHeader: {
     flexDirection: 'row',
@@ -729,7 +718,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   categoryBadge: {
-    // Dynamic styles applied inline
+
   },
   categoryBadgeText: {
     fontWeight: '600',
@@ -761,14 +750,14 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     borderRadius: 16,
     overflow: 'hidden',
-    // Защитные стили для кнопки
+
     maxWidth: '100%',
-    minHeight: 40, // Уменьшена минимальная высота для экстремально маленьких экранов
+    minHeight: 40,
   },
   registerButtonText: {
     textAlign: 'center',
     fontWeight: '600',
-    // Защитные стили для текста
+
     maxWidth: '100%',
     overflow: 'hidden',
   },

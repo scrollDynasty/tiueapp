@@ -26,11 +26,11 @@ interface PasswordResetModalProps {
   onReset: (password: string) => void;
 }
 
-export const PasswordResetModal = React.memo(({ 
-  isVisible, 
-  user, 
-  onClose, 
-  onReset 
+export const PasswordResetModal = React.memo(({
+  isVisible,
+  user,
+  onClose,
+  onReset
 }: PasswordResetModalProps) => {
   const [password, setPassword] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
@@ -76,7 +76,7 @@ export const PasswordResetModal = React.memo(({
           <ThemedText style={styles.modalTitle}>
             Сброс пароля
           </ThemedText>
-          
+
           {user && (
             <ThemedText style={styles.userInfo}>
               {user.first_name} {user.last_name} ({user.email})

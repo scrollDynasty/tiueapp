@@ -84,9 +84,9 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
         elevation: 6,
       }}
     >
-      {/* Современный фон карточки */}
+      {}
       <LinearGradient
-        colors={isDarkMode 
+        colors={isDarkMode
           ? [colors.surface, colors.surface]
           : [colors.surface, colors.surface]
         }
@@ -103,8 +103,8 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
-      
-      {/* Время и тип */}
+
+      {}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m }}>
         <LinearGradient
           colors={[getTypeColor(item.type) + '20', getTypeColor(item.type) + '10']}
@@ -118,9 +118,9 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
             borderColor: getTypeColor(item.type) + '30',
           }}
         >
-          <Ionicons 
-            name={getTypeIcon(item.type) as any} 
-            size={isVerySmallScreen ? 14 : isSmallScreen ? 15 : 16} 
+          <Ionicons
+            name={getTypeIcon(item.type) as any}
+            size={isVerySmallScreen ? 14 : isSmallScreen ? 15 : 16}
             color={getTypeColor(item.type)}
             style={{ marginRight: isVerySmallScreen ? 4 : isSmallScreen ? 5 : 6 }}
           />
@@ -134,9 +134,9 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
             {getTypeLabel(item.type)}
           </ThemedText>
         </LinearGradient>
-        
+
         <LinearGradient
-          colors={isDarkMode 
+          colors={isDarkMode
             ? [colors.primary + '30', colors.primary + '20']
             : [colors.primary + '20', colors.primary + '10']
           }
@@ -160,7 +160,7 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
         </LinearGradient>
       </View>
 
-      {/* Предмет */}
+      {}
       <ThemedText
         style={{
           fontSize: isVerySmallScreen ? 14 : isSmallScreen ? 15 : 16,
@@ -173,11 +173,11 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
         {item.subject}
       </ThemedText>
 
-      {/* Преподаватель и аудитория */}
+      {}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
           <LinearGradient
-            colors={isDarkMode 
+            colors={isDarkMode
               ? ['rgba(99,102,241,0.2)', 'rgba(139,92,246,0.2)']
               : ['rgba(99,102,241,0.1)', 'rgba(139,92,246,0.1)']
             }
@@ -202,10 +202,10 @@ function ScheduleCard({ item, index }: ScheduleCardProps) {
             {item.teacher}
           </ThemedText>
         </View>
-        
+
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <LinearGradient
-            colors={isDarkMode 
+            colors={isDarkMode
               ? ['rgba(34,197,94,0.2)', 'rgba(16,185,129,0.2)']
               : ['rgba(34,197,94,0.1)', 'rgba(16,185,129,0.1)']
             }
@@ -243,8 +243,7 @@ export default function ScheduleScreen() {
   const { user } = useAppSelector((state) => state.auth);
 
   const days: string[] = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
-  
-  // Состояние для расписания
+
   const [scheduleData, setScheduleData] = React.useState<Record<string, ScheduleItem[]>>({
     'Понедельник': [],
     'Вторник': [],
@@ -255,23 +254,21 @@ export default function ScheduleScreen() {
   });
   const [scheduleLoading, setScheduleLoading] = React.useState(false);
 
-  // Функция для загрузки расписания
   const fetchSchedule = React.useCallback(async () => {
     if (user?.role !== 'student') {
       return;
     }
-    
+
     try {
 
       setScheduleLoading(true);
-      
+
       const response = await authApi.getSchedule();
-      
+
       if (response.success && response.data) {
         const responseData = response.data as any || {};
         const scheduleArray = Array.isArray(responseData.data) ? responseData.data : [];
-        
-        // Группируем расписание по дням недели
+
         const groupedSchedule: Record<string, ScheduleItem[]> = {
           'Понедельник': [],
           'Вторник': [],
@@ -280,7 +277,7 @@ export default function ScheduleScreen() {
           'Пятница': [],
           'Суббота': [],
         };
-        
+
         scheduleArray.forEach((item: any) => {
           const dayName = item.day_name || item.day || 'Понедельник';
           const scheduleItem: ScheduleItem = {
@@ -290,15 +287,15 @@ export default function ScheduleScreen() {
             room: item.room || item.location || 'Аудитория не указана',
             type: (item.type as 'lecture' | 'lab' | 'seminar') || 'lecture'
           };
-          
+
           if (groupedSchedule[dayName]) {
             groupedSchedule[dayName].push(scheduleItem);
           }
         });
-        
+
         setScheduleData(groupedSchedule);
       } else {
-        // Если нет данных, оставляем пустое расписание
+
         setScheduleData({
           'Понедельник': [],
           'Вторник': [],
@@ -312,7 +309,7 @@ export default function ScheduleScreen() {
       if (__DEV__) {
         console.error('📅 Error fetching schedule:', error);
       }
-      // В случае ошибки устанавливаем пустое расписание
+
       setScheduleData({
         'Понедельник': [],
         'Вторник': [],
@@ -326,7 +323,6 @@ export default function ScheduleScreen() {
     }
   }, [user?.role]);
 
-  // Загружаем расписание при монтировании компонента
   React.useEffect(() => {
     if (user) {
       fetchSchedule();
@@ -335,10 +331,9 @@ export default function ScheduleScreen() {
 
   const currentSchedule = scheduleData[selectedDay] || [];
 
-  // Получаем информацию о группе пользователя
   const getUserGroupInfo = () => {
     if (!user) return 'Расписание занятий';
-    
+
     if (user.role === 'admin') {
       return 'Управление расписанием';
     } else if (user.role === 'professor') {
@@ -346,15 +341,15 @@ export default function ScheduleScreen() {
     } else if (user.student?.group?.name) {
       return `Группа ${user.student.group.name}`;
     }
-    
+
     return 'Ваше расписание занятий';
   };
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Градиентный фон */}
+      {}
       <LinearGradient
-        colors={isDarkMode 
+        colors={isDarkMode
           ? ['#0F172A', '#1E293B', '#334155']
           : ['#FAFAFA', '#F8FAFC', '#EEF2F7']
         }
@@ -362,20 +357,20 @@ export default function ScheduleScreen() {
         end={{ x: 1, y: 1 }}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       />
-      
+
       <View style={{ flex: 1 }}>
-        {/* Современный заголовок в стиле главной страницы */}
-        <Animated.View 
+        {}
+        <Animated.View
           entering={FadeInUp.duration(600).springify()}
-          style={{ 
-            paddingTop: insets.top + 10, // Контент заголовка под Dynamic Island + 10px
+          style={{
+            paddingTop: insets.top + 10,
             marginBottom: spacing.sm,
             paddingHorizontal: Spacing.l,
           }}
         >
-          <View style={{ 
-            flexDirection: 'row', 
-            alignItems: 'center', 
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
             marginBottom: spacing.md,
             paddingBottom: spacing.sm,
             borderBottomWidth: 1,
@@ -399,10 +394,10 @@ export default function ScheduleScreen() {
                 elevation: 6,
               }}
             >
-              <Ionicons 
-                name="calendar" 
-                size={isVerySmallScreen ? 24 : 28} 
-                color={colors.primary} 
+              <Ionicons
+                name="calendar"
+                size={isVerySmallScreen ? 24 : 28}
+                color={colors.primary}
               />
             </LinearGradient>
             <View style={{ flex: 1 }}>
@@ -431,17 +426,17 @@ export default function ScheduleScreen() {
           </View>
         </Animated.View>
 
-        {/* Современный селектор дней */}
-        <Animated.View 
+        {}
+        <Animated.View
           entering={SlideInDown.delay(200).duration(800).springify()}
-          style={{ 
-            paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l, 
+          style={{
+            paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
             marginBottom: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : spacing.sm,
-            marginTop: 0 
+            marginTop: 0
           }}
         >
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingRight: isVerySmallScreen ? spacing.lg : isSmallScreen ? spacing.xl : Spacing.xl }}
           >
@@ -465,7 +460,7 @@ export default function ScheduleScreen() {
                   }}
                 >
                   <LinearGradient
-                    colors={selectedDay === day 
+                    colors={selectedDay === day
                       ? [colors.primary, colors.primary + 'E6']
                       : [colors.surface, colors.surface]
                     }
@@ -474,7 +469,7 @@ export default function ScheduleScreen() {
                       paddingVertical: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
                       borderRadius: isVerySmallScreen ? 14 : isSmallScreen ? 16 : 18,
                       borderWidth: 1,
-                      borderColor: selectedDay === day 
+                      borderColor: selectedDay === day
                         ? colors.primary + '40'
                         : isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
                     }}
@@ -497,14 +492,14 @@ export default function ScheduleScreen() {
           </ScrollView>
         </Animated.View>
 
-        {/* Расписание */}
+        {}
         <ScrollView
           style={{ flex: 1 }}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
-            paddingBottom: isVerySmallScreen ? 130 : isSmallScreen ? 120 : 120, // Увеличиваем отступ для новой высоты табов
-            paddingTop: 0, // Убираем лишний отступ
+            paddingBottom: isVerySmallScreen ? 130 : isSmallScreen ? 120 : 120,
+            paddingTop: 0,
           }}
         >
           {currentSchedule.length > 0 ? (
@@ -512,7 +507,7 @@ export default function ScheduleScreen() {
               <ScheduleCard key={index} item={item} index={index} />
             ))
           ) : (
-            <Animated.View 
+            <Animated.View
               entering={FadeInDown.duration(800).delay(600)}
               style={{
                 backgroundColor: 'transparent',
@@ -528,9 +523,9 @@ export default function ScheduleScreen() {
                 elevation: isDarkMode ? 12 : 8,
               }}
             >
-              {/* Градиентный фон для пустого состояния */}
+              {}
               <LinearGradient
-                colors={isDarkMode 
+                colors={isDarkMode
                   ? ['rgba(30,41,59,0.8)', 'rgba(51,65,85,0.6)', 'rgba(71,85,105,0.4)']
                   : ['rgba(255,255,255,0.9)', 'rgba(248,250,252,0.8)', 'rgba(241,245,249,0.7)']
                 }
@@ -547,9 +542,9 @@ export default function ScheduleScreen() {
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               />
-              
+
               <LinearGradient
-                colors={isDarkMode 
+                colors={isDarkMode
                   ? ['rgba(99,102,241,0.2)', 'rgba(139,92,246,0.2)']
                   : ['rgba(99,102,241,0.1)', 'rgba(139,92,246,0.1)']
                 }
@@ -566,7 +561,7 @@ export default function ScheduleScreen() {
               >
                 <Ionicons name="calendar-outline" size={40} color={isDarkMode ? '#A5B4FC' : '#6366F1'} />
               </LinearGradient>
-              
+
               <ThemedText
                 style={{
                   fontSize: 20,
@@ -587,7 +582,7 @@ export default function ScheduleScreen() {
                   maxWidth: 280,
                 }}
               >
-                {user?.role === 'admin' 
+                {user?.role === 'admin'
                   ? 'Используйте панель администратора для создания расписания'
                   : 'В этот день у вас нет запланированных занятий'
                 }

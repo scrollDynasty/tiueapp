@@ -109,24 +109,24 @@ export const NewsCard: React.FC<NewsCardProps> = ({ news, onNewsPress }) => {
       <Card.Content style={styles.cardContent}>
         <ThemedText style={styles.title}>Новости</ThemedText>
         {news.map((item) => (
-          <TouchableOpacity 
-            key={item.id} 
+          <TouchableOpacity
+            key={item.id}
             style={styles.newsItem}
             onPress={() => onNewsPress?.(item.id)}
           >
             <View style={styles.newsImageContainer}>
               {item.image ? (
-                <Image 
-                  source={{ uri: item.image }} 
+                <Image
+                  source={{ uri: item.image }}
                   style={styles.newsImage}
                   resizeMode="cover"
                 />
               ) : (
                 <View style={styles.newsImagePlaceholder}>
-                  <Ionicons 
-                    name="newspaper-outline" 
-                    size={40} 
-                    color={isDarkMode ? '#FFFFFF' : '#64748B'} 
+                  <Ionicons
+                    name="newspaper-outline"
+                    size={40}
+                    color={isDarkMode ? '#FFFFFF' : '#64748B'}
                   />
                 </View>
               )}

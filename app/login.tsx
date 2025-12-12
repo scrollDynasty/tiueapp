@@ -38,7 +38,7 @@ const LoginScreen = React.memo(() => {
   const { theme, setTheme } = useTheme();
   const themeColors = useMemo(() => getThemeColors(theme === 'dark'), [theme]);
   const { isSmallScreen, spacing, fontSize } = useResponsive();
-  
+
   const [credentials, setCredentials] = useState<LoginCredentials>({
     username: '',
     password: '',
@@ -46,10 +46,9 @@ const LoginScreen = React.memo(() => {
   const [showPassword, setShowPassword] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
   const [showErrorMessage, setShowErrorMessage] = useState(false);
-  
-  // Refs для cleanup
+
   const styleElementRef = useRef<HTMLStyleElement | null>(null);
-  
+
   const dispatch = useAppDispatch();
   const { loading, error, isAuthenticated } = useAppSelector((state) => state.auth);
 
@@ -57,16 +56,15 @@ const LoginScreen = React.memo(() => {
     setShowPassword(prev => !prev);
   }, []);
 
-  // Анимационные значения
   const formTranslateY = useSharedValue(50);
   const formOpacity = useSharedValue(0);
   const buttonScale = useSharedValue(1);
 
   useEffect(() => {
-    // Анимация появления формы
-    formTranslateY.value = withSpring(0, { 
-      damping: 12, 
-      stiffness: 100 
+
+    formTranslateY.value = withSpring(0, {
+      damping: 12,
+      stiffness: 100
     });
     formOpacity.value = withTiming(1, { duration: 800 });
   }, []);
@@ -80,31 +78,29 @@ const LoginScreen = React.memo(() => {
   useEffect(() => {
     if (error) {
       setShowErrorMessage(true);
-      // Показываем разные сообщения в зависимости от типа ошибки
+
       const title = error.includes('Сессия истекла') ? 'Сессия истекла' : 'Ошибка входа';
-      const message = error.includes('Сессия истекла') 
-        ? 'Ваша сессия истекла. Пожалуйста, войдите в систему заново.' 
+      const message = error.includes('Сессия истекла')
+        ? 'Ваша сессия истекла. Пожалуйста, войдите в систему заново.'
         : error;
-      
+
       Alert.alert(title, message, [
         { text: 'OK', onPress: () => {
-            // НЕ очищаем ошибку автоматически - только при следующей попытке входа
-          } 
+
+          }
         }
       ]);
     }
   }, [error]);
 
-  // Фиксируем стили автозаполнения при смене темы
   useEffect(() => {
     if (Platform.OS === 'web') {
-      // Удаляем предыдущий стиль если существует
+
       if (styleElementRef.current) {
         document.head.removeChild(styleElementRef.current);
         styleElementRef.current = null;
       }
-      
-      // Добавляем CSS стили для автозаполнения
+
       const style = document.createElement('style');
       style.innerHTML = `
         input:-webkit-autofill,
@@ -119,7 +115,7 @@ const LoginScreen = React.memo(() => {
       `;
       document.head.appendChild(style);
       styleElementRef.current = style;
-      
+
       return () => {
         if (styleElementRef.current) {
           document.head.removeChild(styleElementRef.current);
@@ -129,10 +125,9 @@ const LoginScreen = React.memo(() => {
     }
   }, [theme, themeColors]);
 
-  // Валидация входных данных
   const validateInput = useCallback((username: string, password: string) => {
     const errors: string[] = [];
-    
+
     if (!username.trim()) {
       errors.push('Имя пользователя обязательно');
     } else if (username.trim().length < 3) {
@@ -140,41 +135,39 @@ const LoginScreen = React.memo(() => {
     } else if (!/^[A-Za-z0-9]+$/.test(username.trim())) {
       errors.push('Имя пользователя может содержать только буквы и цифры');
     }
-    
+
     if (!password) {
       errors.push('Пароль обязателен');
     } else if (password.length < 4) {
       errors.push('Пароль должен содержать минимум 4 символа');
     }
-    
+
     return errors;
   }, []);
 
   const handleLogin = useCallback(async () => {
-    // Валидация входных данных
+
     const validationErrors = validateInput(credentials.username, credentials.password);
     if (validationErrors.length > 0) {
       Alert.alert('Ошибка валидации', validationErrors.join('\n'));
       return;
     }
 
-    // Очищаем предыдущую ошибку только при новой попытке входа
     dispatch(clearError());
     setShowErrorMessage(false);
 
-    // Анимация кнопки
-    buttonScale.value = withSpring(0.95, { 
+    buttonScale.value = withSpring(0.95, {
       damping: 10,
       stiffness: 300
     }, () => {
-      buttonScale.value = withSpring(1, { 
+      buttonScale.value = withSpring(1, {
         damping: 8,
         stiffness: 200
       });
     });
 
     try {
-      // Применяем toUpperCase только при отправке и очищаем от XSS
+
       const submitCredentials = {
         username: credentials.username.toUpperCase().trim().replace(/[<>]/g, ''),
         password: credentials.password,
@@ -188,12 +181,12 @@ const LoginScreen = React.memo(() => {
   }, [credentials, dispatch, validateInput]);
 
   const handleUsernameChange = useCallback((username: string) => {
-    // Убираем toUpperCase() из onChangeText - это вызывает дублирование
+
     setCredentials(prev => {
       if (prev.username === username) return prev;
       return { ...prev, username };
     });
-    // НЕ очищаем ошибку автоматически - только при следующей попытке входа
+
   }, []);
 
   const handlePasswordChange = useCallback((password: string) => {
@@ -201,29 +194,26 @@ const LoginScreen = React.memo(() => {
       if (prev.password === password) return prev;
       return { ...prev, password };
     });
-    // НЕ очищаем ошибку автоматически - только при следующей попытке входа
-  }, []);
 
+  }, []);
 
   const handleUsernameFocus = useCallback(() => setFocusedInput('username'), []);
   const handlePasswordFocus = useCallback(() => setFocusedInput('password'), []);
   const handleInputBlur = useCallback(() => setFocusedInput(null), []);
 
-
-  // Мемоизированные стили для лучшей производительности
-  const gradientColors = useMemo(() => 
-    theme === 'dark' 
+  const gradientColors = useMemo(() =>
+    theme === 'dark'
       ? ['#1E293B', '#334155', '#475569'] as const
       : ['#f7f9fc', '#eef2f7', Colors.surfaceSubtle] as const,
     [theme]
   );
 
   const formBackgroundStyle = useMemo(() => ({
-    backgroundColor: theme === 'dark' 
-      ? 'rgba(255,255,255,0.08)' 
+    backgroundColor: theme === 'dark'
+      ? 'rgba(255,255,255,0.08)'
       : 'rgba(255,255,255,0.95)',
-    borderColor: theme === 'dark' 
-      ? 'rgba(255,255,255,0.15)' 
+    borderColor: theme === 'dark'
+      ? 'rgba(255,255,255,0.15)'
       : 'rgba(0,0,0,0.08)',
   }), [theme]);
 
@@ -236,16 +226,14 @@ const LoginScreen = React.memo(() => {
     transform: [{ scale: buttonScale.value }],
   }), []);
 
-
-
   return (
     <View style={styles.container}>
-      <StatusBar 
-        barStyle={theme === 'dark' ? "light-content" : "dark-content"} 
-        backgroundColor={theme === 'dark' ? '#1E293B' : Colors.surface} 
+      <StatusBar
+        barStyle={theme === 'dark' ? "light-content" : "dark-content"}
+        backgroundColor={theme === 'dark' ? '#1E293B' : Colors.surface}
       />
-      
-      {/* Современный градиентный фон адаптивный к теме */}
+
+      {}
       <LinearGradient
         colors={gradientColors}
         start={{ x: 0, y: 0 }}
@@ -254,22 +242,22 @@ const LoginScreen = React.memo(() => {
       />
 
       <SafeAreaView style={styles.safeArea}>
-        
-        <KeyboardAvoidingView 
+
+        <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          <View style={[styles.content, { 
-            paddingHorizontal: isSmallScreen ? spacing.md : spacing.lg 
+          <View style={[styles.content, {
+            paddingHorizontal: isSmallScreen ? spacing.md : spacing.lg
           }]}>
-            {/* Главная форма адаптированная под тему */}
+            {}
             <Animated.View style={[
-              styles.formContainer, 
+              styles.formContainer,
               formAnimatedStyle,
               formBackgroundStyle
             ]}>
-              
-              {/* Username Input */}
+
+              {}
               <UsernameInput
                 themeColors={themeColors}
                 isSmallScreen={isSmallScreen}
@@ -283,7 +271,7 @@ const LoginScreen = React.memo(() => {
                 onBlur={handleInputBlur}
               />
 
-              {/* Password Input */}
+              {}
               <PasswordInput
                 themeColors={themeColors}
                 isSmallScreen={isSmallScreen}
@@ -299,7 +287,7 @@ const LoginScreen = React.memo(() => {
                 onTogglePassword={toggleShowPassword}
               />
 
-              {/* Error Message */}
+              {}
               {showErrorMessage && error && (
                 <ErrorMessage
                   error={error}
@@ -308,7 +296,7 @@ const LoginScreen = React.memo(() => {
                 />
               )}
 
-              {/* Login Button */}
+              {}
               <LoginButton
                 loading={loading}
                 isSmallScreen={isSmallScreen}
@@ -326,18 +314,17 @@ const LoginScreen = React.memo(() => {
   );
 });
 
-// Оптимизированные компоненты
-const UsernameInput = React.memo(({ 
-  themeColors, 
-  isSmallScreen, 
-  spacing, 
-  fontSize, 
-  credentials, 
-  focusedInput, 
-  loading, 
-  onUsernameChange, 
-  onFocus, 
-  onBlur 
+const UsernameInput = React.memo(({
+  themeColors,
+  isSmallScreen,
+  spacing,
+  fontSize,
+  credentials,
+  focusedInput,
+  loading,
+  onUsernameChange,
+  onFocus,
+  onBlur
 }: {
   themeColors: any;
   isSmallScreen: boolean;
@@ -352,15 +339,15 @@ const UsernameInput = React.memo(({
 }) => (
   <View style={[styles.inputContainer, { marginBottom: isSmallScreen ? spacing.md : spacing.lg }]}>
     <Text style={[
-      styles.inputLabel, 
-      { 
+      styles.inputLabel,
+      {
         color: themeColors.text,
         fontSize: isSmallScreen ? 11 : 12
       }
     ]}>Имя пользователя</Text>
     <View style={[
-      styles.inputWrapper, 
-      { 
+      styles.inputWrapper,
+      {
         backgroundColor: themeColors.surface,
         borderColor: themeColors.border,
         height: isSmallScreen ? 44 : 52,
@@ -372,9 +359,9 @@ const UsernameInput = React.memo(({
         shadowColor: Colors.tabActiveShadow,
       }
     ]}>
-      <Ionicons 
-        name="person-outline" 
-        size={isSmallScreen ? 18 : 20} 
+      <Ionicons
+        name="person-outline"
+        size={isSmallScreen ? 18 : 20}
         color={focusedInput === 'username' ? Colors.brandPrimary : themeColors.textSecondary}
         style={[styles.inputIcon, { marginRight: isSmallScreen ? spacing.xs : spacing.sm }]}
       />
@@ -408,17 +395,17 @@ const UsernameInput = React.memo(({
   </View>
 ));
 
-const PasswordInput = React.memo(({ 
-  themeColors, 
-  isSmallScreen, 
-  spacing, 
-  fontSize, 
-  credentials, 
-  focusedInput, 
-  loading, 
+const PasswordInput = React.memo(({
+  themeColors,
+  isSmallScreen,
+  spacing,
+  fontSize,
+  credentials,
+  focusedInput,
+  loading,
   showPassword,
-  onPasswordChange, 
-  onFocus, 
+  onPasswordChange,
+  onFocus,
   onBlur,
   onTogglePassword
 }: {
@@ -437,15 +424,15 @@ const PasswordInput = React.memo(({
 }) => (
   <View style={[styles.inputContainer, { marginBottom: isSmallScreen ? spacing.md : spacing.lg }]}>
     <Text style={[
-      styles.inputLabel, 
-      { 
+      styles.inputLabel,
+      {
         color: themeColors.text,
         fontSize: isSmallScreen ? 11 : 12
       }
     ]}>Пароль</Text>
     <View style={[
-      styles.inputWrapper, 
-      { 
+      styles.inputWrapper,
+      {
         backgroundColor: themeColors.surface,
         borderColor: themeColors.border,
         height: isSmallScreen ? 44 : 52,
@@ -457,9 +444,9 @@ const PasswordInput = React.memo(({
         shadowColor: Colors.tabActiveShadow,
       }
     ]}>
-      <Ionicons 
-        name="lock-closed-outline" 
-        size={isSmallScreen ? 18 : 20} 
+      <Ionicons
+        name="lock-closed-outline"
+        size={isSmallScreen ? 18 : 20}
         color={focusedInput === 'password' ? Colors.brandPrimary : themeColors.textSecondary}
         style={[styles.inputIcon, { marginRight: isSmallScreen ? spacing.xs : spacing.sm }]}
       />
@@ -496,9 +483,9 @@ const PasswordInput = React.memo(({
         accessibilityRole="button"
         accessibilityHint="Нажмите чтобы показать или скрыть пароль"
       >
-        <Ionicons 
-          name={showPassword ? "eye-off-outline" : "eye-outline"} 
-          size={20} 
+        <Ionicons
+          name={showPassword ? "eye-off-outline" : "eye-outline"}
+          size={20}
           color={themeColors.textSecondary}
         />
       </TouchableOpacity>
@@ -511,7 +498,7 @@ const ErrorMessage = React.memo(({ error, theme, onClose }: {
   theme: string;
   onClose: () => void;
 }) => (
-  <Animated.View 
+  <Animated.View
     entering={FadeInDown.duration(300)}
     style={{
       backgroundColor: theme === 'dark' ? '#FF4444' : '#FFE6E6',
@@ -524,10 +511,10 @@ const ErrorMessage = React.memo(({ error, theme, onClose }: {
       alignItems: 'center',
     }}
   >
-    <Ionicons 
-      name="alert-circle-outline" 
-      size={20} 
-      color="#FF4444" 
+    <Ionicons
+      name="alert-circle-outline"
+      size={20}
+      color="#FF4444"
       style={{ marginRight: 8 }}
     />
     <Text style={{
@@ -544,22 +531,22 @@ const ErrorMessage = React.memo(({ error, theme, onClose }: {
       accessibilityRole="button"
       accessibilityHint="Нажмите чтобы скрыть это сообщение (ошибка останется до следующей попытки входа)"
     >
-      <Ionicons 
-        name="close-outline" 
-        size={18} 
-        color="#FF4444" 
+      <Ionicons
+        name="close-outline"
+        size={18}
+        color="#FF4444"
       />
     </TouchableOpacity>
   </Animated.View>
 ));
 
-const LoginButton = React.memo(({ 
-  loading, 
-  isSmallScreen, 
-  spacing, 
-  fontSize, 
-  animatedStyle, 
-  onPress 
+const LoginButton = React.memo(({
+  loading,
+  isSmallScreen,
+  spacing,
+  fontSize,
+  animatedStyle,
+  onPress
 }: {
   loading: boolean;
   isSmallScreen: boolean;
@@ -569,9 +556,9 @@ const LoginButton = React.memo(({
   onPress: () => void;
 }) => (
   <Animated.View style={[
-    styles.loginButton, 
+    styles.loginButton,
     animatedStyle,
-    { 
+    {
       marginTop: isSmallScreen ? spacing.md : spacing.lg,
       height: isSmallScreen ? 48 : 56
     }
@@ -605,10 +592,10 @@ const LoginButton = React.memo(({
               styles.buttonText,
               { fontSize: isSmallScreen ? fontSize.body : 16 }
             ]}>Войти</Text>
-            <Ionicons 
-              name="arrow-forward" 
-              size={isSmallScreen ? 18 : 20} 
-              color={Colors.surface} 
+            <Ionicons
+              name="arrow-forward"
+              size={isSmallScreen ? 18 : 20}
+              color={Colors.surface}
             />
           </View>
         )}
@@ -637,11 +624,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minHeight: '100%',
     ...(Platform.OS === 'android' && {
-      paddingVertical: Spacing.m, // Уменьшенные отступы для Android
+      paddingVertical: Spacing.m,
     }),
   },
-  
-  // Основная форма адаптированная под тему
+
   formContainer: {
     width: '100%',
     maxWidth: 400,
@@ -674,9 +660,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Инпуты адаптированные под тему
   inputContainer: {
-    // marginBottom динамически устанавливается в компоненте
+
   },
   inputLabel: {
     fontWeight: '500',
@@ -688,7 +673,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1.5,
     borderRadius: 12,
-    // height и padding динамически устанавливаются в компоненте
+
     position: 'relative',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -697,7 +682,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   inputIcon: {
-    // marginRight динамически устанавливается в компоненте
+
   },
   input: {
     flex: 1,
@@ -724,9 +709,8 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
 
-  // Кнопка в стиле LoginScreen reference  
   loginButton: {
-    // marginTop и height динамически устанавливаются в компоненте
+
     borderRadius: 12,
     shadowColor: Colors.brandPrimary,
     shadowOffset: { width: 0, height: 4 },

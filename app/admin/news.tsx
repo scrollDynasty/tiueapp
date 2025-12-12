@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function NewsManagementScreen() {
   const { isDarkMode } = useTheme();
   const { user } = useAppSelector((state) => state.auth);
-  
+
   const [news, setNews] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [title, setTitle] = React.useState('');
@@ -24,11 +24,9 @@ export default function NewsManagementScreen() {
   const [selectedImage, setSelectedImage] = React.useState<ImagePicker.ImagePickerAsset | null>(null);
   const [selectedIcon, setSelectedIcon] = React.useState<'school-outline' | 'trophy-outline' | 'people-outline' | 'megaphone-outline' | 'calendar-outline'>('megaphone-outline');
 
-  // Состояния для удаления новости
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [newsToDelete, setNewsToDelete] = React.useState<{ id: string; title: string } | null>(null);
 
-  // Цвета в бело-синем стиле
   const colors = {
     background: isDarkMode ? '#1E3A8A' : '#EFF6FF',
     surface: isDarkMode ? '#2563EB' : '#FFFFFF',
@@ -40,17 +38,15 @@ export default function NewsManagementScreen() {
     success: '#10B981',
   };
 
-  // Функция выбора изображения
   const pickImage = async () => {
-    // Запрашиваем разрешение на доступ к медиатеке
+
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
+
     if (permissionResult.granted === false) {
       Alert.alert('Разрешение требуется', 'Разрешите доступ к фотографиям для загрузки изображений');
       return;
     }
 
-    // Открываем выбор изображения
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -63,12 +59,10 @@ export default function NewsManagementScreen() {
     }
   };
 
-  // Функция удаления выбранного изображения
   const removeImage = () => {
     setSelectedImage(null);
   };
 
-  // Загружаем новости при открытии страницы
   React.useEffect(() => {
     loadNews();
   }, []);
@@ -97,7 +91,6 @@ export default function NewsManagementScreen() {
     });
   };
 
-  // Проверяем права доступа
   if (!user || user.role !== 'admin') {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
@@ -152,18 +145,17 @@ export default function NewsManagementScreen() {
     try {
       setLoading(true);
       const response = await authApi.createNews(newNewsData);
-      
+
       if (response.success) {
-        // Перезагружаем список новостей
+
         await loadNews();
-        
-        // Очищаем форму
+
         setTitle('');
         setSubtitle('');
         setContent('');
         setSelectedImage(null);
         setSelectedIcon('megaphone-outline');
-        
+
         Alert.alert('Успешно', 'Новость добавлена и сохранена в базе данных');
       } else {
         Alert.alert('Ошибка', response.error || 'Не удалось создать новость');
@@ -176,21 +168,19 @@ export default function NewsManagementScreen() {
     }
   };
 
-  // Функция удаления новости
   const handleDeleteNews = (newsId: string, newsTitle: string) => {
     setNewsToDelete({ id: newsId, title: newsTitle });
     setShowDeleteConfirm(true);
   };
 
-  // Подтверждение удаления новости
   const confirmDeleteNews = async () => {
     if (!newsToDelete) return;
 
     try {
       const response = await authApi.deleteNews(newsToDelete.id);
-      
+
       if (response.success) {
-        // Перезагружаем список новостей
+
         await loadNews();
         Alert.alert('Успешно', 'Новость удалена');
       } else {
@@ -200,7 +190,7 @@ export default function NewsManagementScreen() {
       console.error('Error deleting news:', error);
       Alert.alert('Ошибка', 'Не удалось удалить новость');
     } finally {
-      // Закрываем модальное окно
+
       setShowDeleteConfirm(false);
       setNewsToDelete(null);
     }
@@ -208,11 +198,11 @@ export default function NewsManagementScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView 
-        showsVerticalScrollIndicator={false} 
+      <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 16 }}
       >
-        {/* Заголовок */}
+        {}
         <Animated.View entering={FadeInDown.duration(400)}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24 }}>
             <Pressable
@@ -240,8 +230,8 @@ export default function NewsManagementScreen() {
           </View>
         </Animated.View>
 
-        {/* Форма добавления новости */}
-        <Animated.View 
+        {}
+        <Animated.View
           entering={FadeInDown.duration(500).delay(200)}
           style={{
             backgroundColor: Colors.surface,
@@ -255,7 +245,7 @@ export default function NewsManagementScreen() {
             Добавить новость
           </ThemedText>
 
-          {/* Заголовок */}
+          {}
           <View style={{ marginBottom: Spacing.m }}>
             <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
               Заголовок
@@ -275,7 +265,7 @@ export default function NewsManagementScreen() {
             />
           </View>
 
-          {/* Подзаголовок */}
+          {}
           <View style={{ marginBottom: Spacing.m }}>
             <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
               Краткое описание
@@ -298,7 +288,7 @@ export default function NewsManagementScreen() {
             />
           </View>
 
-          {/* Контент */}
+          {}
           <View style={{ marginBottom: Spacing.m }}>
             <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
               Полный текст
@@ -322,14 +312,14 @@ export default function NewsManagementScreen() {
             />
           </View>
 
-          {/* Выбор изображения */}
+          {}
           <View style={{ marginBottom: Spacing.l }}>
             <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
               Изображение (необязательно)
             </ThemedText>
-            
+
             {selectedImage ? (
-              // Показываем выбранное изображение
+
               <View>
                 <Image
                   source={{ uri: selectedImage.uri }}
@@ -375,7 +365,7 @@ export default function NewsManagementScreen() {
                 </View>
               </View>
             ) : (
-              // Кнопка выбора изображения
+
               <Pressable
                 onPress={pickImage}
                 style={{
@@ -389,17 +379,17 @@ export default function NewsManagementScreen() {
                 }}
               >
                 <Ionicons name="cloud-upload-outline" size={32} color={Colors.textSecondary} />
-                <ThemedText style={{ 
-                  ...Typography.body, 
-                  color: Colors.textSecondary, 
+                <ThemedText style={{
+                  ...Typography.body,
+                  color: Colors.textSecondary,
                   marginTop: Spacing.s,
                   textAlign: 'center'
                 }}>
                   Нажмите для выбора изображения
                 </ThemedText>
-                <ThemedText style={{ 
-                  ...Typography.caption, 
-                  color: Colors.textSecondary, 
+                <ThemedText style={{
+                  ...Typography.caption,
+                  color: Colors.textSecondary,
                   marginTop: 4,
                   textAlign: 'center'
                 }}>
@@ -409,7 +399,7 @@ export default function NewsManagementScreen() {
             )}
           </View>
 
-          {/* Выбор иконки */}
+          {}
           <View style={{ marginBottom: Spacing.l }}>
             <ThemedText style={{ ...Typography.body, color: Colors.textSecondary, marginBottom: Spacing.s }}>
               Иконка
@@ -429,10 +419,10 @@ export default function NewsManagementScreen() {
                       minWidth: 80,
                     }}
                   >
-                    <Ionicons 
-                      name={option.value} 
-                      size={20} 
-                      color={selectedIcon === option.value ? Colors.surface : Colors.textSecondary} 
+                    <Ionicons
+                      name={option.value}
+                      size={20}
+                      color={selectedIcon === option.value ? Colors.surface : Colors.textSecondary}
                     />
                     <ThemedText style={{
                       ...Typography.caption,
@@ -447,7 +437,7 @@ export default function NewsManagementScreen() {
             </ScrollView>
           </View>
 
-          {/* Кнопка добавления */}
+          {}
           <Pressable
             onPress={handleAddNews}
             disabled={loading}
@@ -461,13 +451,13 @@ export default function NewsManagementScreen() {
             }}
           >
             {loading && (
-              <ActivityIndicator 
-                size="small" 
-                color={colors.textSecondary} 
-                style={{ marginRight: 8 }} 
+              <ActivityIndicator
+                size="small"
+                color={colors.textSecondary}
+                style={{ marginRight: 8 }}
               />
             )}
-            <ThemedText style={{ 
+            <ThemedText style={{
               fontSize: 16,
               fontWeight: '600',
               color: loading ? colors.textSecondary : 'white'
@@ -477,12 +467,12 @@ export default function NewsManagementScreen() {
           </Pressable>
         </Animated.View>
 
-        {/* Список новостей */}
+        {}
         <Animated.View entering={FadeInDown.duration(500).delay(400)}>
           <ThemedText style={{ ...Typography.titleH2, color: Colors.textPrimary, marginBottom: Spacing.m }}>
             Существующие новости ({Array.isArray(news) ? news.length : 0})
           </ThemedText>
-          
+
           {!Array.isArray(news) || news.length === 0 ? (
             <View style={{
               backgroundColor: Colors.surface,
@@ -555,12 +545,12 @@ export default function NewsManagementScreen() {
         </Animated.View>
       </ScrollView>
 
-      {/* Модальное окно подтверждения удаления */}
+      {}
       <ConfirmationModal
         isVisible={showDeleteConfirm}
         title="Удалить новость?"
         message={
-          newsToDelete 
+          newsToDelete
             ? `Вы уверены, что хотите удалить новость "${newsToDelete.title}"?\n\nЭто действие нельзя отменить!`
             : ''
         }

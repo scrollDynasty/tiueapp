@@ -16,8 +16,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-
-
 import { Image } from 'expo-image';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -42,110 +40,104 @@ export default function HomeScreen() {
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
   const [attendanceLoading, setAttendanceLoading] = useState(false);
   const insets = useSafeAreaInsets();
-  
-  const { 
-    horizontalPadding, 
-    cardGap, 
-    cardWidth, 
-    cardHeight, 
-    isVerySmallScreen, 
+
+  const {
+    horizontalPadding,
+    cardGap,
+    cardWidth,
+    cardHeight,
+    isVerySmallScreen,
     isExtraSmallScreen,
     isSmallScreen,
     isLarge,
-    fontSize, 
-    spacing, 
-    width 
+    fontSize,
+    spacing,
+    width
   } = useResponsive();
-  // Мемоизированный селектор для оптимизации (включая аватарку)
+
   const authData = useAppSelector(useCallback((state) => ({
     user: state.auth.user,
     isAuthenticated: state.auth.isAuthenticated
-  }), []), (left, right) => 
-    left.user?.id === right.user?.id && 
+  }), []), (left, right) =>
+    left.user?.id === right.user?.id &&
     left.isAuthenticated === right.isAuthenticated &&
-    left.user?.avatar === right.user?.avatar // Добавляем проверку аватарки
+    left.user?.avatar === right.user?.avatar
   );
-  
+
   const { user } = authData;
-  
+
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y;
     },
   });
 
-  // Валидация данных оценок
   const validateGradeData = useCallback((item: any) => {
     if (!item || typeof item !== 'object') return false;
-    
+
     const grade = parseFloat(item.final_grade || item.grade || item.score || 0);
     return !isNaN(grade) && grade >= 0 && grade <= 100;
   }, []);
 
-  // Функция для загрузки оценок
   const fetchGrades = useCallback(async () => {
     if (user?.role !== 'student') {
       return;
     }
-    
+
     try {
       setGradesLoading(true);
-      
+
       const response = await authApi.getGrades();
-      
+
       if (response.success && response.data) {
-        // API возвращает объект с полем data, которое содержит массив
+
         const responseData = response.data as any || {};
         const gradesArray = Array.isArray(responseData.data) ? responseData.data : [];
-        
-        // Преобразуем данные LDAP в упрощенный формат для расчета GPA с валидацией
+
         const formattedGrades = gradesArray
           .filter(validateGradeData)
           .map((item: any) => ({
             grade: parseFloat(item.final_grade || item.grade || item.score || 0),
             maxGrade: 100
           }));
-        
+
         setGradesData(formattedGrades);
       } else {
-        // Если нет данных, устанавливаем пустой массив
+
         setGradesData([]);
       }
     } catch (error) {
       if (__DEV__) {
         console.error('🎓 Error fetching grades:', error);
       }
-      // В случае ошибки устанавливаем пустой массив
+
       setGradesData([]);
     } finally {
       setGradesLoading(false);
     }
   }, [user?.role, validateGradeData]);
 
-  // Валидация данных курсов
   const validateCourseData = useCallback((item: any) => {
     if (!item || typeof item !== 'object') return false;
-    
+
     const courseName = item.course_name || item.name;
     return courseName && typeof courseName === 'string' && courseName.trim().length > 0;
   }, []);
 
-  // Функция для загрузки курсов
   const fetchCourses = useCallback(async () => {
     if (user?.role !== 'student') {
       return;
     }
-    
+
     try {
       setCoursesLoading(true);
-      
+
       const response = await authApi.getCourses();
-      
+
       if (response.success && response.data) {
         const responseData = response.data as any || {};
         const coursesArray = Array.isArray(responseData.data) ? responseData.data : [];
-        
-        // Фильтруем и валидируем данные курсов
+
         const validCourses = coursesArray.filter(validateCourseData);
         setCoursesData(validCourses);
       } else {
@@ -161,28 +153,23 @@ export default function HomeScreen() {
     }
   }, [user?.role, validateCourseData]);
 
-
-  // ОПТИМИЗАЦИЯ: Используем ленивую загрузку данных с приоритезацией
   useEffect(() => {
     if (user) {
-      // Приоритет 1: Сначала загружаем только критически важные данные (новости и события)
-      // Это даст пользователю увидеть контент быстрее
+
       const loadCriticalData = async () => {
         await Promise.all([
           dispatch(fetchNews()),
           dispatch(fetchEvents())
         ]);
       };
-      
+
       loadCriticalData();
-      
-      // Приоритет 2: Загружаем оценки и курсы с небольшой задержкой
-      // Это снизит нагрузку на сервер и ускорит начальную загрузку
+
       const loadSecondaryData = setTimeout(() => {
         fetchGrades();
         fetchCourses();
-      }, 500); // 500ms задержка для вторичных данных
-      
+      }, 500);
+
       return () => clearTimeout(loadSecondaryData);
     }
   }, [dispatch, user, fetchGrades, fetchCourses]);
@@ -206,33 +193,26 @@ export default function HomeScreen() {
     setRefreshing(false);
   }, [dispatch, user]);
 
-  // Получаем новости и события из Redux store
   const { items: newsData } = useAppSelector((state) => state.news);
   const { items: eventsData } = useAppSelector((state) => state.events);
 
-  // Упрощаем вычисления для быстрого LCP
   const upcomingEvents = eventsData.slice(0, 3);
   const importantNews = newsData.slice(0, 2);
 
-  // Мемоизированный расчет среднего балла (GPA) из реальных данных
   const gpaValue = useMemo(() => {
     if (!gradesData || gradesData.length === 0) return 0;
-    
-    // Считаем средний балл как среднее арифметическое всех оценок
+
     const total = gradesData.reduce((sum, grade) => {
       return sum + parseFloat(grade.grade || 0);
     }, 0);
-    
-    return Math.round((total / gradesData.length) * 100) / 100; // Округляем до 2 знаков
+
+    return Math.round((total / gradesData.length) * 100) / 100;
   }, [gradesData]);
 
-  // Обратная совместимость
   const calculateGPA = useCallback((grades: any[]) => {
     return gpaValue;
   }, [gpaValue]);
 
-
-  // Упрощенные данные для виджетов (для быстрого LCP)
   const statsData = {
     courses: coursesLoading ? '...' : coursesData.length.toString(),
     events: eventsData.length.toString(),
@@ -240,8 +220,6 @@ export default function HomeScreen() {
     gradeTitle: 'Средний балл'
   };
 
-
-  // Компонент статистического виджета
   const StatWidget = ({ icon, title, value, color, onPress }: {
     icon: keyof typeof Ionicons.glyphMap;
     title: string;
@@ -250,9 +228,9 @@ export default function HomeScreen() {
     onPress?: () => void;
   }) => {
     const Widget = onPress ? TouchableOpacity : View;
-    
+
     return (
-      <Widget 
+      <Widget
         onPress={onPress}
         style={{
           backgroundColor: colors.surface,
@@ -272,8 +250,8 @@ export default function HomeScreen() {
           overflow: 'hidden',
         }}
       >
-      
-      <View style={{ 
+
+      <View style={{
       alignItems: 'center',
         justifyContent: 'center',
       }}>
@@ -293,7 +271,7 @@ export default function HomeScreen() {
         }}>
           <Ionicons name={icon} size={isExtraSmallScreen ? 16 : isVerySmallScreen ? 18 : 22} color={color} />
         </View>
-        
+
         <ThemedText style={{
           fontSize: isExtraSmallScreen ? 18 : isVerySmallScreen ? 20 : 24,
           fontWeight: '700',
@@ -303,7 +281,7 @@ export default function HomeScreen() {
         }}>
           {value}
         </ThemedText>
-        
+
         <ThemedText style={{
           fontSize: isExtraSmallScreen ? 9 : isVerySmallScreen ? 10 : 12,
           color: colors.textSecondary,
@@ -319,7 +297,6 @@ export default function HomeScreen() {
     );
   };
 
-  // Компонент быстрого события
   const QuickEventCard = ({ event, index }: { event: any; index: number }) => (
     <View
       style={{
@@ -385,10 +362,8 @@ export default function HomeScreen() {
     </View>
   );
 
-  // Упрощенные цвета для быстрого рендера
   const backgroundColor = isDarkMode ? '#1E3A8A' : '#EFF6FF';
 
-  // Мемоизированные обработчики
   const handleAvatarPress = useCallback(() => {
     router.push('/(tabs)/profile');
   }, []);
@@ -403,16 +378,16 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ 
-        position: 'absolute', 
-        top: 0, 
-        left: 0, 
-        right: 0, 
+      <View style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
         bottom: 0,
         backgroundColor: backgroundColor
       }} />
-      
-      <AnimatedHeader 
+
+      <AnimatedHeader
         userName={user?.first_name || user?.username || 'Пользователь'}
         avatarUrl={user?.avatar}
         notificationCount={0}
@@ -437,13 +412,13 @@ export default function HomeScreen() {
         }
         contentContainerStyle={{
           paddingHorizontal: horizontalPadding,
-          paddingBottom: Platform.OS === 'android' 
-            ? (isExtraSmallScreen ? 70 : isVerySmallScreen ? 80 : 90) + Math.max(insets.bottom, 0) // Компактные + insets для Android
-            : (isExtraSmallScreen ? 110 : isVerySmallScreen ? 115 : 120), // Обычные для iOS
+          paddingBottom: Platform.OS === 'android'
+            ? (isExtraSmallScreen ? 70 : isVerySmallScreen ? 80 : 90) + Math.max(insets.bottom, 0)
+            : (isExtraSmallScreen ? 110 : isVerySmallScreen ? 115 : 120),
         }}
       >
 
-        <View 
+        <View
           style={{
             marginBottom: spacing.lg,
             paddingHorizontal: horizontalPadding,
@@ -473,7 +448,7 @@ export default function HomeScreen() {
               Статистика
             </ThemedText>
           </View>
-          
+
           <View style={{
             flexDirection: isExtraSmallScreen ? 'column' : 'row',
             gap: isExtraSmallScreen ? spacing.sm : spacing.xs,
@@ -482,7 +457,7 @@ export default function HomeScreen() {
             }),
           }}>
             {gradesLoading || coursesLoading ? (
-              // Быстрый skeleton loading для улучшения LCP
+
               <>
                 <View style={{
                   backgroundColor: colors.surface,
@@ -525,25 +500,25 @@ export default function HomeScreen() {
                 </View>
               </>
             ) : (
-              // Реальные данные
+
               <>
-                <StatWidget 
-                  icon="book-outline" 
-                  title="Предмет" 
-                  value={statsData.courses} 
-                  color="#3B82F6" 
+                <StatWidget
+                  icon="book-outline"
+                  title="Предмет"
+                  value={statsData.courses}
+                  color="#3B82F6"
                 />
-                <StatWidget 
-                  icon="calendar-outline" 
-                  title="События" 
-                  value={statsData.events} 
-                  color="#10B981" 
+                <StatWidget
+                  icon="calendar-outline"
+                  title="События"
+                  value={statsData.events}
+                  color="#10B981"
                 />
-                <StatWidget 
-                  icon="trophy-outline" 
-                  title={statsData.gradeTitle} 
-                  value={statsData.grade} 
-                  color="#F59E0B" 
+                <StatWidget
+                  icon="trophy-outline"
+                  title={statsData.gradeTitle}
+                  value={statsData.grade}
+                  color="#F59E0B"
                   onPress={() => router.push('/grades')}
                 />
               </>
@@ -584,8 +559,8 @@ export default function HomeScreen() {
                   onPress={() => router.push('/admin/users')}
                   gradientColors={['#3B82F6', '#1D4ED8']}
                   iconColor="#FFFFFF"
-                  style={{ 
-                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2, 
+                  style={{
+                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2,
                     height: cardHeight,
                     marginBottom: cardGap,
                   }}
@@ -596,8 +571,8 @@ export default function HomeScreen() {
                   onPress={() => router.push('/admin/news')}
                   gradientColors={['#10B981', '#059669']}
                   iconColor="#FFFFFF"
-                  style={{ 
-                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2, 
+                  style={{
+                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2,
                     height: cardHeight,
                     marginBottom: cardGap,
                   }}
@@ -608,8 +583,8 @@ export default function HomeScreen() {
                   onPress={() => router.push('/admin/events')}
                   gradientColors={['#8B5CF6', '#7C3AED']}
                   iconColor="#FFFFFF"
-                  style={{ 
-                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2, 
+                  style={{
+                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2,
                     height: cardHeight,
                     marginBottom: cardGap,
                   }}
@@ -620,8 +595,8 @@ export default function HomeScreen() {
                   onPress={() => router.push('/(tabs)/profile')}
                   gradientColors={['#F59E0B', '#D97706']}
                   iconColor="#FFFFFF"
-                  style={{ 
-                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2, 
+                  style={{
+                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2,
                     height: cardHeight,
                     marginBottom: cardGap,
                   }}
@@ -635,8 +610,8 @@ export default function HomeScreen() {
                   onPress={() => router.push('/courses')}
                   gradientColors={['#3B82F6', '#1E40AF']}
                   iconColor="#FFFFFF"
-                  style={{ 
-                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2, 
+                  style={{
+                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2,
                     height: cardHeight,
                     marginBottom: cardGap,
                   }}
@@ -647,8 +622,8 @@ export default function HomeScreen() {
                   onPress={() => router.push('/(tabs)/schedule')}
                   gradientColors={['#10B981', '#047857']}
                   iconColor="#FFFFFF"
-                  style={{ 
-                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2, 
+                  style={{
+                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2,
                     height: cardHeight,
                     marginBottom: cardGap,
                   }}
@@ -659,8 +634,8 @@ export default function HomeScreen() {
                   onPress={() => router.push('/(tabs)/explore')}
                   gradientColors={['#EF4444', '#DC2626']}
                   iconColor="#FFFFFF"
-                  style={{ 
-                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2, 
+                  style={{
+                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2,
                     height: cardHeight,
                     marginBottom: cardGap,
                   }}
@@ -671,8 +646,8 @@ export default function HomeScreen() {
                   onPress={() => router.push('/grades')}
                   gradientColors={['#F59E0B', '#D97706']}
                   iconColor="#FFFFFF"
-                  style={{ 
-                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2, 
+                  style={{
+                    width: (width - horizontalPadding * 4) / 2 - cardGap / 2,
                     height: cardHeight,
                     marginBottom: cardGap,
                   }}
@@ -682,9 +657,9 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Компонент событий с оптимизированной загрузкой */}
+        {}
         {eventsData.length > 0 ? (
-          <EventsCard 
+          <EventsCard
             events={eventsData.map(event => ({
               id: event.id,
               title: event.title,
@@ -711,10 +686,10 @@ export default function HomeScreen() {
               borderWidth: 1,
               borderColor: colors.border,
             }}>
-              <Ionicons 
-                name="calendar-outline" 
-                size={48} 
-                color={colors.textSecondary} 
+              <Ionicons
+                name="calendar-outline"
+                size={48}
+                color={colors.textSecondary}
                 style={{ marginBottom: 16 }}
               />
               <ThemedText style={{
@@ -736,14 +711,14 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Красивые диаграммы успеваемости */}
+        {}
         <View
           style={{
             marginBottom: spacing.xl,
             paddingHorizontal: horizontalPadding,
           }}
         >
-          
+
           <View style={{
             flexDirection: isExtraSmallScreen ? 'column' : 'row',
             gap: isExtraSmallScreen ? spacing.md : spacing.lg,
@@ -753,7 +728,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Простой список курсов для быстрого рендера */}
+        {}
         {user?.role === 'student' && coursesData.length > 0 && (
         <View
           style={{
@@ -824,7 +799,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Секция новостей с новым дизайном */}
+        {}
         <View
           style={{
             marginBottom: spacing.xl,
@@ -876,7 +851,7 @@ export default function HomeScreen() {
               </View>
             )}
           </View>
-          
+
           <View style={{ gap: spacing.sm }}>
             {newsData.length > 0 ? (
               newsData.slice(0, 3).map((news, index) => (
@@ -907,7 +882,7 @@ export default function HomeScreen() {
                         marginRight: 12,
                         overflow: 'hidden',
                       }}>
-                        <Image 
+                        <Image
                           source={{ uri: news.image }}
                           style={{ width: '100%', height: '100%' }}
                           contentFit="cover"
@@ -953,10 +928,10 @@ export default function HomeScreen() {
                 borderWidth: 1,
                 borderColor: colors.border,
               }}>
-                <Ionicons 
-                  name="newspaper-outline" 
-                  size={48} 
-                  color={colors.textSecondary} 
+                <Ionicons
+                  name="newspaper-outline"
+                  size={48}
+                  color={colors.textSecondary}
                   style={{ marginBottom: 16 }}
                 />
                 <ThemedText style={{
@@ -979,7 +954,6 @@ export default function HomeScreen() {
           </View>
         </View>
 
-
         <View
           style={{
             marginTop: spacing.xl,
@@ -989,7 +963,7 @@ export default function HomeScreen() {
         >
           {Platform.OS === 'android' ? (
             <View
-              style={{ 
+              style={{
                 borderRadius: 20,
                 backgroundColor: colors.surface,
                 shadowColor: 'transparent',
@@ -1021,10 +995,10 @@ export default function HomeScreen() {
                       borderColor: colors.border,
                     }}
                   >
-                    <Ionicons 
-                      name="diamond" 
-                      size={isVerySmallScreen ? 24 : 28} 
-                      color={colors.primary} 
+                    <Ionicons
+                      name="diamond"
+                      size={isVerySmallScreen ? 24 : 28}
+                      color={colors.primary}
                     />
                   </View>
                 ) : (
@@ -1040,10 +1014,10 @@ export default function HomeScreen() {
                       borderColor: 'rgba(255,255,255,0.2)',
                     }}
                   >
-                    <Ionicons 
-                      name="diamond" 
-                      size={isVerySmallScreen ? 24 : 28} 
-                      color="#FFFFFF" 
+                    <Ionicons
+                      name="diamond"
+                      size={isVerySmallScreen ? 24 : 28}
+                      color="#FFFFFF"
                     />
                   </View>
                 )}
@@ -1097,7 +1071,7 @@ export default function HomeScreen() {
             </View>
           ) : (
               <View
-                style={{ 
+                style={{
                   borderRadius: 20,
                   backgroundColor: isDarkMode ? colors.primary + '40' : '#6366F1',
                   shadowColor: colors.primary,
@@ -1125,10 +1099,10 @@ export default function HomeScreen() {
                       borderColor: 'rgba(255,255,255,0.2)',
                     }}
                   >
-                    <Ionicons 
-                      name="diamond" 
-                      size={isVerySmallScreen ? 24 : 28} 
-                      color="#FFFFFF" 
+                    <Ionicons
+                      name="diamond"
+                      size={isVerySmallScreen ? 24 : 28}
+                      color="#FFFFFF"
                     />
                   </View>
                   <View style={{ flex: 1 }}>
@@ -1202,10 +1176,10 @@ export default function HomeScreen() {
             borderColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
           }}
         >
-          {/* Заголовок секции */}
-          <View style={{ 
-            flexDirection: 'row', 
-            alignItems: 'center', 
+          {}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
             marginBottom: spacing.lg,
             paddingBottom: spacing.md,
             borderBottomWidth: 1,
@@ -1236,8 +1210,8 @@ export default function HomeScreen() {
           </View>
 
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Pressable 
-              style={{ 
+            <Pressable
+              style={{
                 alignItems: 'center',
                 flex: 1,
                 marginHorizontal: spacing.xs,
@@ -1260,8 +1234,8 @@ export default function HomeScreen() {
               >
                 <Ionicons name="help-buoy" size={isVerySmallScreen ? 22 : 26} color="#FFFFFF" />
               </View>
-              <ThemedText style={{ 
-                fontSize: fontSize.small, 
+              <ThemedText style={{
+                fontSize: fontSize.small,
                 color: colors.text,
                 fontWeight: '600',
                 textAlign: 'center',
@@ -1269,9 +1243,9 @@ export default function HomeScreen() {
                 Помощь
               </ThemedText>
             </Pressable>
-            
-            <Pressable 
-              style={{ 
+
+            <Pressable
+              style={{
                 alignItems: 'center',
                 flex: 1,
                 marginHorizontal: spacing.xs,
@@ -1298,8 +1272,8 @@ export default function HomeScreen() {
               >
                 <Ionicons name="calendar" size={isVerySmallScreen ? 22 : 26} color="#FFFFFF" />
               </View>
-              <ThemedText style={{ 
-                fontSize: fontSize.small, 
+              <ThemedText style={{
+                fontSize: fontSize.small,
                 color: colors.text,
                 fontWeight: '600',
                 textAlign: 'center',
@@ -1307,9 +1281,9 @@ export default function HomeScreen() {
                 События
               </ThemedText>
             </Pressable>
-            
-            <Pressable 
-              style={{ 
+
+            <Pressable
+              style={{
                 alignItems: 'center',
                 flex: 1,
                 marginHorizontal: spacing.xs,
@@ -1336,8 +1310,8 @@ export default function HomeScreen() {
               >
                 <Ionicons name="person-circle" size={isVerySmallScreen ? 22 : 26} color="#FFFFFF" />
               </View>
-              <ThemedText style={{ 
-                fontSize: fontSize.small, 
+              <ThemedText style={{
+                fontSize: fontSize.small,
                 color: colors.text,
                 fontWeight: '600',
                 textAlign: 'center',
@@ -1353,7 +1327,6 @@ export default function HomeScreen() {
   );
 }
 
-// Оптимизированные стили для производительности
 const styles = StyleSheet.create({
   quoteText: {
     fontSize: 16,
@@ -1361,7 +1334,7 @@ const styles = StyleSheet.create({
     opacity: 0.95,
     marginTop: 4,
   },
-  // Общие стили для статистических виджетов
+
   statWidget: {
     borderRadius: 20,
     flex: 1,
@@ -1384,7 +1357,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '500',
   },
-  // Стили для карточек действий
+
   actionCard: {
     borderRadius: 20,
     padding: 16,
@@ -1396,7 +1369,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '600',
   },
-  // Общий градиент
+
   gradientOverlay: {
     position: 'absolute',
     top: 0,

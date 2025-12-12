@@ -23,7 +23,6 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Утилиты и хуки, специфичные для этого компонента
 const repeatReplace = (input: string, pattern: RegExp, replacement: string = ''): string => {
   let previous;
   do {
@@ -48,7 +47,7 @@ const sanitizeInput = (input: string): string => {
       ),
       /on\w+=/gi
     ),
-    /\s{2,}/g, ' ' // Optional: squeeze repeated spaces created during removal
+    /\s{2,}/g, ' '
   ).trim();
 };
 
@@ -61,14 +60,12 @@ const useDebounce = (value: string, delay: number) => {
   return debouncedValue;
 };
 
-// Основной компонент экрана
 export default function UsersManagementScreen() {
   const { theme } = useTheme();
   const themeColors = getThemeColors(theme === 'dark');
   const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
   const { user: adminUser } = useAppSelector((state) => state.auth);
 
-  // --- Логика API, вынесенная в хук ---
   const {
     users,
     isLoading: isLoadingUsers,
@@ -79,7 +76,6 @@ export default function UsersManagementScreen() {
     resetPassword,
   } = useUsersApi();
 
-  // --- Состояния UI, которые остаются в компоненте ---
   const [formState, setFormState] = React.useState<Partial<UserProfile>>({});
   const [password, setPassword] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -97,12 +93,9 @@ export default function UsersManagementScreen() {
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // Загрузка пользователей выполняется автоматически в useUsersApi хуке
-
-  // Фильтрация пользователей
   const filteredUsers = React.useMemo(() => {
     return users.filter(user => {
-      const matchesSearch = 
+      const matchesSearch =
         user.first_name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
         user.last_name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
         user.username.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
@@ -112,7 +105,6 @@ export default function UsersManagementScreen() {
     });
   }, [users, debouncedSearchQuery, filterRole]);
 
-  // --- Функции для управления UI (модальные окна, форма) ---
   const handleEditUser = React.useCallback((userToEdit: UserProfile) => {
     setEditingUser(userToEdit);
     setFormState(userToEdit);
@@ -132,7 +124,6 @@ export default function UsersManagementScreen() {
 
   const handleToggleStatus = React.useCallback((userId: string) => { }, []);
 
-  // Мемоизированный renderItem для FlatList
   const renderUserItem = React.useCallback(({ item, index }: { item: UserProfile; index: number }) => (
     <UserCard
       user={item}
@@ -144,7 +135,6 @@ export default function UsersManagementScreen() {
     />
   ), [handleEditUser, handleDeleteUser, handleResetPassword, handleToggleStatus]);
 
-  // Мемоизированный разделитель для FlatList
   const itemSeparator = React.useCallback(() => (
     <View style={{ height: spacing.md }} />
   ), [spacing.md]);
@@ -160,7 +150,6 @@ export default function UsersManagementScreen() {
     setFormState(prev => ({ ...prev, [field]: sanitizeInput(value) }));
   }, []);
 
-  // --- Функции-обертки для вызова API из хука ---
   const onConfirmDelete = async () => {
     if (!userToDelete) return;
     await deleteUser(userToDelete.id);
@@ -178,7 +167,7 @@ export default function UsersManagementScreen() {
   };
 
   const handleSubmitForm = async () => {
-    // Валидация
+
     if (!formState.first_name || !formState.last_name || !formState.username || !formState.email) {
       showToast('Заполните все обязательные поля');
       return;
@@ -190,7 +179,7 @@ export default function UsersManagementScreen() {
 
     setIsSubmitting(true);
     let success = false;
-    
+
     try {
       if (editingUser) {
         success = await updateUser(editingUser.id, formState);
@@ -200,7 +189,7 @@ export default function UsersManagementScreen() {
     } catch (error) {
       console.error('Error submitting form:', error);
     }
-    
+
     setIsSubmitting(false);
 
     if (success) {
@@ -211,15 +200,14 @@ export default function UsersManagementScreen() {
     }
   };
 
-  // Проверка прав доступа
   if (!adminUser || adminUser.role !== 'admin') {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.surface }}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.xl }}>
           <Ionicons name="shield-outline" size={64} color={Colors.textSecondary} />
-          <ThemedText style={{ 
-            fontSize: fontSize.title, 
-            color: Colors.textSecondary, 
+          <ThemedText style={{
+            fontSize: fontSize.title,
+            color: Colors.textSecondary,
             marginTop: spacing.lg,
             fontWeight: 'bold'
           }}>
@@ -230,29 +218,28 @@ export default function UsersManagementScreen() {
     );
   }
 
-  // --- Рендеринг компонента ---
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: themeColors.background }}>
-      <ScrollView 
-        showsVerticalScrollIndicator={false} 
-        contentContainerStyle={{ 
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
           padding: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.xl,
           paddingBottom: 140,
         }}
       >
-        {/* Заголовок */}
+        {}
         <Animated.View entering={FadeInDown.duration(500)}>
-          <ThemedText style={{ 
-            ...Typography.displayH1, 
-            color: themeColors.text, 
+          <ThemedText style={{
+            ...Typography.displayH1,
+            color: themeColors.text,
             marginBottom: spacing.md,
-            textAlign: 'center' 
+            textAlign: 'center'
           }}>
             Управление пользователями
           </ThemedText>
         </Animated.View>
 
-        {/* Кнопка добавления */}
+        {}
         {!showCreateForm && (
           <Animated.View entering={FadeInDown.duration(500).delay(300)}>
             <Pressable
@@ -267,11 +254,11 @@ export default function UsersManagementScreen() {
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Ionicons name="add" size={24} color="#FFFFFF" />
-                <ThemedText style={{ 
+                <ThemedText style={{
                   ...Typography.body,
                   fontWeight: 'bold',
-                  color: "#FFFFFF", 
-                  marginLeft: spacing.sm 
+                  color: "#FFFFFF",
+                  marginLeft: spacing.sm
                 }}>
                   Добавить пользователя
                 </ThemedText>
@@ -280,13 +267,13 @@ export default function UsersManagementScreen() {
           </Animated.View>
         )}
 
-        {/* Форма создания/редактирования */}
+        {}
         {showCreateForm && (
           <Animated.View entering={FadeInDown.duration(500).delay(200)}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md }}>
-              <ThemedText style={{ 
-                ...Typography.titleH2, 
-                color: themeColors.text, 
+              <ThemedText style={{
+                ...Typography.titleH2,
+                color: themeColors.text,
                 flex: 1
               }}>
                 {editingUser ? 'Редактировать пользователя' : 'Создать нового пользователя'}
@@ -295,11 +282,11 @@ export default function UsersManagementScreen() {
                 <Ionicons name="close" size={24} color={themeColors.text} />
               </Pressable>
             </View>
-            
-            <View style={{ 
-              backgroundColor: themeColors.surface, 
-              borderRadius: Radius.card, 
-              padding: spacing.lg, 
+
+            <View style={{
+              backgroundColor: themeColors.surface,
+              borderRadius: Radius.card,
+              padding: spacing.lg,
               marginBottom: spacing.lg,
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 2 },
@@ -323,7 +310,7 @@ export default function UsersManagementScreen() {
                 value={formState.first_name || ''}
                 onChangeText={text => handleFormChange('first_name', text)}
               />
-              
+
               <TextInput
                 style={{
                   borderWidth: 1,
@@ -340,7 +327,7 @@ export default function UsersManagementScreen() {
                 value={formState.last_name || ''}
                 onChangeText={text => handleFormChange('last_name', text)}
               />
-              
+
               <TextInput
                 style={{
                   borderWidth: 1,
@@ -357,7 +344,7 @@ export default function UsersManagementScreen() {
                 value={formState.username || ''}
                 onChangeText={text => handleFormChange('username', text)}
               />
-              
+
               <TextInput
                 style={{
                   borderWidth: 1,
@@ -376,7 +363,7 @@ export default function UsersManagementScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
-              
+
               {!editingUser && (
                 <TextInput
                   style={{
@@ -397,12 +384,12 @@ export default function UsersManagementScreen() {
                 />
               )}
 
-              {/* Выбор роли */}
+              {}
               <View style={{ marginBottom: spacing.lg }}>
-                <ThemedText style={{ 
-                  ...Typography.body, 
-                  color: themeColors.text, 
-                  marginBottom: spacing.sm 
+                <ThemedText style={{
+                  ...Typography.body,
+                  color: themeColors.text,
+                  marginBottom: spacing.sm
                 }}>
                   Роль:
                 </ThemedText>
@@ -430,7 +417,7 @@ export default function UsersManagementScreen() {
                   ))}
                 </View>
               </View>
-              
+
               <View style={{ flexDirection: 'row', gap: spacing.md }}>
                 <Pressable
                   style={{
@@ -453,7 +440,7 @@ export default function UsersManagementScreen() {
                     {isSubmitting ? 'Сохранение...' : 'Сохранить'}
                   </ThemedText>
                 </Pressable>
-                
+
                 <Pressable
                   style={{
                     paddingHorizontal: spacing.lg,
@@ -474,7 +461,7 @@ export default function UsersManagementScreen() {
           </Animated.View>
         )}
 
-        {/* Поиск и фильтры */}
+        {}
         <Animated.View entering={FadeInDown.duration(500).delay(400)}>
           <TextInput
             style={{
@@ -492,7 +479,7 @@ export default function UsersManagementScreen() {
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
-          
+
           <View style={{ flexDirection: 'row', marginBottom: spacing.lg, gap: spacing.sm }}>
             {(['all', 'student', 'professor', 'admin'] as const).map((role) => (
               <Pressable
@@ -518,7 +505,7 @@ export default function UsersManagementScreen() {
           </View>
         </Animated.View>
 
-        {/* Список пользователей */}
+        {}
         <Animated.View entering={FadeInDown.duration(500).delay(600)}>
           {isLoadingUsers ? (
             <View style={{ alignItems: 'center', padding: spacing.xl }}>
@@ -546,7 +533,7 @@ export default function UsersManagementScreen() {
               windowSize={10}
               initialNumToRender={8}
               getItemLayout={(data, index) => ({
-                length: 120, // Примерная высота UserCard
+                length: 120,
                 offset: 120 * index + spacing.md * index,
                 index,
               })}
@@ -555,14 +542,14 @@ export default function UsersManagementScreen() {
         </Animated.View>
       </ScrollView>
 
-      {/* Модальные окна */}
+      {}
       <PasswordResetModal
         isVisible={showPasswordReset}
         user={resetPasswordUser}
         onClose={() => setShowPasswordReset(false)}
         onReset={onConfirmResetPassword}
       />
-      
+
       <ConfirmationModal
         isVisible={showDeleteConfirm}
         title="Удалить пользователя"

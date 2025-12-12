@@ -34,34 +34,33 @@ export const CircularChart: React.FC<CircularChartProps> = ({
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const { isExtraSmallScreen, isVerySmallScreen, fontSize, spacing } = useResponsive();
-  
-  // Адаптивные размеры
+
   const adaptiveSize = size || (isExtraSmallScreen ? 100 : isVerySmallScreen ? 110 : 120);
   const adaptiveStrokeWidth = strokeWidth || (isExtraSmallScreen ? 4 : isVerySmallScreen ? 5 : 6);
-  
+
   const radius = (adaptiveSize - adaptiveStrokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = Math.min(value / maxValue, 1);
   const strokeDasharray = circumference;
   const strokeDashoffset = circumference * (1 - progress);
-  
+
   const centerX = adaptiveSize / 2;
   const centerY = adaptiveSize / 2;
 
   const formatValue = () => {
     if (maxValue === 5 || maxValue === 4) {
-      // GPA формат (из 5 или 4)
+
       return value.toFixed(1);
     } else if (maxValue === 100) {
-      // Для GPA из 100 показываем как число, не процент
+
       if (title.includes('балл') || title.includes('GPA')) {
         return Math.round(value).toString();
       } else {
-        // Для других показателей (посещаемость) - процент
+
         return `${Math.round(value)}%`;
       }
     } else {
-      // Процент формат для других случаев
+
       return `${Math.round(value)}%`;
     }
   };
@@ -81,7 +80,7 @@ export const CircularChart: React.FC<CircularChartProps> = ({
       borderColor: color + '20',
       position: 'relative',
       overflow: 'hidden',
-      flex: 1, // Делаем карточки одинакового размера
+      flex: 1,
     },
     svgContainer: {
       marginBottom: isExtraSmallScreen ? 8 : 12,
@@ -127,7 +126,7 @@ export const CircularChart: React.FC<CircularChartProps> = ({
     <Animated.View entering={FadeInDown.delay(400)} style={styles.container}>
       <View style={styles.svgContainer}>
         <Svg width={adaptiveSize} height={adaptiveSize} style={{ transform: [{ rotate: '-90deg' }] }}>
-          {/* Background circle */}
+          {}
           <Circle
             cx={centerX}
             cy={centerY}
@@ -136,8 +135,8 @@ export const CircularChart: React.FC<CircularChartProps> = ({
             strokeWidth={adaptiveStrokeWidth}
             fill="transparent"
           />
-          
-          {/* Progress circle */}
+
+          {}
           <Circle
             cx={centerX}
             cy={centerY}
@@ -150,8 +149,8 @@ export const CircularChart: React.FC<CircularChartProps> = ({
             strokeLinecap="round"
           />
         </Svg>
-        
-        {/* Center content */}
+
+        {}
         <View style={{
           position: 'absolute',
           top: 0,
@@ -166,18 +165,18 @@ export const CircularChart: React.FC<CircularChartProps> = ({
           </ThemedText>
         </View>
       </View>
-      
+
       <ThemedText style={styles.titleText}>
         {title}
       </ThemedText>
-      
+
       {subtitle && (
         <ThemedText style={styles.subtitleText}>
           {subtitle}
         </ThemedText>
       )}
-      
-      {/* Progress indicator */}
+
+      {}
       <View style={styles.progressLabel}>
         {Array.from({ length: 5 }).map((_, index) => (
           <View

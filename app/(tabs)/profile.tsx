@@ -21,11 +21,9 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { isSmallScreen, spacing, isVerySmallScreen } = useResponsive();
   const [isLogoutModalVisible, setIsLogoutModalVisible] = React.useState(false);
-  
-  // Ref для отслеживания размонтирования компонента
+
   const isMountedRef = React.useRef(true);
 
-  // Cleanup при размонтировании
   React.useEffect(() => {
     return () => {
       isMountedRef.current = false;
@@ -39,11 +37,11 @@ export default function ProfileScreen() {
   }, []);
 
   const performLogout = React.useCallback(async () => {
-    // Закрываем модальное окно сразу
+
     if (isMountedRef.current) {
       setIsLogoutModalVisible(false);
     }
-    
+
     try {
       await dispatch(logoutUser()).unwrap();
       await AsyncStorage.multiRemove(['userToken', 'userRole', 'userData']);
@@ -53,9 +51,9 @@ export default function ProfileScreen() {
       if (__DEV__) {
         console.error('❌ Logout error:', error);
       }
-      // При ошибке показываем уведомление только если компонент еще смонтирован
+
       if (isMountedRef.current) {
-        // Здесь можно добавить показ ошибки пользователю
+
         console.error('Не удалось выйти из системы');
       }
     }
@@ -67,7 +65,6 @@ export default function ProfileScreen() {
     }
   }, []);
 
-  // Ранний возврат если пользователя нет
   if (!user) {
     return null;
   }
@@ -80,12 +77,12 @@ export default function ProfileScreen() {
         contentContainerStyle={{
           paddingHorizontal: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : spacing.lg,
           paddingBottom: Platform.OS === 'android'
-            ? (isVerySmallScreen ? 80 : isSmallScreen ? 85 : 90) // Компактные отступы для Android
-            : (isVerySmallScreen ? 140 : isSmallScreen ? 150 : 160), // Обычные для iOS
+            ? (isVerySmallScreen ? 80 : isSmallScreen ? 85 : 90)
+            : (isVerySmallScreen ? 140 : isSmallScreen ? 150 : 160),
           paddingTop: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : spacing.md,
         }}
       >
-        {/* Рендерим разные интерфейсы в зависимости от роли */}
+        {}
         {user.role === 'admin' ? (
           <AdminProfile user={user} onLogout={handleLogout} />
         ) : (
@@ -93,7 +90,7 @@ export default function ProfileScreen() {
         )}
       </ScrollView>
 
-      {/* Модальное окно подтверждения выхода */}
+      {}
       <ConfirmationModal
         isVisible={isLogoutModalVisible}
         title="Выйти из аккаунта"

@@ -22,24 +22,21 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): State {
-    // Обновляем состояние, чтобы показать UI ошибки
+
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: any) {
-    // Логирование ошибки только в dev режиме
+
     if (__DEV__) {
       console.error('🚨 Error caught by ErrorBoundary:', error);
       console.error('📋 Error info:', errorInfo);
     }
 
-    // Вызываем callback если предоставлен
     this.props.onError?.(error, errorInfo);
 
     this.setState({ error, errorInfo });
 
-    // В продакшене можно отправить ошибку в систему мониторинга
-    // например: Crashlytics.recordError(error);
   }
 
   handleRetry = () => {
@@ -48,19 +45,18 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
-      // Показываем кастомный fallback UI если предоставлен
+
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
-      // Показываем стандартный UI ошибки
       return (
         <View style={styles.container}>
           <Animated.View entering={FadeInDown.duration(600)} style={styles.content}>
             <View style={styles.iconContainer}>
               <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
             </View>
-            
+
             <Text style={styles.title}>Что-то пошло не так</Text>
             <Text style={styles.message}>
               Произошла неожиданная ошибка. Мы работаем над её исправлением.
@@ -144,7 +140,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// HOC для обертки компонентов в ErrorBoundary
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
   errorBoundaryProps?: Omit<Props, 'children'>
@@ -156,6 +151,6 @@ export function withErrorBoundary<P extends object>(
   );
 
   WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
-  
+
   return WrappedComponent;
 }

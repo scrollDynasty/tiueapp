@@ -9,16 +9,11 @@ export interface EventDetails {
   notes?: string;
 }
 
-/**
- * Добавляет событие в календарь устройства
- * @param eventDetails - детали события
- * @returns Promise<boolean> - успешность операции
- */
 export async function addEventToCalendar(eventDetails: EventDetails): Promise<boolean> {
   try {
-    // Запрашиваем разрешения на доступ к календарю
+
     const { status } = await Calendar.requestCalendarPermissionsAsync();
-    
+
     if (status !== 'granted') {
       Alert.alert(
         'Нет доступа к календарю',
@@ -28,10 +23,8 @@ export async function addEventToCalendar(eventDetails: EventDetails): Promise<bo
       return false;
     }
 
-    // Получаем календари устройства
     const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
-    
-    // Ищем основной календарь или первый доступный
+
     const defaultCalendar = calendars.find(
       cal => cal.source.name === 'Default' || cal.isPrimary
     ) || calendars[0];
@@ -45,19 +38,17 @@ export async function addEventToCalendar(eventDetails: EventDetails): Promise<bo
       return false;
     }
 
-    // Подготавливаем данные события
     const calendarEvent = {
       title: eventDetails.title,
       startDate: eventDetails.startDate,
-      endDate: eventDetails.endDate || new Date(eventDetails.startDate.getTime() + 60 * 60 * 1000), // +1 час по умолчанию
+      endDate: eventDetails.endDate || new Date(eventDetails.startDate.getTime() + 60 * 60 * 1000),
       location: eventDetails.location || '',
       notes: eventDetails.notes || '',
       timeZone: Platform.OS === 'ios' ? 'UTC' : undefined,
     };
 
-    // Создаем событие в календаре
     const eventId = await Calendar.createEventAsync(defaultCalendar.id, calendarEvent);
-    
+
     if (eventId) {
       Alert.alert(
         'Успешно добавлено',
@@ -79,21 +70,14 @@ export async function addEventToCalendar(eventDetails: EventDetails): Promise<bo
   }
 }
 
-/**
- * Парсит дату и время из строк в объект Date
- * @param dateString - строка даты (например, "2025-09-30")
- * @param timeString - строка времени (например, "10:00")
- * @returns Date объект
- */
 export function parseEventDateTime(dateString: string, timeString: string): Date {
   try {
-    // Парсим дату
+
     const dateParts = dateString.split('-');
     const year = parseInt(dateParts[0], 10);
-    const month = parseInt(dateParts[1], 10) - 1; // месяцы в JS начинаются с 0
+    const month = parseInt(dateParts[1], 10) - 1;
     const day = parseInt(dateParts[2], 10);
 
-    // Парсим время
     const timeParts = timeString.split(':');
     const hours = parseInt(timeParts[0], 10);
     const minutes = parseInt(timeParts[1], 10);
@@ -101,15 +85,10 @@ export function parseEventDateTime(dateString: string, timeString: string): Date
     return new Date(year, month, day, hours, minutes);
   } catch (error) {
     console.error('Ошибка при парсинге даты/времени:', error);
-    return new Date(); // Возвращаем текущую дату как fallback
+    return new Date();
   }
 }
 
-/**
- * Форматирует дату для отображения в красивом виде
- * @param date - объект Date
- * @returns отформатированная строка даты
- */
 export function formatEventDate(date: Date): string {
   return date.toLocaleDateString('ru-RU', {
     weekday: 'long',

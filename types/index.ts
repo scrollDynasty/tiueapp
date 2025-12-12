@@ -11,9 +11,9 @@ export interface User {
   is_active: boolean;
   created_at: string;
   updated_at: string;
-  // LDAP данные студента
+
   ldap_profile?: LDAPUserProfile;
-  // Связанные объекты
+
   student?: {
     group?: {
       name: string;
@@ -58,7 +58,7 @@ export interface Group {
   name: string;
   faculty: string;
   course: number;
-  students: string[]; // student IDs
+  students: string[];
   schedule: Schedule[];
 }
 
@@ -71,7 +71,7 @@ export interface AuthState {
 }
 
 export interface LoginCredentials {
-  username: string; // LDAP использует username вместо email
+  username: string;
   password: string;
 }
 
@@ -82,7 +82,6 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
-// LDAP API response types
 export interface LDAPLoginResponse {
   access_token: string;
   refresh_token: string;

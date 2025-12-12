@@ -3,14 +3,11 @@ import { UserProfile } from '@/types';
 import { showToast } from '@/utils/toast';
 import React from 'react';
 
-// Этот хук инкапсулирует всю логику для работы с API пользователей
 export const useUsersApi = () => {
   const [users, setUsers] = React.useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const isMountedRef = React.useRef(true);
 
-
-  // Обработка ошибок API - убираем из useCallback чтобы не пересоздавать loadUsers
   const handleApiError = (error: any, operation: string) => {
     console.error(`${operation} error:`, error);
     const message =
@@ -20,7 +17,6 @@ export const useUsersApi = () => {
     showToast(`Ошибка: ${message}`);
   };
 
-  // Выполнение запроса с логикой повторных попыток
   const executeWithRetry = React.useCallback(async (
     apiCall: () => Promise<any>,
     maxRetries: number = 3,
@@ -34,8 +30,7 @@ export const useUsersApi = () => {
       } catch (error) {
         lastError = error as Error;
         if (attempt === maxRetries) break;
-        
-        // Безопасная задержка с проверкой размонтирования
+
         await new Promise((resolve, reject) => {
           const timer = setTimeout(() => {
             if (isMountedRef.current) {
@@ -44,8 +39,7 @@ export const useUsersApi = () => {
               reject(new Error('Component unmounted'));
             }
           }, delay * attempt);
-          
-          // Очищаем таймер если компонент размонтирован
+
           if (!isMountedRef.current) {
             clearTimeout(timer);
             reject(new Error('Component unmounted'));
@@ -56,7 +50,6 @@ export const useUsersApi = () => {
     throw lastError;
   }, []);
 
-  // Загрузка пользователей
   const loadUsers = React.useCallback(async () => {
     if (!isMountedRef.current) return;
     setIsLoading(true);
@@ -79,7 +72,6 @@ export const useUsersApi = () => {
     }
   }, [executeWithRetry]);
 
-  // Изначальная загрузка данных
   React.useEffect(() => {
     isMountedRef.current = true;
     loadUsers();
@@ -88,13 +80,12 @@ export const useUsersApi = () => {
     };
   }, [loadUsers]);
 
-  // Функция создания пользователя
   const createUser = async (userData: Partial<UserProfile>) => {
     try {
       const response = await executeWithRetry(() => authApi.createUser(userData));
       if (response.success && response.data) {
         showToast('Пользователь создан');
-        await loadUsers(); // Перезагружаем список
+        await loadUsers();
         return true;
       } else {
         handleApiError(response, 'создании пользователя');
@@ -106,7 +97,6 @@ export const useUsersApi = () => {
     }
   };
 
-  // Функция обновления пользователя
   const updateUser = async (userId: string, userData: Partial<UserProfile>) => {
     try {
       const response = await executeWithRetry(() => authApi.updateUser(userId, userData));
@@ -123,14 +113,13 @@ export const useUsersApi = () => {
       return false;
     }
   };
-  
-    // Функция удаления пользователя
+
   const deleteUser = async (userId: string) => {
     try {
       const response = await executeWithRetry(() => authApi.deleteUser(userId));
       if (response.success !== false) {
         showToast('Пользователь удален');
-        await loadUsers(); // Перезагружаем список
+        await loadUsers();
         return true;
       } else {
         handleApiError(response, 'удалении пользователя');
@@ -142,11 +131,9 @@ export const useUsersApi = () => {
     }
   };
 
-  // Функция сброса пароля
   const resetPassword = async (userId: string, newPassword: string) => {
     try {
-        // API должен поддерживать сброс пароля отдельным эндпоинтом или через updateUser
-        // Здесь предполагается, что updateUser может принимать только пароль
+
         const response = await executeWithRetry(() => authApi.updateUser(userId, { password: newPassword } as any));
         if (response.success) {
             showToast('Пароль успешно изменен');
@@ -169,6 +156,6 @@ export const useUsersApi = () => {
     updateUser,
     deleteUser,
     resetPassword,
-    // sanitizeInput, // Если он нужен в компоненте, его тоже можно вынести в utils
+
   };
 };

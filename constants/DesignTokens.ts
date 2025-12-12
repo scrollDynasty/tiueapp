@@ -1,28 +1,23 @@
-// Дизайн-токены для университетского приложения
 export const Colors = {
-  // Основные цвета
+
   surface: '#FFFFFF',
   surfaceSubtle: '#F5F7FB',
   textPrimary: '#0F172A',
   textSecondary: '#475569',
-  
-  // Брендовые цвета
+
   brandPrimary: '#2563EB',
   brandPrimary10: '#EBF2FF',
   brandHover: '#1D4ED8',
   brandPressed: '#1E40AF',
-  
-  // Структурные цвета
+
   strokeSoft: '#E5EAF2',
   chipBg: '#EEF4FF',
   chipIcon: '#3B82F6',
   shadowUmbra: 'rgba(16, 24, 40, 0.06)',
-  
-  // Навигация
+
   tabInactive: '#94A3B8',
   tabActiveShadow: 'rgba(59, 130, 246, 0.25)',
-  
-  // Фокус и состояния
+
   focusRing: '#93C5FD',
   error: '#EF4444',
 };

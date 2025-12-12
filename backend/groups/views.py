@@ -3,7 +3,7 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Group
 
 class GroupSerializer:
-    # Простой сериализатор для начала
+
     pass
 
 class GroupListCreateView(generics.ListCreateAPIView):

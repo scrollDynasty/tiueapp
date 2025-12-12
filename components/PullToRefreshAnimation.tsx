@@ -12,7 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 interface PullToRefreshAnimationProps {
-  progress: number; // 0 to 1
+  progress: number;
   refreshing: boolean;
 }
 
@@ -41,7 +41,7 @@ export function PullToRefreshAnimation({ progress, refreshing }: PullToRefreshAn
     }
 
     return () => {
-      // Stop animations on unmount
+
       rotation.value = 0;
       scale.value = 1;
     };

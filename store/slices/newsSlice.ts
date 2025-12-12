@@ -17,30 +17,27 @@ const initialState: NewsState = {
   error: null,
 };
 
-// ОПТИМИЗАЦИЯ: Async thunks с кешированием для быстрой загрузки
 export const fetchNews = createAsyncThunk(
   'news/fetchNews',
   async (_, { rejectWithValue }) => {
     try {
-      // Сначала пытаемся получить из кеша
+
       const cachedNews = await cache.get<News[]>(cacheKeys.news);
-      
+
       if (cachedNews) {
-        // Возвращаем кешированные данные сразу
-        // и обновляем в фоне
+
         authApi.getNews().then(response => {
           if (response.success && response.data) {
             cache.set(cacheKeys.news, response.data, cacheTTL.short);
           }
         }).catch(() => {});
-        
+
         return cachedNews;
       }
-      
-      // Если кеша нет, загружаем с сервера
+
       const response = await authApi.getNews();
       if (response.success && response.data) {
-        // Сохраняем в кеш
+
         await cache.set(cacheKeys.news, response.data, cacheTTL.short);
         return response.data;
       } else {
@@ -54,14 +51,14 @@ export const fetchNews = createAsyncThunk(
 
 export const createNews = createAsyncThunk(
   'news/createNews',
-  async (newsData: { 
-    title: string; 
-    subtitle: string; 
-    content: string; 
-    category: string; 
-    icon: string; 
+  async (newsData: {
+    title: string;
+    subtitle: string;
+    content: string;
+    category: string;
+    icon: string;
     is_important: boolean;
-    image?: any; // Может быть строкой (URI) или объектом ImagePickerAsset
+    image?: any;
   }, { rejectWithValue }) => {
     try {
       const response = await authApi.createNews(newsData);
@@ -99,7 +96,7 @@ const newsSlice = createSlice({
     setFilter: (state, action: PayloadAction<string>) => {
       state.filter = action.payload;
     },
-    // Оставляем локальный addNews для offline режима
+
     addNews: (state, action: PayloadAction<News>) => {
       if (!Array.isArray(state.items)) {
         state.items = [];
@@ -112,14 +109,14 @@ const newsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch news
+
       .addCase(fetchNews.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
       .addCase(fetchNews.fulfilled, (state, action) => {
         state.isLoading = false;
-        // Django REST Framework возвращает данные в формате {results: [...]}
+
         const payload = action.payload as any;
         const newsArray = payload?.results || payload;
         state.items = Array.isArray(newsArray) ? newsArray : [];
@@ -128,7 +125,7 @@ const newsSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      // Create news
+
       .addCase(createNews.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -144,7 +141,7 @@ const newsSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      // Delete news
+
       .addCase(deleteNews.pending, (state) => {
         state.isLoading = true;
         state.error = null;

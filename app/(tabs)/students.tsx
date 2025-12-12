@@ -51,7 +51,7 @@ export default function StudentsScreen() {
   const insets = useSafeAreaInsets();
   const { user } = useAppSelector((state) => state.auth);
   const { horizontalPadding, isSmallScreen, fontSize, spacing, isVerySmallScreen } = useResponsive();
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
@@ -59,7 +59,6 @@ export default function StudentsScreen() {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
-  // Получаем уникальные группы для фильтрации
   const groups = [...new Set(students.map(s => s.student?.group?.name).filter(Boolean))].sort();
 
   const searchStudents = async () => {
@@ -78,9 +77,9 @@ export default function StudentsScreen() {
 
       if (response.success && response.data) {
         const studentsData = response.data.map((student: any) => {
-          // Правильно формируем URL аватарки
+
           let avatarUrl = student.avatar;
-          
+
           if (avatarUrl && avatarUrl.startsWith('http')) {
             avatarUrl = avatarUrl;
           } else if (avatarUrl && avatarUrl.startsWith('/api/')) {
@@ -93,7 +92,6 @@ export default function StudentsScreen() {
             avatarUrl = null;
           }
 
-          // Заменяем @tiue.local на @tiue.uz
           let email = student.email;
           if (email && email.includes('@tiue.local')) {
             email = email.replace('@tiue.local', '@tiue.uz');
@@ -114,11 +112,11 @@ export default function StudentsScreen() {
             }
           };
         });
-        
+
         setStudents(studentsData);
         setFilteredStudents(studentsData);
       } else {
-        // Если API не вернул данных
+
         setStudents([]);
         setFilteredStudents([]);
       }
@@ -138,7 +136,7 @@ export default function StudentsScreen() {
       key={student.id}
       activeOpacity={0.7}
       onPress={() => {
-        // Переход к профилю студента
+
         router.push({
           pathname: '/student-profile/[id]',
           params: {
@@ -170,7 +168,7 @@ export default function StudentsScreen() {
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        {/* Аватар */}
+        {}
         <View style={{
           width: isVerySmallScreen ? 50 : 60,
           height: isVerySmallScreen ? 50 : 60,
@@ -182,9 +180,9 @@ export default function StudentsScreen() {
         }}>
           {student.avatar ? (
             <Image
-              source={{ 
+              source={{
                 uri: student.avatar,
-                cache: 'force-cache' // Кэширование изображений
+                cache: 'force-cache'
               }}
               style={{ width: '100%', height: '100%' }}
               onError={(error) => {
@@ -214,7 +212,7 @@ export default function StudentsScreen() {
           )}
         </View>
 
-        {/* Информация о студенте */}
+        {}
         <View style={{ flex: 1 }}>
           <ThemedText style={{
             fontSize: fontSize.body,
@@ -224,7 +222,7 @@ export default function StudentsScreen() {
           }}>
             {student.first_name} {student.last_name}
           </ThemedText>
-          
+
           <ThemedText style={{
             fontSize: fontSize.small,
             color: colors.textSecondary,
@@ -232,7 +230,7 @@ export default function StudentsScreen() {
           }}>
             @{student.username}
           </ThemedText>
-          
+
           {student.student?.group && (
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
               <LinearGradient
@@ -255,7 +253,7 @@ export default function StudentsScreen() {
           )}
         </View>
 
-        {/* Иконка перехода */}
+        {}
         <View
           style={{
             width: 40,
@@ -277,9 +275,9 @@ export default function StudentsScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Градиентный фон */}
+      {}
       <LinearGradient
-        colors={isDarkMode 
+        colors={isDarkMode
           ? ['#0F172A', '#1E293B', '#334155']
           : ['#FAFAFA', '#F8FAFC', '#EEF2F7']
         }
@@ -287,7 +285,7 @@ export default function StudentsScreen() {
         end={{ x: 1, y: 1 }}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       />
-      
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
@@ -297,17 +295,17 @@ export default function StudentsScreen() {
             : (isVerySmallScreen ? 160 : isSmallScreen ? 140 : 120),
         }}
       >
-        {/* Заголовок с кнопкой назад */}
-        <Animated.View 
+        {}
+        <Animated.View
           entering={FadeInUp.duration(600).springify()}
-          style={{ 
+          style={{
             paddingTop: insets.top + 10,
             marginBottom: spacing.md,
           }}
         >
-          <View style={{ 
-            flexDirection: 'row', 
-            alignItems: 'center', 
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
             marginBottom: spacing.md,
           }}>
             <TouchableOpacity
@@ -329,7 +327,7 @@ export default function StudentsScreen() {
             >
               <Ionicons name="chevron-back" size={20} color={colors.primary} />
             </TouchableOpacity>
-            
+
             <LinearGradient
               colors={[`${colors.primary}20`, `${colors.primary}10`]}
               style={{
@@ -343,13 +341,13 @@ export default function StudentsScreen() {
                 borderColor: `${colors.primary}30`,
               }}
             >
-              <Ionicons 
-                name="people" 
-                size={isVerySmallScreen ? 24 : 28} 
-                color={colors.primary} 
+              <Ionicons
+                name="people"
+                size={isVerySmallScreen ? 24 : 28}
+                color={colors.primary}
               />
             </LinearGradient>
-            
+
             <View style={{ flex: 1 }}>
               <ThemedText style={{
                 fontSize: isVerySmallScreen ? fontSize.title + 2 : fontSize.title + 6,
@@ -371,8 +369,8 @@ export default function StudentsScreen() {
           </View>
         </Animated.View>
 
-        {/* Поле поиска */}
-        <Animated.View 
+        {}
+        <Animated.View
           entering={FadeInDown.delay(200).duration(800).springify()}
           style={{
             backgroundColor: colors.surface,
@@ -386,15 +384,15 @@ export default function StudentsScreen() {
             shadowRadius: 16,
             elevation: 8,
             borderWidth: 1,
-            borderColor: focusedInput === 'search' 
-              ? `${colors.primary}40` 
+            borderColor: focusedInput === 'search'
+              ? `${colors.primary}40`
               : isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <LinearGradient
-              colors={focusedInput === 'search' 
-                ? [colors.primary, `${colors.primary}80`] 
+              colors={focusedInput === 'search'
+                ? [colors.primary, `${colors.primary}80`]
                 : [`${colors.primary}20`, `${colors.primary}10`]
               }
               style={{
@@ -405,14 +403,14 @@ export default function StudentsScreen() {
                 justifyContent: 'center',
                 marginRight: spacing.md,
                 borderWidth: 1,
-                borderColor: focusedInput === 'search' 
-                  ? `${colors.primary}40` 
+                borderColor: focusedInput === 'search'
+                  ? `${colors.primary}40`
                   : `${colors.primary}30`,
               }}
             >
-              <Ionicons 
-                name="search" 
-                size={isVerySmallScreen ? 20 : 22} 
+              <Ionicons
+                name="search"
+                size={isVerySmallScreen ? 20 : 22}
                 color={focusedInput === 'search' ? '#FFFFFF' : colors.primary}
               />
             </LinearGradient>
@@ -443,7 +441,7 @@ export default function StudentsScreen() {
               underlineColorAndroid="transparent"
             />
             {searchQuery.length > 0 && (
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => setSearchQuery('')}
                 style={{
                   width: 32,
@@ -461,18 +459,18 @@ export default function StudentsScreen() {
           </View>
         </Animated.View>
 
-        {/* Фильтры */}
-        <Animated.View 
+        {}
+        <Animated.View
           entering={FadeInDown.delay(400).duration(800)}
           style={{ marginBottom: spacing.md }}
         >
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 4 }}
           >
             <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-              {/* Фильтр "Все" */}
+              {}
               <TouchableOpacity
                 onPress={() => {
                   setSelectedGroup(null);
@@ -481,19 +479,19 @@ export default function StudentsScreen() {
                   paddingHorizontal: spacing.md,
                   paddingVertical: spacing.sm,
                   borderRadius: 20,
-                  backgroundColor: !selectedGroup 
-                    ? colors.primary 
+                  backgroundColor: !selectedGroup
+                    ? colors.primary
                     : `${colors.primary}15`,
                   borderWidth: 1,
-                  borderColor: !selectedGroup 
-                    ? colors.primary 
+                  borderColor: !selectedGroup
+                    ? colors.primary
                     : `${colors.primary}30`,
                 }}
               >
                 <ThemedText style={{
                   fontSize: fontSize.small,
-                  color: !selectedGroup 
-                    ? '#FFFFFF' 
+                  color: !selectedGroup
+                    ? '#FFFFFF'
                     : colors.primary,
                   fontWeight: '500',
                 }}>
@@ -504,9 +502,9 @@ export default function StudentsScreen() {
           </ScrollView>
         </Animated.View>
 
-        {/* Результаты поиска */}
+        {}
         {loading ? (
-          <Animated.View 
+          <Animated.View
             entering={FadeInDown.duration(600)}
             style={{
               flex: 1,
@@ -533,11 +531,11 @@ export default function StudentsScreen() {
             }}>
               Найдено студентов: {filteredStudents.length}
             </ThemedText>
-            
+
             {filteredStudents.map((student, index) => renderStudentCard(student, index))}
           </Animated.View>
         ) : searchQuery.trim() || selectedGroup ? (
-          <Animated.View 
+          <Animated.View
             entering={FadeInDown.duration(600)}
             style={{
               flex: 1,
@@ -559,7 +557,7 @@ export default function StudentsScreen() {
             >
               <Ionicons name="person-outline" size={40} color={colors.primary} />
             </LinearGradient>
-            
+
             <ThemedText style={{
               fontSize: fontSize.title,
               fontWeight: '600',
@@ -569,7 +567,7 @@ export default function StudentsScreen() {
             }}>
               Студенты не найдены
             </ThemedText>
-            
+
             <ThemedText style={{
               fontSize: fontSize.body,
               color: colors.textSecondary,
@@ -580,7 +578,7 @@ export default function StudentsScreen() {
             </ThemedText>
           </Animated.View>
         ) : (
-          <Animated.View 
+          <Animated.View
             entering={FadeInDown.duration(600)}
             style={{
               flex: 1,
@@ -602,7 +600,7 @@ export default function StudentsScreen() {
             >
               <Ionicons name="search" size={40} color={colors.primary} />
             </LinearGradient>
-            
+
             <ThemedText style={{
               fontSize: fontSize.title,
               fontWeight: '600',
@@ -612,7 +610,7 @@ export default function StudentsScreen() {
             }}>
               Начните поиск
             </ThemedText>
-            
+
             <ThemedText style={{
               fontSize: fontSize.body,
               color: colors.textSecondary,

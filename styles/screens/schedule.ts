@@ -162,7 +162,7 @@ export const scheduleStyles = StyleSheet.create({
     color: Colors.light.textSecondary,
     textAlign: 'center',
   },
-  // Добавляем отсутствующие стили
+
   title: {
     ...TYPOGRAPHY.h2,
     color: Colors.light.text,

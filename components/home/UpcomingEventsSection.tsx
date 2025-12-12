@@ -59,7 +59,7 @@ export const UpcomingEventsSection = React.memo(({ events }: UpcomingEventsSecti
           </ThemedText>
         </Pressable>
       </View>
-      
+
       <View>
         {events.map((event, index) => (
           <QuickEventCard key={event.id} event={event} index={index} />

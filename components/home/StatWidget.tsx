@@ -25,7 +25,7 @@ export const StatWidget = React.memo(({ icon, title, value, color }: StatWidgetP
     padding: isSmall ? spacing.xs : spacing.sm,
     flex: 1,
     marginHorizontal: spacing.xs / 2,
-    // Оптимизированные тени для платформ
+
     ...Platform.select({
       android: {
         elevation: isSmall ? 1 : 2,
@@ -51,13 +51,13 @@ export const StatWidget = React.memo(({ icon, title, value, color }: StatWidgetP
     borderWidth: isDarkMode ? 1 : 0,
     borderColor: isDarkMode ? colors.border : 'transparent',
     minHeight: isSmall ? 65 : 80,
-    maxWidth: isSmall ? '32%' as const : undefined, // Ограничиваем ширину для предотвращения переноса
+    maxWidth: isSmall ? '32%' as const : undefined,
     alignSelf: 'stretch' as const,
   }), [isDarkMode, colors, isSmall, color, spacing, borderRadius]);
 
-  const headerStyle = React.useMemo(() => ({ 
-    flexDirection: isSmall ? 'column' as const : 'row' as const, 
-    alignItems: 'center' as const, 
+  const headerStyle = React.useMemo(() => ({
+    flexDirection: isSmall ? 'column' as const : 'row' as const,
+    alignItems: 'center' as const,
     marginBottom: spacing.xs,
     justifyContent: 'center' as const
   }), [isSmall, spacing]);
@@ -102,7 +102,7 @@ export const StatWidget = React.memo(({ icon, title, value, color }: StatWidgetP
           <Ionicons name={icon} size={isSmall ? 14 : 16} color={color} />
         </View>
         {!isSmall && (
-          <ThemedText 
+          <ThemedText
             style={titleStyle}
             numberOfLines={1}
             adjustsFontSizeToFit={true}
@@ -112,7 +112,7 @@ export const StatWidget = React.memo(({ icon, title, value, color }: StatWidgetP
           </ThemedText>
         )}
       </View>
-      <ThemedText 
+      <ThemedText
         style={valueStyle}
         numberOfLines={1}
         adjustsFontSizeToFit={true}
@@ -121,7 +121,7 @@ export const StatWidget = React.memo(({ icon, title, value, color }: StatWidgetP
         {value}
       </ThemedText>
       {isSmall && (
-        <ThemedText 
+        <ThemedText
           style={[titleStyle, { marginTop: 2 }]}
           numberOfLines={1}
           adjustsFontSizeToFit={true}

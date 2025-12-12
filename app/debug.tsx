@@ -10,7 +10,7 @@ export default function DebugScreen() {
     try {
       const token = await AsyncStorage.getItem('authToken');
       const userStr = await AsyncStorage.getItem('userInfo');
-      
+
       setTokenInfo(`Token: ${token ? 'exists (' + token.substring(0, 8) + '...)' : 'null'}\nUser: ${userStr ? 'exists' : 'null'}`);
     } catch (error) {
       setTokenInfo('Error checking storage');
@@ -39,7 +39,7 @@ export default function DebugScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Debug Tools</Text>
-      
+
       <TouchableOpacity style={styles.button} onPress={checkStoredToken}>
         <Text style={styles.buttonText}>Check Stored Token</Text>
       </TouchableOpacity>

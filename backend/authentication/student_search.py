@@ -10,103 +10,88 @@ from .ldap_service import ldap_service
 
 logger = logging.getLogger(__name__)
 
-
 @csrf_exempt
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def search_students(request):
-    """
-    Поиск студентов через LDAP
-    
-    Query parameters:
-    - q: поисковый запрос (имя, фамилия, username)
-    - group: группа/department (например, BM_01 EN Year1)
-    - limit: максимальное количество результатов (по умолчанию 50)
-    """
+
     try:
-        # Получаем Bearer токен
+
         auth_header = request.META.get('HTTP_AUTHORIZATION')
         if not auth_header or not auth_header.startswith('Bearer '):
             return Response({
                 'success': False,
                 'error': 'Bearer токен обязателен'
             }, status=status.HTTP_401_UNAUTHORIZED)
-        
+
         access_token = auth_header.split(' ')[1]
-        
-        # Получаем параметры поиска
+
         query = request.GET.get('q', '')
         group = request.GET.get('group')
         limit = int(request.GET.get('limit', 50))
-        
-        # Валидация параметров
+
         if not query and not group:
             return Response({
                 'success': False,
                 'error': 'Необходимо указать хотя бы один параметр поиска'
             }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Вызываем LDAP сервис для поиска студентов
+
         success, ldap_response = ldap_service.search_students(
             access_token,
             query=query if query else None,
             group=group if group else None,
             limit=limit
         )
-        
+
         if success:
             students = ldap_response.get('students', [])
-            
-            # Обогащаем данные студентов аватарками
+
             for student in students:
                 username = student.get('uid', '')
                 if username:
-                    # Формируем URL через наш API endpoint (как в getCurrentUser)
-                    # Это обеспечит единообразный подход к аватаркам
+
                     base_url = settings.BASE_URL
                     avatar_api_url = f"{base_url}/users/avatar/{username}/"
-                    
-                    # Делаем запрос к нашему API для получения аватарки
+
                     try:
                         from users.models import CustomUser
                         from users.views import get_user_avatar_data
-                        
-                        # Получаем данные аватарки напрямую
+
                         local_user = CustomUser.objects.filter(username=username).first()
                         if local_user and local_user.avatar:
-                            # Есть локальная аватарка
+
                             avatar_url = f"{base_url}{local_user.avatar.url}"
                             student['avatar'] = avatar_url
                             logger.debug(f"Local avatar for {username}: {avatar_url}")
                         else:
-                            # Нет локальной аватарки - формируем URL на LDAP сервер
+
                             ldap_base_url = getattr(settings, 'LDAP_BASE_URL', 'https://my.tiue.uz')
                             avatar_url = f"{ldap_base_url}/mobile/img/{username}"
                             student['avatar'] = avatar_url
                             logger.debug(f"LDAP avatar URL for {username}: {avatar_url}")
                     except Exception as e:
-                        # Если ошибка - используем LDAP URL
+
                         ldap_base_url = getattr(settings, 'LDAP_BASE_URL', 'https://my.tiue.uz')
                         student['avatar'] = f"{ldap_base_url}/mobile/img/{username}"
-                        logger.error(f"Error getting avatar for {username}: {e}") 
-            
+                        logger.error(f"Error getting avatar for {username}: {e}")
+
             return Response({
                 'success': True,
                 'data': students
             }, status=status.HTTP_200_OK)
         else:
             error_message = ldap_response.get('error', 'Не удалось найти студентов')
-            
+
             if 'timeout' in error_message.lower() or 'connection' in error_message.lower():
                 response_status = status.HTTP_503_SERVICE_UNAVAILABLE
             else:
                 response_status = status.HTTP_400_BAD_REQUEST
-                
+
             return Response({
                 'success': False,
                 'error': error_message
             }, status=response_status)
-            
+
     except ValueError:
         return Response({
             'success': False,

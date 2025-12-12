@@ -17,13 +17,13 @@ interface AdminProfileProps {
 }
 
 export const AdminProfile = React.memo(({ user, onLogout }: AdminProfileProps) => {
-  // Получаем данные из Redux для статистики
+
   const { items: newsItems } = useAppSelector((state) => state.news);
   const { items: eventsItems } = useAppSelector((state) => state.events);
   const { isDarkMode } = useTheme();
   const colors = getThemeColors(isDarkMode);
   const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
-  
+
   const displayInfo = React.useMemo(() => ({
     name: `${user.first_name} ${user.last_name}`.trim() || user.username,
     subtitle: 'Системный администратор',
@@ -59,7 +59,7 @@ export const AdminProfile = React.memo(({ user, onLogout }: AdminProfileProps) =
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Современный заголовок админ панели с градиентом */}
+      {}
       <Animated.View entering={SlideInRight.duration(400)} style={{ marginTop: isVerySmallScreen ? -spacing.md : isSmallScreen ? -spacing.lg : -Spacing.l, marginHorizontal: isVerySmallScreen ? -spacing.md : isSmallScreen ? -spacing.lg : -Spacing.l, marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l }}>
         <LinearGradient
           colors={[colors.primary, '#5B8DF7']}
@@ -89,7 +89,7 @@ export const AdminProfile = React.memo(({ user, onLogout }: AdminProfileProps) =
           >
             <Ionicons name="settings" size={isVerySmallScreen ? 24 : isSmallScreen ? 26 : 28} color="white" />
           </View>
-          
+
           <View style={{ flex: 1 }}>
             <ThemedText
               style={{
@@ -97,7 +97,7 @@ export const AdminProfile = React.memo(({ user, onLogout }: AdminProfileProps) =
                 color: 'white',
                 marginBottom: 4,
                 fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? 20 : 22,
-                lineHeight: isVerySmallScreen ? 20 : isSmallScreen ? 26 : 28, // Добавляем lineHeight
+                lineHeight: isVerySmallScreen ? 20 : isSmallScreen ? 26 : 28,
               }}
             >
               {displayInfo.name}
@@ -129,7 +129,7 @@ export const AdminProfile = React.memo(({ user, onLogout }: AdminProfileProps) =
           </View>
         </View>
 
-        {/* Статистика в заголовке */}
+        {}
         <View style={{
           backgroundColor: 'rgba(255,255,255,0.1)',
           paddingHorizontal: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
@@ -190,22 +190,22 @@ export const AdminProfile = React.memo(({ user, onLogout }: AdminProfileProps) =
         </LinearGradient>
       </Animated.View>
 
-      {/* Современные карточки управления */}
+      {}
       <Animated.View entering={FadeInDown.duration(500).delay(200)}>
-        <ThemedText style={{ 
-          ...Typography.titleH2, 
-          color: colors.text, 
+        <ThemedText style={{
+          ...Typography.titleH2,
+          color: colors.text,
           marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
           fontSize: isVerySmallScreen ? fontSize.title : isSmallScreen ? 17 : 18,
         }}>
           Управление контентом
         </ThemedText>
-        
+
         <View style={{
           gap: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.m,
           marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l,
         }}>
-          {/* Карточка управления новостями */}
+          {}
           <Pressable
             onPress={handleNewsPress}
             style={{
@@ -231,16 +231,16 @@ export const AdminProfile = React.memo(({ user, onLogout }: AdminProfileProps) =
               <Ionicons name="newspaper-outline" size={isVerySmallScreen ? 20 : isSmallScreen ? 22 : 24} color={colors.primary} />
             </View>
             <View style={{ flex: 1 }}>
-              <ThemedText style={{ 
-                ...Typography.titleH2, 
-                color: colors.text, 
+              <ThemedText style={{
+                ...Typography.titleH2,
+                color: colors.text,
                 marginBottom: 4,
                 fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? fontSize.title : Typography.titleH2.fontSize,
               }}>
                 Управление новостями
               </ThemedText>
-              <ThemedText style={{ 
-                ...Typography.body, 
+              <ThemedText style={{
+                ...Typography.body,
                 color: colors.textSecondary,
                 fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : 14,
               }}>
@@ -265,7 +265,7 @@ export const AdminProfile = React.memo(({ user, onLogout }: AdminProfileProps) =
             <Ionicons name="chevron-forward" size={isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={colors.textSecondary} />
           </Pressable>
 
-          {/* Карточка управления событиями */}
+          {}
           <Pressable
             onPress={handleEventsPress}
             style={{
@@ -291,16 +291,16 @@ export const AdminProfile = React.memo(({ user, onLogout }: AdminProfileProps) =
               <Ionicons name="calendar-outline" size={isVerySmallScreen ? 20 : isSmallScreen ? 22 : 24} color={colors.warning} />
             </View>
             <View style={{ flex: 1 }}>
-              <ThemedText style={{ 
-                ...Typography.titleH2, 
-                color: colors.text, 
+              <ThemedText style={{
+                ...Typography.titleH2,
+                color: colors.text,
                 marginBottom: 4,
                 fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? fontSize.title : Typography.titleH2.fontSize,
               }}>
                 Управление событиями
               </ThemedText>
-              <ThemedText style={{ 
-                ...Typography.body, 
+              <ThemedText style={{
+                ...Typography.body,
                 color: colors.textSecondary,
                 fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : 14,
               }}>
@@ -325,7 +325,7 @@ export const AdminProfile = React.memo(({ user, onLogout }: AdminProfileProps) =
             <Ionicons name="chevron-forward" size={isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={Colors.textSecondary} />
           </Pressable>
 
-          {/* Карточка управления расписанием */}
+          {}
           <Pressable
             onPress={handleSchedulePress}
             style={{
@@ -351,16 +351,16 @@ export const AdminProfile = React.memo(({ user, onLogout }: AdminProfileProps) =
               <Ionicons name="time-outline" size={isVerySmallScreen ? 20 : isSmallScreen ? 22 : 24} color={colors.success} />
             </View>
             <View style={{ flex: 1 }}>
-              <ThemedText style={{ 
-                ...Typography.titleH2, 
-                color: colors.text, 
+              <ThemedText style={{
+                ...Typography.titleH2,
+                color: colors.text,
                 marginBottom: 4,
                 fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? fontSize.title : Typography.titleH2.fontSize,
               }}>
                 Управление расписанием
               </ThemedText>
-              <ThemedText style={{ 
-                ...Typography.body, 
+              <ThemedText style={{
+                ...Typography.body,
                 color: colors.textSecondary,
                 fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : 14,
               }}>
@@ -385,7 +385,7 @@ export const AdminProfile = React.memo(({ user, onLogout }: AdminProfileProps) =
             <Ionicons name="chevron-forward" size={isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={colors.textSecondary} />
           </Pressable>
 
-          {/* Карточка управления пользователями */}
+          {}
           <Pressable
             onPress={handleUsersPress}
             style={{
@@ -411,16 +411,16 @@ export const AdminProfile = React.memo(({ user, onLogout }: AdminProfileProps) =
               <Ionicons name="people-outline" size={isVerySmallScreen ? 20 : isSmallScreen ? 22 : 24} color={colors.error} />
             </View>
             <View style={{ flex: 1 }}>
-              <ThemedText style={{ 
-                ...Typography.titleH2, 
-                color: colors.text, 
+              <ThemedText style={{
+                ...Typography.titleH2,
+                color: colors.text,
                 marginBottom: 4,
                 fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? fontSize.title : Typography.titleH2.fontSize,
               }}>
                 Управление пользователями
               </ThemedText>
-              <ThemedText style={{ 
-                ...Typography.body, 
+              <ThemedText style={{
+                ...Typography.body,
                 color: colors.textSecondary,
                 fontSize: isVerySmallScreen ? fontSize.small : isSmallScreen ? fontSize.body : 14,
               }}>
@@ -447,20 +447,20 @@ export const AdminProfile = React.memo(({ user, onLogout }: AdminProfileProps) =
         </View>
       </Animated.View>
 
-      {/* Системная информация и настройки */}
+      {}
       <Animated.View entering={FadeInDown.duration(500).delay(300)}>
-        <ThemedText style={{ 
-          ...Typography.titleH2, 
-          color: colors.text, 
+        <ThemedText style={{
+          ...Typography.titleH2,
+          color: colors.text,
           marginBottom: isVerySmallScreen ? spacing.sm : isSmallScreen ? spacing.md : Spacing.m,
           fontSize: isVerySmallScreen ? fontSize.title : isSmallScreen ? 17 : 18,
         }}>
           Системная информация
         </ThemedText>
-        
-        <View style={{ 
-          gap: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s, 
-          marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l 
+
+        <View style={{
+          gap: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s,
+          marginBottom: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l
         }}>
           <Pressable
             style={{
@@ -534,9 +534,9 @@ export const AdminProfile = React.memo(({ user, onLogout }: AdminProfileProps) =
         </View>
       </Animated.View>
 
-      {/* Выход из системы */}
-      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{ 
-        marginTop: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l 
+      {}
+      <Animated.View entering={FadeInDown.duration(500).delay(400)} style={{
+        marginTop: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : Spacing.l
       }}>
         <Pressable
           onPress={handleLogoutPress}
@@ -552,13 +552,13 @@ export const AdminProfile = React.memo(({ user, onLogout }: AdminProfileProps) =
             opacity: pressed ? 0.9 : 1,
           })}
         >
-          <Ionicons 
-            name="log-out-outline" 
-            size={isVerySmallScreen ? 18 : isSmallScreen ? 19 : 20} 
-            color="white" 
-            style={{ marginRight: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s }} 
+          <Ionicons
+            name="log-out-outline"
+            size={isVerySmallScreen ? 18 : isSmallScreen ? 19 : 20}
+            color="white"
+            style={{ marginRight: isVerySmallScreen ? spacing.xs : isSmallScreen ? spacing.sm : Spacing.s }}
           />
-          <ThemedText style={{ 
+          <ThemedText style={{
             fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? 15 : 16,
             color: 'white',
           }}>

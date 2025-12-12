@@ -12,12 +12,11 @@ import { useResponsive } from '@/hooks/useResponsive';
 import { authApi } from '@/services/api';
 import { addEventToCalendar, parseEventDateTime } from '@/utils/calendar';
 
-
 export default function EventDetailScreen() {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const colors = getThemeColors(isDarkMode);
-  
+
   const { id } = useLocalSearchParams();
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [event, setEvent] = useState<any>(null);
@@ -25,7 +24,7 @@ export default function EventDetailScreen() {
   const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
   const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  
+
   const eventId = React.useMemo(() => {
     return Array.isArray(id) ? id[0] : id;
   }, [id]);
@@ -41,7 +40,7 @@ export default function EventDetailScreen() {
 
   const loadEvent = React.useCallback(async () => {
     if (!eventId || loadingRef.current) {
-      return; // Предотвращаем дублированные запросы
+      return;
     }
 
     try {
@@ -49,9 +48,9 @@ export default function EventDetailScreen() {
       if (isMountedRef.current) {
         setLoading(true);
       }
-      
+
       const response = await authApi.getEventById(eventId);
-      
+
       if (isMountedRef.current && response.success && response.data) {
         setEvent(response.data);
       }
@@ -68,7 +67,7 @@ export default function EventDetailScreen() {
   }, [eventId]);
 
   useEffect(() => {
-    if (eventId && !event) { // Загружаем только если событие еще не загружено
+    if (eventId && !event) {
       loadEvent();
     }
   }, [eventId, loadEvent, event]);
@@ -78,7 +77,7 @@ export default function EventDetailScreen() {
       <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
         <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#3B82F6" />
-          <ThemedText style={{ 
+          <ThemedText style={{
             fontSize: 16,
             color: '#1E3A8A',
             marginTop: 16,
@@ -95,14 +94,14 @@ export default function EventDetailScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
         <SafeAreaView style={{ flex: 1 }}>
-          <View style={{ 
-            flex: 1, 
-            justifyContent: 'center', 
+          <View style={{
+            flex: 1,
+            justifyContent: 'center',
             alignItems: 'center',
             padding: 32
           }}>
             <Ionicons name="calendar-outline" size={64} color="#94A3B8" />
-            <ThemedText style={{ 
+            <ThemedText style={{
               fontSize: 20,
               color: '#64748B',
               marginTop: 16,
@@ -133,11 +132,9 @@ export default function EventDetailScreen() {
     );
   }
 
-  // Функции для категорий больше не нужны в новом дизайне
-
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* 1. Хэдер с заголовком */}
+      {}
       <SafeAreaView style={{ backgroundColor: colors.surface }}>
        <View style={{
           flexDirection: 'row',
@@ -172,7 +169,7 @@ export default function EventDetailScreen() {
         </View>
       </SafeAreaView>
 
-      {/* 2. Большая картинка события */}
+      {}
       <Animated.View entering={FadeInUp.duration(600)}>
         <Pressable onPress={() => setImageModalVisible(true)}>
           {event.image ? (
@@ -206,14 +203,14 @@ export default function EventDetailScreen() {
         </Pressable>
       </Animated.View>
 
-      {/* 3, 4, 5. Контент: информация + описание + кнопка */}
-      <ScrollView 
+      {}
+      <ScrollView
         style={{ flex: 1, backgroundColor: '#FFFFFF' }}
         contentContainerStyle={{ paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* 3. Информация о событии в карточке */}
-        <Animated.View 
+        {}
+        <Animated.View
           entering={FadeInDown.delay(200).duration(600)}
           style={{
             backgroundColor: '#FFFFFF',
@@ -230,7 +227,7 @@ export default function EventDetailScreen() {
             borderColor: '#E2E8F0',
           }}
         >
-          {/* Заголовок события */}
+          {}
           <ThemedText style={{
             fontSize: 24,
             fontWeight: 'bold',
@@ -241,7 +238,7 @@ export default function EventDetailScreen() {
             {event.title}
           </ThemedText>
 
-          {/* Дата и время */}
+          {}
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -276,7 +273,7 @@ export default function EventDetailScreen() {
             </View>
           </View>
 
-          {/* Локация */}
+          {}
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -304,7 +301,7 @@ export default function EventDetailScreen() {
             </View>
           </View>
 
-          {/* Количество участников (если есть) */}
+          {}
           {event.maxParticipants && (
             <View style={{
               flexDirection: 'row',
@@ -334,8 +331,8 @@ export default function EventDetailScreen() {
           )}
         </Animated.View>
 
-        {/* 4. Описание события */}
-        <Animated.View 
+        {}
+        <Animated.View
           entering={FadeInDown.delay(400).duration(600)}
           style={{
             backgroundColor: '#FFFFFF',
@@ -369,8 +366,8 @@ export default function EventDetailScreen() {
           </ThemedText>
         </Animated.View>
 
-        {/* 5. Кнопка "Add to Calendar" */}
-        <Animated.View 
+        {}
+        <Animated.View
           entering={FadeInDown.delay(600).duration(600)}
           style={{
             marginHorizontal: 16,
@@ -396,8 +393,8 @@ export default function EventDetailScreen() {
             onPress={async () => {
               try {
                 const startDate = parseEventDateTime(event.date, event.time);
-                const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // +2 часа
-                
+                const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+
                 await addEventToCalendar({
                   title: event.title,
                   startDate,
@@ -423,7 +420,7 @@ export default function EventDetailScreen() {
         </Animated.View>
       </ScrollView>
 
-      {/* Модальное окно для просмотра изображения */}
+      {}
       {event.image && (
         <Modal
           visible={imageModalVisible}

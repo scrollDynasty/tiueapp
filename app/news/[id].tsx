@@ -14,12 +14,11 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive } from '@/hooks/useResponsive';
 import { authApi } from '@/services/api';
 
-
 export default function NewsDetailScreen() {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const colors = getThemeColors(isDarkMode);
-  
+
   const { id } = useLocalSearchParams();
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [news, setNews] = useState<any>(null);
@@ -27,16 +26,14 @@ export default function NewsDetailScreen() {
   const { isSmallScreen, spacing, fontSize, isVerySmallScreen } = useResponsive();
   const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  // Динамическая высота изображения, которая обновляется при изменении размера окна/экрана
+
   const baseImageHeight = (isVerySmallScreen ? 0.3 : isSmallScreen ? 0.35 : 0.4) * viewportHeight;
   const imageHeight = Math.max(180, Math.min(baseImageHeight, 520));
-  
-  // Стабилизируем newsId для предотвращения лишних перерендеров
+
   const newsId = React.useMemo(() => {
     return Array.isArray(id) ? id[0] : id;
   }, [id]);
 
-  // Используем ref для отслеживания состояния загрузки и предотвращения дублированных запросов
   const loadingRef = React.useRef(false);
   const isMountedRef = React.useRef(true);
 
@@ -48,7 +45,7 @@ export default function NewsDetailScreen() {
 
   const loadNews = React.useCallback(async () => {
     if (!newsId || loadingRef.current) {
-      return; // Предотвращаем дублированные запросы
+      return;
     }
 
     try {
@@ -56,9 +53,9 @@ export default function NewsDetailScreen() {
       if (isMountedRef.current) {
         setLoading(true);
       }
-      
+
       const response = await authApi.getNewsById(newsId);
-      
+
       if (isMountedRef.current && response.success && response.data) {
         setNews(response.data);
       }
@@ -75,7 +72,7 @@ export default function NewsDetailScreen() {
   }, [newsId]);
 
   useEffect(() => {
-    if (newsId && !news) { // Загружаем только если новость еще не загружена
+    if (newsId && !news) {
       loadNews();
     }
   }, [newsId, loadNews, news]);
@@ -92,7 +89,7 @@ export default function NewsDetailScreen() {
   if (loading) {
     return (
       <LinearGradient
-        colors={isDarkMode 
+        colors={isDarkMode
           ? ['#1E3A8A', '#2563EB', '#3B82F6']
           : ['#EFF6FF', '#DBEAFE', '#BFDBFE']
         }
@@ -102,7 +99,7 @@ export default function NewsDetailScreen() {
       >
         <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color={isDarkMode ? '#FFFFFF' : '#1E3A8A'} />
-          <ThemedText style={{ 
+          <ThemedText style={{
             fontSize: 16,
             color: isDarkMode ? '#FFFFFF' : '#1E3A8A',
             marginTop: 16,
@@ -118,7 +115,7 @@ export default function NewsDetailScreen() {
   if (!news) {
     return (
       <LinearGradient
-        colors={isDarkMode 
+        colors={isDarkMode
           ? ['#1E3A8A', '#2563EB', '#3B82F6']
           : ['#EFF6FF', '#DBEAFE', '#BFDBFE']
         }
@@ -127,14 +124,14 @@ export default function NewsDetailScreen() {
         end={{ x: 1, y: 1 }}
       >
         <SafeAreaView style={{ flex: 1 }}>
-          <View style={{ 
-            flex: 1, 
-            justifyContent: 'center', 
+          <View style={{
+            flex: 1,
+            justifyContent: 'center',
             alignItems: 'center',
             padding: isSmallScreen ? spacing.lg : Spacing.xl
           }}>
             <Ionicons name="newspaper-outline" size={isSmallScreen ? 48 : 64} color={isDarkMode ? '#94A3B8' : '#64748B'} />
-            <ThemedText style={{ 
+            <ThemedText style={{
               fontSize: isSmallScreen ? 18 : 20,
               color: isDarkMode ? '#94A3B8' : '#64748B',
               marginTop: isSmallScreen ? spacing.md : Spacing.m,
@@ -167,7 +164,7 @@ export default function NewsDetailScreen() {
 
   return (
     <LinearGradient
-      colors={isDarkMode 
+      colors={isDarkMode
         ? ['#1E3A8A', '#2563EB', '#3B82F6']
         : ['#EFF6FF', '#DBEAFE', '#BFDBFE']
       }
@@ -175,7 +172,7 @@ export default function NewsDetailScreen() {
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
     >
-      {/* Адаптивное изображение с наложенным header */}
+      {}
       {news.image ? (
         <View style={{ position: 'relative' }}>
           <Pressable onPress={() => setImageModalVisible(true)}>
@@ -192,8 +189,8 @@ export default function NewsDetailScreen() {
               transition={200}
             />
           </Pressable>
-          
-          {/* Градиент сверху для лучшей читаемости header */}
+
+          {}
           <LinearGradient
             colors={['rgba(0,0,0,0.7)', 'transparent']}
             style={{
@@ -204,8 +201,8 @@ export default function NewsDetailScreen() {
               height: isVerySmallScreen ? 80 : isSmallScreen ? 100 : 120,
             }}
           />
-          
-          {/* Градиент снизу для плавного перехода */}
+
+          {}
           <LinearGradient
             colors={['transparent', 'rgba(0,0,0,0.3)']}
             style={{
@@ -217,7 +214,7 @@ export default function NewsDetailScreen() {
             }}
           />
 
-          {/* Адаптивный header поверх изображения */}
+          {}
           <SafeAreaView style={{
             position: 'absolute',
             top: 0,
@@ -225,7 +222,7 @@ export default function NewsDetailScreen() {
             right: 0,
             zIndex: 10,
           }}>
-            <Animated.View 
+            <Animated.View
               entering={FadeInDown.duration(300)}
               style={{
                 flexDirection: 'row',
@@ -251,15 +248,15 @@ export default function NewsDetailScreen() {
               >
                 <Ionicons name="arrow-back" size={isVerySmallScreen ? 18 : isSmallScreen ? 20 : 24} color="white" />
               </Pressable>
-              
+
               <View style={{ flex: 1 }}>
-                <ThemedText style={{ 
+                <ThemedText style={{
                   fontSize: isVerySmallScreen ? fontSize.small - 1 : fontSize.small,
                   color: 'rgba(255,255,255,0.8)',
                 }}>
                   Новость
                 </ThemedText>
-                <ThemedText style={{ 
+                <ThemedText style={{
                   fontSize: isVerySmallScreen ? fontSize.small : fontSize.body,
                   color: 'white'
                 }} numberOfLines={1}>
@@ -270,9 +267,9 @@ export default function NewsDetailScreen() {
           </SafeAreaView>
         </View>
       ) : (
-        // Адаптивный header без изображения
+
         <SafeAreaView style={{ backgroundColor: 'transparent' }}>
-          <Animated.View 
+          <Animated.View
             entering={FadeInDown.duration(300)}
             style={{
               flexDirection: 'row',
@@ -298,15 +295,15 @@ export default function NewsDetailScreen() {
             >
               <Ionicons name="arrow-back" size={isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={colors.text} />
             </Pressable>
-            
+
             <View style={{ flex: 1 }}>
-              <ThemedText style={{ 
+              <ThemedText style={{
                 fontSize: isVerySmallScreen ? fontSize.small - 1 : fontSize.small,
-                color: colors.textSecondary 
+                color: colors.textSecondary
               }}>
                 Новость
               </ThemedText>
-              <ThemedText style={{ 
+              <ThemedText style={{
                 fontSize: isVerySmallScreen ? fontSize.small : fontSize.body,
               }} numberOfLines={1}>
                 {news.title}
@@ -316,14 +313,14 @@ export default function NewsDetailScreen() {
         </SafeAreaView>
       )}
 
-      <ScrollView 
+      <ScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ 
+        contentContainerStyle={{
           paddingBottom: isVerySmallScreen ? 60 : isSmallScreen ? 80 : 100,
         }}
       >
-        {/* Адаптивный контейнер с контентом */}
+        {}
         <Animated.View
           entering={FadeInUp.duration(600).delay(300)}
           style={{
@@ -337,9 +334,9 @@ export default function NewsDetailScreen() {
             zIndex: 5,
           }}
         >
-          {/* Красивая мета информация */}
-          <View style={{ 
-            flexDirection: 'row', 
+          {}
+          <View style={{
+            flexDirection: 'row',
             alignItems: 'center',
             marginBottom: spacing.lg,
             flexWrap: 'wrap'
@@ -355,7 +352,7 @@ export default function NewsDetailScreen() {
               alignItems: 'center',
             }}>
               <Ionicons name={news.icon as any} size={isVerySmallScreen ? 12 : isSmallScreen ? 14 : 16} color={colors.primary} />
-              <ThemedText style={{ 
+              <ThemedText style={{
                 fontSize: isVerySmallScreen ? fontSize.small - 2 : fontSize.small - 1,
                 color: colors.primary,
                 marginLeft: 6,
@@ -363,7 +360,7 @@ export default function NewsDetailScreen() {
                 {news.category}
               </ThemedText>
             </View>
-            
+
             <View style={{
               backgroundColor: colors.surfaceSecondary,
               borderRadius: isVerySmallScreen ? 12 : isSmallScreen ? 16 : 20,
@@ -374,7 +371,7 @@ export default function NewsDetailScreen() {
               alignItems: 'center',
             }}>
               <Ionicons name="time-outline" size={isVerySmallScreen ? 12 : isSmallScreen ? 14 : 16} color={colors.textSecondary} />
-              <ThemedText style={{ 
+              <ThemedText style={{
                 fontSize: isVerySmallScreen ? fontSize.small - 2 : fontSize.small - 1,
                 color: colors.textSecondary,
                 marginLeft: 6,
@@ -384,7 +381,7 @@ export default function NewsDetailScreen() {
             </View>
           </View>
 
-          {/* Адаптивный заголовок */}
+          {}
           <ThemedText style={{
             fontSize: isVerySmallScreen ? fontSize.title : isSmallScreen ? 22 : 28,
             color: colors.text,
@@ -395,7 +392,7 @@ export default function NewsDetailScreen() {
             {news.title}
           </ThemedText>
 
-          {/* Адаптивный подзаголовок */}
+          {}
           {news.subtitle && (
             <ThemedText style={{
               fontSize: isVerySmallScreen ? fontSize.body : isSmallScreen ? 16 : 18,
@@ -407,7 +404,7 @@ export default function NewsDetailScreen() {
             </ThemedText>
           )}
 
-          {/* Адаптивный контент */}
+          {}
           <ThemedText style={{
             fontSize: isVerySmallScreen ? fontSize.small : fontSize.body,
             color: colors.text,
@@ -417,7 +414,7 @@ export default function NewsDetailScreen() {
             {news.content}
           </ThemedText>
 
-          {/* Адаптивная информация об авторе */}
+          {}
           <View style={{
             backgroundColor: colors.surfaceSecondary,
             borderRadius: isVerySmallScreen ? 10 : isSmallScreen ? 12 : 16,
@@ -444,13 +441,13 @@ export default function NewsDetailScreen() {
                 <Ionicons name="person" size={isVerySmallScreen ? 16 : isSmallScreen ? 18 : 20} color={colors.primary} />
               </View>
               <View style={{ flex: 1 }}>
-                <ThemedText style={{ 
+                <ThemedText style={{
                   fontSize: isVerySmallScreen ? fontSize.small - 1 : fontSize.small,
                   color: colors.textSecondary,
                 }}>
                   Опубликовано
                 </ThemedText>
-                <ThemedText style={{ 
+                <ThemedText style={{
                   fontSize: isVerySmallScreen ? fontSize.small : fontSize.body,
                   color: colors.text
                 }}>
@@ -462,7 +459,7 @@ export default function NewsDetailScreen() {
         </Animated.View>
       </ScrollView>
 
-      {/* Модальное окно для полноэкранного просмотра изображения */}
+      {}
       {news.image && (
         <Modal
           visible={imageModalVisible}
@@ -480,13 +477,13 @@ export default function NewsDetailScreen() {
               style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
               onPress={() => setImageModalVisible(false)}
             />
-            
+
             <SafeAreaView style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
               <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
                 paddingHorizontal: spacing.md,
-                paddingTop: spacing.lg, // Увеличиваем отступ сверху
+                paddingTop: spacing.lg,
                 paddingBottom: spacing.sm,
               }}>
                 <Pressable
@@ -504,7 +501,7 @@ export default function NewsDetailScreen() {
                 </Pressable>
               </View>
             </SafeAreaView>
-            
+
             <Image
               source={{ uri: news.image }}
               style={{

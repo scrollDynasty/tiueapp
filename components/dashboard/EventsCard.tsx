@@ -255,7 +255,7 @@ export const EventsCard: React.FC<EventsCardProps> = ({ events, onEventPress, co
           </View>
           <ThemedText style={styles.headerTitle}>События</ThemedText>
         </View>
-        
+
         <View style={styles.emptyState}>
           <View style={styles.emptyIcon}>
             <Ionicons name="calendar-outline" size={isExtraSmallScreen ? 22 : 28} color={colors.textSecondary} />
@@ -284,10 +284,10 @@ export const EventsCard: React.FC<EventsCardProps> = ({ events, onEventPress, co
       <View style={styles.eventsContainer}>
         {events.slice(0, 3).filter(item => item && item.id && item.title && item.date).map((item, index) => {
           const dateInfo = formatDate(item.date);
-          
+
           return (
-            <Animated.View 
-              key={item.id} 
+            <Animated.View
+              key={item.id}
               entering={FadeInDown.delay(500 + index * 100)}
             >
               <TouchableOpacity
@@ -295,10 +295,10 @@ export const EventsCard: React.FC<EventsCardProps> = ({ events, onEventPress, co
                 onPress={() => onEventPress?.(item.id)}
                 activeOpacity={0.8}
               >
-                {/* Карточка с изображением */}
+                {}
                 {item.image && !failedImages.has(item.id) ? (
                   <>
-                    {/* Фоновое изображение с оптимизацией */}
+                    {}
                     <Image
                       source={{
                         uri: item.image.startsWith('http')
@@ -313,13 +313,13 @@ export const EventsCard: React.FC<EventsCardProps> = ({ events, onEventPress, co
                         setFailedImages(prev => new Set([...prev, item.id]));
                       }}
                     />
-                    
-                    {/* Темный оверлей для лучшей читаемости текста */}
+
+                    {}
                     <View style={styles.eventOverlay} />
-                    
-                    {/* Контент поверх изображения */}
+
+                    {}
                     <View style={styles.eventContent}>
-                      {/* Название события слева внизу */}
+                      {}
                       <View style={styles.eventTitleContainer}>
                         <ThemedText style={styles.eventTitle} numberOfLines={2}>
                           {item.title}
@@ -332,8 +332,8 @@ export const EventsCard: React.FC<EventsCardProps> = ({ events, onEventPress, co
                           </ThemedText>
                         )}
                       </View>
-                      
-                      {/* Дата справа */}
+
+                      {}
                       <View style={styles.dateNumber}>
                         <ThemedText style={styles.dateNumberText}>
                           {dateInfo.day}
@@ -342,14 +342,14 @@ export const EventsCard: React.FC<EventsCardProps> = ({ events, onEventPress, co
                     </View>
                   </>
                 ) : (
-                  /* Карточка без изображения - обычный дизайн */
+
                   <View style={styles.noImageCard}>
                     <View style={styles.noImageDateContainer}>
                       <ThemedText style={styles.dateNumberText}>
                         {dateInfo.day}
                       </ThemedText>
                     </View>
-                    
+
                     <View style={styles.noImageContent}>
                       <ThemedText style={styles.noImageTitle} numberOfLines={2}>
                         {item.title}

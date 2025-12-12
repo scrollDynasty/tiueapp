@@ -9,14 +9,12 @@ interface GradesState {
   gpa: number;
 }
 
-// Мемоизированный расчет GPA для избежания избыточных вычислений
 const calculateGPA = (grades: Grade[]): number => {
   if (grades.length === 0) return 0;
   const total = grades.reduce((sum, grade) => sum + (grade.grade / grade.maxGrade) * 5, 0);
   return Math.round((total / grades.length) * 100) / 100;
 };
 
-// Кэш для GPA чтобы избежать пересчета при одинаковых данных
 let gpaCache: { grades: Grade[], gpa: number } | null = null;
 
 const getCachedGPA = (grades: Grade[]): number => {

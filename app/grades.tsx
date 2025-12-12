@@ -1,4 +1,3 @@
-// import { AnimatedHeader } from '@/components/AnimatedHeader';
 import { CustomRefreshControl } from '@/components/CustomRefreshControl';
 import { LoadingAnimation } from '@/components/LoadingAnimation';
 import { ThemedText } from '@/components/ThemedText';
@@ -52,64 +51,59 @@ export default function GradesScreen() {
   const [grades, setGrades] = useState<Grade[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  // Убираем фильтрацию по предметам
+
   const insets = useSafeAreaInsets();
-  const { 
-    horizontalPadding, 
-    cardGap, 
-    isVerySmallScreen, 
+  const {
+    horizontalPadding,
+    cardGap,
+    isVerySmallScreen,
     isSmallScreen,
-    fontSize, 
-    spacing 
+    fontSize,
+    spacing
   } = useResponsive();
 
-  // Расчет среднего балла (GPA)
   const calculateGPA = useCallback((gradesData: Grade[]) => {
     if (gradesData.length === 0) return 0;
-    
-    // Считаем средний балл как среднее арифметическое всех оценок
+
     const total = gradesData.reduce((sum, grade) => {
       return sum + parseFloat(grade.grade?.toString() || '0');
     }, 0);
-    
-    return Math.round((total / gradesData.length) * 100) / 100; // Округляем до 2 знаков
+
+    return Math.round((total / gradesData.length) * 100) / 100;
   }, []);
 
-  // Используем все оценки без фильтрации
   const gpa = calculateGPA(grades);
 
-  // Получение данных
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const [gradesResponse, coursesResponse] = await Promise.all([
         authApi.getGrades(),
         authApi.getCourses()
       ]);
 
       if (gradesResponse.success) {
-        // API возвращает объект с полем data, которое содержит массив
+
         const responseData = gradesResponse.data as any || {};
         const gradesArray = Array.isArray(responseData.data) ? responseData.data : [];
-        
-        // Преобразуем данные LDAP в нужный формат
+
         const formattedGrades = gradesArray.map((item: any, index: number) => ({
           id: item.course_id || item.id || index.toString(),
           subject: item.course_name || item.subject || 'Неизвестный предмет',
           grade: parseFloat(item.final_grade || item.grade || item.score || 0),
-          maxGrade: 100, // Обычно максимальный балл 100
+          maxGrade: 100,
           date: item.date || item.created_at || new Date().toISOString(),
           type: 'final',
           teacher: item.teacher || item.instructor || '',
           assignment_name: 'Итоговая оценка'
         }));
-        
+
         setGrades(formattedGrades);
       }
 
       if (coursesResponse.success) {
-        // API возвращает объект с полем data, которое содержит массив
+
         const coursesResponseData = coursesResponse.data as any || {};
         const coursesArray = Array.isArray(coursesResponseData.data) ? coursesResponseData.data : [];
         setCourses(coursesArray);
@@ -139,8 +133,6 @@ export default function GradesScreen() {
     },
   });
 
-  // Убираем фильтрацию по предметам
-
   const renderGradeCard = useCallback((grade: Grade, index: number) => (
     <Animated.View
       entering={FadeInDown.delay(index * 100).duration(600)}
@@ -165,9 +157,9 @@ export default function GradesScreen() {
         <View style={styles.gradeScore}>
           <LinearGradient
             colors={[
-              grade.grade >= grade.maxGrade * 0.8 ? '#10B981' : 
+              grade.grade >= grade.maxGrade * 0.8 ? '#10B981' :
               grade.grade >= grade.maxGrade * 0.6 ? '#F59E0B' : '#EF4444',
-              grade.grade >= grade.maxGrade * 0.8 ? '#059669' : 
+              grade.grade >= grade.maxGrade * 0.8 ? '#059669' :
               grade.grade >= grade.maxGrade * 0.6 ? '#D97706' : '#DC2626'
             ]}
             style={styles.scoreContainer}
@@ -178,13 +170,13 @@ export default function GradesScreen() {
           </LinearGradient>
         </View>
       </View>
-      
+
       <View style={styles.gradeDetails}>
         <View style={styles.gradeDetailItem}>
-          <Ionicons 
-            name="calendar-outline" 
-            size={16} 
-            color={colors.textSecondary} 
+          <Ionicons
+            name="calendar-outline"
+            size={16}
+            color={colors.textSecondary}
           />
           <ThemedText style={[styles.detailText, { color: colors.textSecondary }]}>
             {grade.date ? (() => {
@@ -196,25 +188,25 @@ export default function GradesScreen() {
             })() : 'Дата не указана'}
           </ThemedText>
         </View>
-        
+
         {grade.teacher && (
           <View style={styles.gradeDetailItem}>
-            <Ionicons 
-              name="person-outline" 
-              size={16} 
-              color={colors.textSecondary} 
+            <Ionicons
+              name="person-outline"
+              size={16}
+              color={colors.textSecondary}
             />
             <ThemedText style={[styles.detailText, { color: colors.textSecondary }]}>
               {grade.teacher}
             </ThemedText>
           </View>
         )}
-        
+
         <View style={styles.gradeDetailItem}>
           <View style={[
             styles.percentageBadge,
-            { 
-              backgroundColor: grade.grade >= grade.maxGrade * 0.8 ? '#10B981' : 
+            {
+              backgroundColor: grade.grade >= grade.maxGrade * 0.8 ? '#10B981' :
                              grade.grade >= grade.maxGrade * 0.6 ? '#F59E0B' : '#EF4444'
             }
           ]}>
@@ -226,8 +218,6 @@ export default function GradesScreen() {
       </View>
     </Animated.View>
   ), [colors, cardGap]);
-
-  // Убираем фильтрацию по предметам
 
   const renderGPACard = useCallback(() => (
     <Animated.View
@@ -254,7 +244,7 @@ export default function GradesScreen() {
               {gpa.toFixed(2)}
             </ThemedText>
           </View>
-          
+
           <View style={[styles.gpaCircle, { borderColor: colors.primary }]}>
             <LinearGradient
               colors={[colors.primary, colors.primary + '80']}
@@ -264,7 +254,7 @@ export default function GradesScreen() {
             </LinearGradient>
           </View>
         </View>
-        
+
         <View style={styles.gpaStats}>
           <View style={styles.statItem}>
             <ThemedText style={[styles.statValue, { color: colors.text }]}>
@@ -274,9 +264,9 @@ export default function GradesScreen() {
               Оценок
             </ThemedText>
           </View>
-          
+
           <View style={styles.statDivider} />
-          
+
           <View style={styles.statItem}>
             <ThemedText style={[styles.statValue, { color: colors.text }]}>
               {Array.from(new Set(grades.map(grade => grade.subject))).length}
@@ -285,9 +275,9 @@ export default function GradesScreen() {
               Предметов
             </ThemedText>
           </View>
-          
+
           <View style={styles.statDivider} />
-          
+
           <View style={styles.statItem}>
             <ThemedText style={[styles.statValue, { color: colors.text }]}>
               {grades.filter(g => g.grade >= 85).length}
@@ -318,7 +308,7 @@ export default function GradesScreen() {
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        
+
         <View style={styles.headerTextContainer}>
           <ThemedText style={[styles.headerTitle, { color: colors.text }]}>
             Оценки
@@ -345,12 +335,12 @@ export default function GradesScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {renderHeader()}
-      
+
       <AnimatedScrollView
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
-          { 
+          {
             paddingHorizontal: horizontalPadding,
             paddingTop: spacing.xl + insets.top,
             paddingBottom: spacing.xl + insets.bottom,
@@ -368,7 +358,7 @@ export default function GradesScreen() {
         showsVerticalScrollIndicator={false}
       >
         {renderGPACard()}
-        
+
         {grades.length > 0 ? (
           <View style={styles.gradesContainer}>
             {grades.map((grade, index) => (
@@ -508,7 +498,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E7EB',
     opacity: 0.3,
   },
-  // Убираем стили фильтрации
+
   gradesContainer: {
     flex: 1,
   },

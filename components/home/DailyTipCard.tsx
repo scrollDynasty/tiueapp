@@ -24,7 +24,7 @@ export const DailyTipCard = React.memo(({ tip }: DailyTipCardProps) => {
       marginTop: spacing.lg,
       borderRadius: borderRadius.xl,
       overflow: 'hidden',
-      // Оптимизированные тени для платформ
+
       ...Platform.select({
         android: {
           elevation: 3,
@@ -87,12 +87,12 @@ export const DailyTipCard = React.memo(({ tip }: DailyTipCardProps) => {
   });
 
   return (
-    <Animated.View 
+    <Animated.View
       entering={FadeInDown.delay(700)}
       style={styles.container}
     >
       <LinearGradient
-        colors={isDarkMode 
+        colors={isDarkMode
           ? ['#4C1D95', '#3730A3', '#1E40AF']
           : ['#667eea', '#764ba2', '#5B73DD']
         }
@@ -103,10 +103,10 @@ export const DailyTipCard = React.memo(({ tip }: DailyTipCardProps) => {
         <View style={styles.content}>
           <View style={styles.header}>
             <View style={styles.iconContainer}>
-              <Ionicons 
-                name="bulb" 
-                size={isSmall ? 22 : 26} 
-                color={isDarkMode ? colors.primary : "#FFFFFF"} 
+              <Ionicons
+                name="bulb"
+                size={isSmall ? 22 : 26}
+                color={isDarkMode ? colors.primary : "#FFFFFF"}
               />
             </View>
             <View style={styles.headerTextContainer}>

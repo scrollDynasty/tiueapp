@@ -2,25 +2,17 @@ import { isDebugMode } from '../config/environment';
 import { ApiResponse, LDAPCourse, LDAPUserProfile } from '../types';
 import { ldapAuthService } from './ldapAuth';
 
-/**
- * Сервис для работы с LDAP данными студента
- * Предоставляет удобные методы для получения курсов, оценок, посещаемости и т.д.
- */
 class LDAPDataService {
-  // Кеширование данных курсов
-  private coursesCache: { data: LDAPCourse[]; timestamp: number } | null = null;
-  private readonly COURSES_CACHE_DURATION = 300000; // 5 минут
-  
-  // Кеширование профиля пользователя
-  private profileCache: { data: LDAPUserProfile; timestamp: number } | null = null;
-  private readonly PROFILE_CACHE_DURATION = 600000; // 10 минут
 
-  /**
-   * Получить профиль студента с кешированием
-   */
+  private coursesCache: { data: LDAPCourse[]; timestamp: number } | null = null;
+  private readonly COURSES_CACHE_DURATION = 300000;
+
+  private profileCache: { data: LDAPUserProfile; timestamp: number } | null = null;
+  private readonly PROFILE_CACHE_DURATION = 600000;
+
   async getStudentProfile(forceRefresh = false): Promise<ApiResponse<LDAPUserProfile>> {
-    // Проверяем кеш
-    if (!forceRefresh && this.profileCache && 
+
+    if (!forceRefresh && this.profileCache &&
         Date.now() - this.profileCache.timestamp < this.PROFILE_CACHE_DURATION) {
       if (isDebugMode()) {
       }
@@ -35,14 +27,14 @@ class LDAPDataService {
       }
 
       const response = await ldapAuthService.getUserProfile();
-      
+
       if (response.success && response.data) {
-        // Кешируем результат
+
         this.profileCache = {
           data: response.data,
           timestamp: Date.now(),
         };
-        
+
         if (isDebugMode()) {
         }
       }
@@ -59,16 +51,13 @@ class LDAPDataService {
     }
   }
 
-  /**
-   * Получить активные курсы с кешированием
-   */
   async getActiveCourses(forceRefresh = false, params?: {
     lang?: string;
     page?: number;
     pageSize?: number;
   }): Promise<ApiResponse<{ count: number; data: LDAPCourse[] }>> {
-    // Проверяем кеш только если не принудительное обновление
-    if (!forceRefresh && this.coursesCache && 
+
+    if (!forceRefresh && this.coursesCache &&
         Date.now() - this.coursesCache.timestamp < this.COURSES_CACHE_DURATION) {
       if (isDebugMode()) {
       }
@@ -86,14 +75,14 @@ class LDAPDataService {
       }
 
       const response = await ldapAuthService.getActiveCourses(params);
-      
+
       if (response.success && response.data) {
-        // Кешируем курсы
+
         this.coursesCache = {
           data: response.data.data || [],
           timestamp: Date.now(),
         };
-        
+
         if (isDebugMode()) {
         }
       }
@@ -110,12 +99,9 @@ class LDAPDataService {
     }
   }
 
-  /**
-   * Получить текущие курсы (только со статусом 'current')
-   */
   async getCurrentCourses(forceRefresh = false): Promise<ApiResponse<LDAPCourse[]>> {
     const response = await this.getActiveCourses(forceRefresh);
-    
+
     if (response.success && response.data) {
       const currentCourses = response.data.data.filter(course => course.status === 'current');
       return {
@@ -130,12 +116,9 @@ class LDAPDataService {
     };
   }
 
-  /**
-   * Получить завершенные курсы (только со статусом 'past')
-   */
   async getCompletedCourses(forceRefresh = false): Promise<ApiResponse<LDAPCourse[]>> {
     const response = await this.getActiveCourses(forceRefresh);
-    
+
     if (response.success && response.data) {
       const completedCourses = response.data.data.filter(course => course.status === 'past');
       return {
@@ -150,16 +133,13 @@ class LDAPDataService {
     };
   }
 
-  /**
-   * Получить оценки по курсам
-   */
   async getCourseGrades(): Promise<ApiResponse<any[]>> {
     try {
       if (isDebugMode()) {
       }
 
       const response = await ldapAuthService.getCourseGrades();
-      
+
       if (isDebugMode() && response.success) {
       }
 
@@ -175,16 +155,13 @@ class LDAPDataService {
     }
   }
 
-  /**
-   * Получить данные о посещаемости
-   */
   async getCourseAttendance(): Promise<ApiResponse<any[]>> {
     try {
       if (isDebugMode()) {
       }
 
       const response = await ldapAuthService.getCourseAttendance();
-      
+
       if (isDebugMode() && response.success) {
       }
 
@@ -199,16 +176,13 @@ class LDAPDataService {
     }
   }
 
-  /**
-   * Получить сообщения
-   */
   async getMessages(): Promise<ApiResponse<any[]>> {
     try {
       if (isDebugMode()) {
       }
 
       const response = await ldapAuthService.getMessages();
-      
+
       if (isDebugMode() && response.success) {
       }
 
@@ -223,9 +197,6 @@ class LDAPDataService {
     }
   }
 
-  /**
-   * Получить сводную информацию для дашборда
-   */
   async getDashboardData(): Promise<ApiResponse<{
     profile: LDAPUserProfile;
     currentCourses: LDAPCourse[];
@@ -237,7 +208,6 @@ class LDAPDataService {
       if (isDebugMode()) {
       }
 
-      // Получаем все данные параллельно
       const [profileResponse, coursesResponse, gradesResponse, attendanceResponse] = await Promise.all([
         this.getStudentProfile(),
         this.getActiveCourses(),
@@ -245,7 +215,6 @@ class LDAPDataService {
         this.getCourseAttendance(),
       ]);
 
-      // Проверяем, что все основные данные получены
       if (!profileResponse.success || !coursesResponse.success) {
         return {
           success: false,
@@ -280,32 +249,22 @@ class LDAPDataService {
     }
   }
 
-  /**
-   * Очистить все кеши
-   */
   clearCache(): void {
     this.coursesCache = null;
     this.profileCache = null;
-    
+
   }
 
-  /**
-   * Очистить кеш курсов
-   */
   clearCoursesCache(): void {
     this.coursesCache = null;
-    
+
   }
 
-  /**
-   * Очистить кеш профиля
-   */
   clearProfileCache(): void {
     this.profileCache = null;
-    
+
   }
 }
 
-// Экспортируем singleton instance
 export const ldapDataService = new LDAPDataService();
 export default LDAPDataService;

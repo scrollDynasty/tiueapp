@@ -29,15 +29,15 @@ interface UserCardProps {
   animationDelay?: number;
 }
 
-export const UserCard = React.memo(({ 
-  user, 
-  onEdit, 
-  onDelete, 
-  onToggleStatus, 
+export const UserCard = React.memo(({
+  user,
+  onEdit,
+  onDelete,
+  onToggleStatus,
   onResetPassword,
-  animationDelay = 0 
+  animationDelay = 0
 }: UserCardProps) => {
-  
+
   const handleEdit = React.useCallback(() => onEdit(user), [onEdit, user]);
   const handleToggleStatus = React.useCallback(() => onToggleStatus(user.id), [onToggleStatus, user.id]);
   const handleDelete = React.useCallback(() => onDelete(user.id), [onDelete, user.id]);
@@ -86,7 +86,7 @@ export const UserCard = React.memo(({
         </View>
       </View>
 
-      {/* Дополнительная информация для студентов и преподавателей */}
+      {}
       {(user.role === 'student' || user.role === 'professor') && (
         <View style={styles.additionalInfo}>
           {user.role === 'student' && (
@@ -120,7 +120,7 @@ export const UserCard = React.memo(({
         </View>
       )}
 
-      {/* Кнопки действий */}
+      {}
       <View style={styles.actions}>
         <Pressable
           style={[styles.actionButton, styles.editButton]}
@@ -134,10 +134,10 @@ export const UserCard = React.memo(({
           style={[styles.actionButton, user.is_active ? styles.blockButton : styles.activateButton]}
           onPress={handleToggleStatus}
         >
-          <Ionicons 
-            name={user.is_active ? "ban" : "checkmark-circle"} 
-            size={16} 
-            color={Colors.surface} 
+          <Ionicons
+            name={user.is_active ? "ban" : "checkmark-circle"}
+            size={16}
+            color={Colors.surface}
           />
           <ThemedText style={styles.actionButtonText}>
             {user.is_active ? 'Заблокировать' : 'Активировать'}

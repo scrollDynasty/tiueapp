@@ -22,67 +22,67 @@ export default function ExploreScreen() {
     if (categoryTitle === "СТУДЕНТЫ") {
       router.push('/(tabs)/students');
     }
-    // Добавить другие обработчики категорий при необходимости
+
   };
 
   const categories = [
-    { 
-      title: "СТУДЕНТЫ", 
+    {
+      title: "СТУДЕНТЫ",
       icon: "people-outline" as const,
       color: '#06B6D4',
       bgColor: '#ECFEFF',
       description: "Поиск однокурсников"
     },
-    { 
-      title: "БИБЛИОТЕКА", 
+    {
+      title: "БИБЛИОТЕКА",
       icon: "library-outline" as const,
       color: '#6366F1',
       bgColor: '#EEF2FF',
       description: "Электронные книги и ресурсы"
     },
-    { 
-      title: "ЛАБОРАТОРИИ", 
+    {
+      title: "ЛАБОРАТОРИИ",
       icon: "flask-outline" as const,
       color: '#EC4899',
       bgColor: '#FDF2F8',
       description: "Научные исследования"
     },
-    { 
-      title: "КАФЕДРЫ", 
+    {
+      title: "КАФЕДРЫ",
       icon: "school-outline" as const,
       color: '#10B981',
       bgColor: '#ECFDF5',
       description: "Преподаватели и курсы"
     },
-    { 
-      title: "СПОРТ", 
+    {
+      title: "СПОРТ",
       icon: "fitness-outline" as const,
       color: '#F59E0B',
       bgColor: '#FFFBEB',
       description: "Спортивные секции"
     },
-    { 
-      title: "СТУДСОВЕТ", 
+    {
+      title: "СТУДСОВЕТ",
       icon: "people-outline" as const,
       color: '#8B5CF6',
       bgColor: '#F5F3FF',
       description: "Студенческая жизнь"
     },
-    { 
-      title: "МЕРОПРИЯТИЯ", 
+    {
+      title: "МЕРОПРИЯТИЯ",
       icon: "calendar-outline" as const,
       color: '#EF4444',
       bgColor: '#FEF2F2',
       description: "События и концерты"
     },
-   
+
   ];
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Градиентный фон */}
+      {}
       <LinearGradient
-        colors={isDarkMode 
+        colors={isDarkMode
           ? ['#0F172A', '#1E293B', '#334155']
           : ['#FAFAFA', '#F8FAFC', '#EEF2F7']
         }
@@ -90,28 +90,28 @@ export default function ExploreScreen() {
         end={{ x: 1, y: 1 }}
         style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       />
-      
+
       <View style={{ flex: 1 }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: isVerySmallScreen ? spacing.md : isSmallScreen ? spacing.lg : horizontalPadding,
             paddingBottom: Platform.OS === 'android'
-              ? (isVerySmallScreen ? 80 : isSmallScreen ? 85 : 90) + Math.max(insets.bottom, 0) // Компактные + insets для Android
-              : (isVerySmallScreen ? 160 : isSmallScreen ? 140 : 120), // Обычные для iOS
+              ? (isVerySmallScreen ? 80 : isSmallScreen ? 85 : 90) + Math.max(insets.bottom, 0)
+              : (isVerySmallScreen ? 160 : isSmallScreen ? 140 : 120),
           }}
         >
-          {/* Современный заголовок в стиле главной страницы */}
-          <Animated.View 
+          {}
+          <Animated.View
             entering={FadeInUp.duration(600).springify()}
-            style={{ 
-              paddingTop: insets.top + 10, // Контент заголовка под Dynamic Island + 10px
+            style={{
+              paddingTop: insets.top + 10,
               marginBottom: spacing.sm,
             }}
           >
-            <View style={{ 
-              flexDirection: 'row', 
-              alignItems: 'center', 
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
               marginBottom: spacing.md,
               paddingBottom: spacing.sm,
               borderBottomWidth: 1,
@@ -135,17 +135,17 @@ export default function ExploreScreen() {
                   elevation: Platform.OS === 'android' ? 1 : 6,
                 }}
               >
-                <Ionicons 
-                  name="compass" 
-                  size={isVerySmallScreen ? 24 : 28} 
-                  color={colors.primary} 
+                <Ionicons
+                  name="compass"
+                  size={isVerySmallScreen ? 24 : 28}
+                  color={colors.primary}
                 />
               </LinearGradient>
               <View style={{ flex: 1 }}>
                 <ThemedText
                   style={{
                     fontSize: isVerySmallScreen ? fontSize.title + 2 : fontSize.title + 6,
-                    lineHeight: isVerySmallScreen ? 24 : 32, // Добавляем lineHeight чтобы текст не обрезался
+                    lineHeight: isVerySmallScreen ? 24 : 32,
                     fontWeight: '800',
                     color: colors.text,
                     letterSpacing: 0.5,
@@ -167,8 +167,8 @@ export default function ExploreScreen() {
             </View>
           </Animated.View>
 
-          {/* Поле поиска в стиле главной страницы */}
-          <Animated.View 
+          {}
+          <Animated.View
             entering={SlideInDown.delay(200).duration(800).springify()}
             style={{
               backgroundColor: colors.surface,
@@ -182,15 +182,15 @@ export default function ExploreScreen() {
               shadowRadius: Platform.OS === 'android' ? 0 : 16,
               elevation: Platform.OS === 'android' ? 2 : 8,
               borderWidth: 1,
-              borderColor: focusedInput === 'search' 
-                ? `${colors.primary}40` 
+              borderColor: focusedInput === 'search'
+                ? `${colors.primary}40`
                 : isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <LinearGradient
-                colors={focusedInput === 'search' 
-                  ? [colors.primary, `${colors.primary}80`] 
+                colors={focusedInput === 'search'
+                  ? [colors.primary, `${colors.primary}80`]
                   : [`${colors.primary}20`, `${colors.primary}10`]
                 }
                 style={{
@@ -201,14 +201,14 @@ export default function ExploreScreen() {
                   justifyContent: 'center',
                   marginRight: spacing.md,
                   borderWidth: 1,
-                  borderColor: focusedInput === 'search' 
-                    ? `${colors.primary}40` 
+                  borderColor: focusedInput === 'search'
+                    ? `${colors.primary}40`
                     : `${colors.primary}30`,
                 }}
               >
-                <Ionicons 
-                  name="search" 
-                  size={isVerySmallScreen ? 20 : 22} 
+                <Ionicons
+                  name="search"
+                  size={isVerySmallScreen ? 20 : 22}
                   color={focusedInput === 'search' ? '#FFFFFF' : colors.primary}
                 />
               </LinearGradient>
@@ -241,7 +241,7 @@ export default function ExploreScreen() {
                 blurOnSubmit={false}
               />
               {searchQuery.length > 0 && (
-                <TouchableOpacity 
+                <TouchableOpacity
                   onPress={() => setSearchQuery('')}
                   style={{
                     width: 32,
@@ -259,7 +259,7 @@ export default function ExploreScreen() {
             </View>
           </Animated.View>
 
-          {/* Секция категорий в стиле главной страницы */}
+          {}
           <Animated.View entering={FadeInDown.delay(400).duration(800)}>
 
             <View style={{
@@ -273,8 +273,8 @@ export default function ExploreScreen() {
                   key={category.title}
                   entering={FadeInUp.delay(500 + index * 100).duration(600).springify()}
                   style={{
-                    width: isVerySmallScreen 
-                      ? '100%' 
+                    width: isVerySmallScreen
+                      ? '100%'
                       : (Dimensions.get('window').width - (isSmallScreen ? 40 : 48) - (isSmallScreen ? spacing.md : spacing.md)) / 2,
                   }}
                 >
@@ -293,7 +293,7 @@ export default function ExploreScreen() {
                       elevation: Platform.OS === 'android' ? 2 : 8,
                     }}
                   >
-                    {/* Градиентный фон карточки в стиле главной страницы */}
+                    {}
                     <LinearGradient
                       colors={[category.color + '15', category.color + '25']}
                       style={{
@@ -319,16 +319,16 @@ export default function ExploreScreen() {
                       borderWidth: 1,
                       borderColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
                     }} />
-                    
-                    {/* Контейнер содержимого в стиле главной страницы */}
-                    <View style={{ 
-                      flex: 1, 
+
+                    {}
+                    <View style={{
+                      flex: 1,
                       padding: isVerySmallScreen ? spacing.sm : spacing.md,
                       flexDirection: isVerySmallScreen ? 'row' : 'column',
                       justifyContent: isVerySmallScreen ? 'flex-start' : 'space-between',
                       alignItems: isVerySmallScreen ? 'center' : 'flex-start'
                     }}>
-                      {/* Иконка с красивым градиентом */}
+                      {}
                       <LinearGradient
                         colors={[category.color, category.color + '80']}
                         style={{
@@ -346,14 +346,14 @@ export default function ExploreScreen() {
                           elevation: Platform.OS === 'android' ? 1 : 6,
                         }}
                       >
-                        <Ionicons 
-                          name={category.icon} 
-                          size={isVerySmallScreen ? 18 : 28} 
+                        <Ionicons
+                          name={category.icon}
+                          size={isVerySmallScreen ? 18 : 28}
                           color="#FFFFFF"
                         />
                       </LinearGradient>
-                      
-                      {/* Текстовый контент */}
+
+                      {}
                       <View style={{ flex: 1 }}>
                         <ThemedText
                           style={{
@@ -384,10 +384,10 @@ export default function ExploreScreen() {
             </View>
           </Animated.View>
 
-          {/* Быстрые действия в стиле главной страницы */}
-          <Animated.View 
+          {}
+          <Animated.View
             entering={FadeInDown.delay(800).duration(800)}
-            style={{ 
+            style={{
               marginTop: isVerySmallScreen ? spacing.md : spacing.lg,
               backgroundColor: colors.surface,
               borderRadius: 16,
@@ -401,10 +401,10 @@ export default function ExploreScreen() {
               borderColor: isDarkMode ? `${colors.primary}20` : 'rgba(99, 102, 241, 0.1)',
             }}
           >
-            {/* Заголовок секции */}
-            <View style={{ 
-              flexDirection: 'row', 
-              alignItems: 'center', 
+            {}
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
               marginBottom: spacing.md,
               paddingBottom: spacing.xs,
               borderBottomWidth: 1,
@@ -480,9 +480,9 @@ export default function ExploreScreen() {
                         elevation: Platform.OS === 'android' ? 1 : 4,
                       }}
                     >
-                      <Ionicons 
-                        name={item.icon as any} 
-                        size={isVerySmallScreen ? 20 : 22} 
+                      <Ionicons
+                        name={item.icon as any}
+                        size={isVerySmallScreen ? 20 : 22}
                         color="#FFFFFF"
                       />
                     </LinearGradient>
@@ -506,9 +506,9 @@ export default function ExploreScreen() {
                         justifyContent: 'center',
                       }}
                     >
-                      <Ionicons 
-                        name="chevron-forward" 
-                        size={16} 
+                      <Ionicons
+                        name="chevron-forward"
+                        size={16}
                         color={colors.primary}
                       />
                     </LinearGradient>

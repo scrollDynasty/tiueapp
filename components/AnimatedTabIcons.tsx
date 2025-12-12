@@ -9,7 +9,7 @@ interface AnimatedTabIconProps {
 }
 
 export function AnimatedTabIcon({ name, focused, onPress }: AnimatedTabIconProps) {
-  // Еще более компактные размеры для Android
+
   const iconSize = Platform.OS === 'android' ? 20 : 26;
   const containerHeight = Platform.OS === 'android' ? 32 : 44;
   const containerWidth = Platform.OS === 'android' ? 32 : 44;
@@ -17,12 +17,12 @@ export function AnimatedTabIcon({ name, focused, onPress }: AnimatedTabIconProps
   const indicatorHeight = Platform.OS === 'android' ? 2 : 3;
 
   return (
-    <View style={{ 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      height: containerHeight, 
+    <View style={{
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: containerHeight,
       width: containerWidth,
-      // Добавляем больше области нажатия
+
       minWidth: containerWidth,
       minHeight: containerHeight
     }}>
@@ -31,8 +31,8 @@ export function AnimatedTabIcon({ name, focused, onPress }: AnimatedTabIconProps
         size={iconSize}
         color={focused ? '#007BFF' : '#6B7280'}
       />
-      
-      {/* Простой индикатор */}
+
+      {}
       {focused && (
         <View
           style={{
@@ -48,7 +48,6 @@ export function AnimatedTabIcon({ name, focused, onPress }: AnimatedTabIconProps
   );
 }
 
-// Специальные иконки для каждой вкладки
 export function HomeTabIcon({ focused, onPress }: { focused: boolean; onPress?: () => void }) {
   return (
     <AnimatedTabIcon

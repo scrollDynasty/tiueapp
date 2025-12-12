@@ -8,7 +8,7 @@ class CustomUserAdmin(UserAdmin):
     list_filter = ('role', 'is_active', 'created_at')
     search_fields = ('username', 'email', 'first_name', 'last_name')
     ordering = ('-created_at',)
-    
+
     fieldsets = UserAdmin.fieldsets + (
         ('Дополнительная информация', {
             'fields': ('role', 'avatar', 'created_at', 'updated_at')

@@ -54,25 +54,25 @@ export function ModernCard({
           <Ionicons name={icon} size={24} color={iconColorResolved} />
         </View>
       )}
-      
+
       <View style={styles.textContainer}>
         <Text style={[styles.title, { color: textColor }]} numberOfLines={1}>
           {title}
         </Text>
-        
+
         {subtitle && (
           <Text style={[styles.subtitle, { color: subtitleColor }]} numberOfLines={1}>
             {subtitle}
           </Text>
         )}
-        
+
         {value !== undefined && (
           <Text style={[styles.value, { color: textColor }]} numberOfLines={1}>
             {value}
           </Text>
         )}
       </View>
-      
+
       {children}
     </View>
   );
@@ -102,8 +102,7 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.border.large,
     overflow: 'hidden',
   },
-  
-  // Размеры
+
   small: {
     minHeight: hp(8),
     padding: SPACING.md,
@@ -116,8 +115,7 @@ const styles = StyleSheet.create({
     minHeight: hp(16),
     padding: SPACING.xl,
   },
-  
-  // Варианты
+
   default: {
     ...SHADOWS.medium,
   },
@@ -129,13 +127,13 @@ const styles = StyleSheet.create({
   elevated: {
     ...SHADOWS.large,
   },
-  
+
   content: {
     ...LAYOUT.row,
     ...LAYOUT.alignCenter,
     flex: 1,
   },
-  
+
   iconContainer: {
     width: wp(12),
     height: wp(12),
@@ -143,23 +141,23 @@ const styles = StyleSheet.create({
     ...LAYOUT.center,
     marginRight: SPACING.md,
   },
-  
+
   textContainer: {
     flex: 1,
     justifyContent: 'center',
   },
-  
+
   title: {
     ...TYPOGRAPHY.h4,
     marginBottom: SPACING.xs / 2,
     letterSpacing: -0.2,
   },
-  
+
   subtitle: {
     ...TYPOGRAPHY.body2,
     marginBottom: SPACING.xs,
   },
-  
+
   value: {
     ...TYPOGRAPHY.h2,
     letterSpacing: -0.5,

@@ -1,8 +1,3 @@
-/**
- * Утилита для логирования, которая работает только в development режиме
- * Помогает избежать console.log в продакшене
- */
-
 type LogLevel = 'log' | 'info' | 'warn' | 'error' | 'debug';
 
 interface Logger {
@@ -16,10 +11,7 @@ interface Logger {
 class DevLogger implements Logger {
   private createLogMethod = (level: LogLevel) => {
     return (message: string, ...args: any[]) => {
-      // В продакшене можно отправлять критические ошибки в систему мониторинга
-      // if (!__DEV__ && level === 'error') {
-      //   // Отправить в Crashlytics, Sentry и т.д.
-      // }
+
     };
   };
 
@@ -30,10 +22,8 @@ class DevLogger implements Logger {
   debug = this.createLogMethod('debug');
 }
 
-// Экспортируем единственный экземпляр
 export const logger = new DevLogger();
 
-// Вспомогательные функции для часто используемых паттернов
 export const apiLogger = {
   request: (url: string, method: string, data?: any) => {
     logger.debug(`🌐 API Request: ${method} ${url}`, data);
@@ -67,7 +57,6 @@ export const navigationLogger = {
   },
 };
 
-// Утилита для измерения производительности
 export const performanceLogger = {
   start: (label: string) => {
     if (__DEV__) {

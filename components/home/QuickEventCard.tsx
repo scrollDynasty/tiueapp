@@ -31,7 +31,7 @@ export const QuickEventCard = React.memo(({ event, index }: QuickEventCardProps)
     borderRadius: 12,
     padding: isVerySmallScreen ? spacing.sm : spacing.md,
     marginBottom: spacing.sm,
-    // Оптимизированные тени для платформ
+
     ...Platform.select({
       android: {
         elevation: 2,

@@ -35,7 +35,7 @@ export default function CoursesScreen() {
   const fetchGrades = React.useCallback(async () => {
     try {
       const response = await authApi.getGrades();
-      
+
       if (response.success && response.data) {
         const responseData = response.data as any || {};
         const gradesArray = Array.isArray(responseData.data) ? responseData.data : [];
@@ -51,7 +51,7 @@ export default function CoursesScreen() {
   const fetchCourses = React.useCallback(async () => {
     try {
       const response = await authApi.getCourses();
-      
+
       if (response.success && response.data) {
         const responseData = response.data as any || {};
         const coursesArray = Array.isArray(responseData.data) ? responseData.data : [];
@@ -81,9 +81,9 @@ export default function CoursesScreen() {
   }, [fetchData]);
 
   const getStatusColor = (grade?: number) => {
-    if (!grade) return '#6B7280'; // Серый для неизвестной оценки
-    if (grade >= 40) return '#10B981'; // Зеленый для сдавших
-    return '#EF4444'; // Красный для не сдавших
+    if (!grade) return '#6B7280';
+    if (grade >= 40) return '#10B981';
+    return '#EF4444';
   };
 
   const getStatusText = (grade?: number) => {
@@ -100,10 +100,9 @@ export default function CoursesScreen() {
     return colors.textSecondary;
   };
 
-  // Функция для получения оценки курса из массива оценок
   const getCourseGrade = React.useCallback((courseName: string): number | undefined => {
-    const grade = grades.find((g: any) => 
-      g.course_name === courseName || 
+    const grade = grades.find((g: any) =>
+      g.course_name === courseName ||
       g.name === courseName ||
       g.subject === courseName
     );
@@ -113,15 +112,15 @@ export default function CoursesScreen() {
   const calculateProgress = (course: Course) => {
     const grade = getCourseGrade(course.course_name);
     if (grade) {
-      // Прогресс = балл (максимум 100%)
+
       return Math.min(grade, 100);
     }
-    return 0; // Если нет оценки, прогресс = 0
+    return 0;
   };
 
   const renderCourseCard = (course: Course, index: number) => {
     const courseGrade = getCourseGrade(course.course_name);
-    
+
     return (
     <Animated.View
       key={course.course_id}
@@ -146,15 +145,15 @@ export default function CoursesScreen() {
         }),
       }}
     >
-      {/* Заголовок курса */}
-      <View style={{ 
-        flexDirection: 'row', 
-        justifyContent: 'space-between', 
-        alignItems: 'flex-start', 
-        marginBottom: spacing.sm 
+      {}
+      <View style={{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: spacing.sm
       }}>
         <View style={{ flex: 1, marginRight: spacing.sm }}>
-          <ThemedText 
+          <ThemedText
             numberOfLines={2}
             style={{
               fontSize: isVerySmallScreen ? 16 : 18,
@@ -166,7 +165,7 @@ export default function CoursesScreen() {
             {course.course_name}
           </ThemedText>
           {course.instructor && (
-            <ThemedText 
+            <ThemedText
               numberOfLines={1}
               style={{
                 fontSize: isVerySmallScreen ? 12 : 14,
@@ -178,8 +177,8 @@ export default function CoursesScreen() {
             </ThemedText>
           )}
         </View>
-        
-        {/* Статус сдачи */}
+
+        {}
         <View style={{
           backgroundColor: getStatusColor(courseGrade) + '20',
           paddingHorizontal: isVerySmallScreen ? 8 : 12,
@@ -196,23 +195,23 @@ export default function CoursesScreen() {
         </View>
       </View>
 
-      {/* Информация о курсе */}
-      <View style={{ 
-        flexDirection: isVerySmallScreen ? 'column' : 'row', 
-        justifyContent: 'space-between', 
+      {}
+      <View style={{
+        flexDirection: isVerySmallScreen ? 'column' : 'row',
+        justifyContent: 'space-between',
         alignItems: isVerySmallScreen ? 'flex-start' : 'center',
-        marginBottom: spacing.sm 
+        marginBottom: spacing.sm
       }}>
-        {/* Кредиты/семестр */}
-        <View style={{ 
-          flexDirection: 'row', 
+        {}
+        <View style={{
+          flexDirection: 'row',
           alignItems: 'center',
           marginBottom: isVerySmallScreen ? 8 : 0
         }}>
-          <Ionicons 
-            name="school-outline" 
-            size={isVerySmallScreen ? 14 : 16} 
-            color={colors.primary} 
+          <Ionicons
+            name="school-outline"
+            size={isVerySmallScreen ? 14 : 16}
+            color={colors.primary}
           />
           <ThemedText style={{
             fontSize: isVerySmallScreen ? 12 : 14,
@@ -224,12 +223,12 @@ export default function CoursesScreen() {
           </ThemedText>
         </View>
 
-        {/* Оценка */}
+        {}
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Ionicons 
-            name="trophy-outline" 
-            size={isVerySmallScreen ? 14 : 16} 
-            color={getGradeColor(courseGrade)} 
+          <Ionicons
+            name="trophy-outline"
+            size={isVerySmallScreen ? 14 : 16}
+            color={getGradeColor(courseGrade)}
           />
           <ThemedText style={{
             fontSize: isVerySmallScreen ? 14 : 16,
@@ -242,7 +241,7 @@ export default function CoursesScreen() {
         </View>
       </View>
 
-      {/* Прогресс бар */}
+      {}
       <View style={{
         backgroundColor: isDarkMode ? '#374151' : '#F3F4F6',
         height: isVerySmallScreen ? 6 : 8,
@@ -256,7 +255,7 @@ export default function CoursesScreen() {
         }} />
       </View>
 
-      {/* Прогресс текст */}
+      {}
       <ThemedText style={{
         fontSize: isVerySmallScreen ? 10 : 12,
         color: colors.textSecondary,
@@ -270,13 +269,13 @@ export default function CoursesScreen() {
   };
 
   return (
-    <View style={{ 
-      flex: 1, 
+    <View style={{
+      flex: 1,
       backgroundColor: colors.background,
-      paddingTop: insets.top 
+      paddingTop: insets.top
     }}>
-      {/* Заголовок с кнопкой назад */}
-      <Animated.View 
+      {}
+      <Animated.View
         entering={FadeInUp.duration(500)}
         style={{
           flexDirection: 'row',
@@ -302,13 +301,13 @@ export default function CoursesScreen() {
               marginRight: spacing.md,
             }}
           >
-            <Ionicons 
-              name="arrow-back" 
-              size={24} 
-              color={colors.text} 
+            <Ionicons
+              name="arrow-back"
+              size={24}
+              color={colors.text}
             />
           </TouchableOpacity>
-          
+
           <View style={{ flex: 1 }}>
             <ThemedText style={{
               fontSize: isVerySmallScreen ? 20 : 24,
@@ -328,7 +327,7 @@ export default function CoursesScreen() {
         </View>
       </Animated.View>
 
-      {/* Список курсов */}
+      {}
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{
@@ -347,10 +346,10 @@ export default function CoursesScreen() {
         showsVerticalScrollIndicator={false}
       >
         {loading ? (
-          // Загрузка
-          <View style={{ 
-            flex: 1, 
-            justifyContent: 'center', 
+
+          <View style={{
+            flex: 1,
+            justifyContent: 'center',
             alignItems: 'center',
             paddingVertical: spacing.xl * 2
           }}>
@@ -363,10 +362,10 @@ export default function CoursesScreen() {
                 alignItems: 'center',
               }}
             >
-              <Ionicons 
-                name="school-outline" 
-                size={48} 
-                color={colors.primary} 
+              <Ionicons
+                name="school-outline"
+                size={48}
+                color={colors.primary}
                 style={{ marginBottom: spacing.md }}
               />
               <ThemedText style={{
@@ -387,10 +386,10 @@ export default function CoursesScreen() {
             </Animated.View>
           </View>
         ) : courses.length === 0 ? (
-          // Пустое состояние
-          <View style={{ 
-            flex: 1, 
-            justifyContent: 'center', 
+
+          <View style={{
+            flex: 1,
+            justifyContent: 'center',
             alignItems: 'center',
             paddingVertical: spacing.xl * 2
           }}>
@@ -405,10 +404,10 @@ export default function CoursesScreen() {
                 borderColor: colors.border,
               }}
             >
-              <Ionicons 
-                name="school-outline" 
-                size={64} 
-                color={colors.textSecondary} 
+              <Ionicons
+                name="school-outline"
+                size={64}
+                color={colors.textSecondary}
                 style={{ marginBottom: spacing.md }}
               />
               <ThemedText style={{
@@ -429,7 +428,7 @@ export default function CoursesScreen() {
                 В данный момент у вас нет активных курсов.{'\n'}
                 Обратитесь в деканат для получения информации.
               </ThemedText>
-              
+
               <TouchableOpacity
                 onPress={onRefresh}
                 style={{
@@ -451,9 +450,9 @@ export default function CoursesScreen() {
             </Animated.View>
           </View>
         ) : (
-          // Список курсов
+
           <>
-            {/* Статистика */}
+            {}
             <Animated.View
               entering={FadeInDown.duration(500)}
               style={{
@@ -465,8 +464,8 @@ export default function CoursesScreen() {
                 borderColor: colors.border,
               }}
             >
-              <View style={{ 
-                flexDirection: 'row', 
+              <View style={{
+                flexDirection: 'row',
                 justifyContent: 'space-around',
                 alignItems: 'center'
               }}>
@@ -489,13 +488,13 @@ export default function CoursesScreen() {
                     Сдано
                   </ThemedText>
                 </View>
-                
-                <View style={{ 
-                  width: 1, 
-                  height: 40, 
-                  backgroundColor: colors.border 
+
+                <View style={{
+                  width: 1,
+                  height: 40,
+                  backgroundColor: colors.border
                 }} />
-                
+
                 <View style={{ alignItems: 'center', flex: 1 }}>
                   <ThemedText style={{
                     fontSize: isVerySmallScreen ? 20 : 24,
@@ -515,13 +514,13 @@ export default function CoursesScreen() {
                     Не сдано
                   </ThemedText>
                 </View>
-                
-                <View style={{ 
-                  width: 1, 
-                  height: 40, 
-                  backgroundColor: colors.border 
+
+                <View style={{
+                  width: 1,
+                  height: 40,
+                  backgroundColor: colors.border
                 }} />
-                
+
                 <View style={{ alignItems: 'center', flex: 1 }}>
                   <ThemedText style={{
                     fontSize: isVerySmallScreen ? 20 : 24,
@@ -541,7 +540,7 @@ export default function CoursesScreen() {
               </View>
             </Animated.View>
 
-            {/* Курсы */}
+            {}
             {courses.map((course, index) => renderCourseCard(course, index))}
           </>
         )}

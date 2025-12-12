@@ -39,9 +39,8 @@ interface StudentProfile {
   };
 }
 
-// Кэш для профилей (оптимизация памяти)
 const profileCache = new Map<string, { data: StudentProfile; timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 минут
+const CACHE_DURATION = 5 * 60 * 1000;
 
 export default function StudentProfileScreen() {
   const params = useLocalSearchParams();
@@ -66,7 +65,6 @@ export default function StudentProfileScreen() {
       return;
     }
 
-    // Проверяем кэш
     const cached = profileCache.get(id);
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
       setProfile(cached.data);
@@ -78,11 +76,10 @@ export default function StudentProfileScreen() {
       setLoading(true);
       setError(null);
 
-      // Получаем данные из navigation params
       const studentData = params as any;
-      
+
       if (studentData && (studentData.student || studentData.username)) {
-        // Парсим student данные если они в виде строки
+
         let studentInfo = studentData.student;
         if (typeof studentInfo === 'string') {
           try {
@@ -93,23 +90,22 @@ export default function StudentProfileScreen() {
           }
         }
 
-        // Формируем правильный URL для аватарки
         let avatarUrl = studentData.avatar;
-        
+
         if (avatarUrl && avatarUrl.startsWith('http')) {
-          // Уже полный URL - используем как есть
+
           avatarUrl = avatarUrl;
         } else if (avatarUrl && avatarUrl.startsWith('/api/')) {
-          // Убираем /api/ из начала
+
           avatarUrl = `${API_BASE_URL}${avatarUrl.substring(4)}`;
         } else if (avatarUrl && avatarUrl.startsWith('/media/')) {
-          // Путь к media - напрямую в Nginx
+
           avatarUrl = `https://mobile.tiue.uz${avatarUrl}`;
         } else if (avatarUrl && avatarUrl.startsWith('/')) {
-          // Относительный путь
+
           avatarUrl = `${API_BASE_URL}${avatarUrl}`;
         } else {
-          // Нет аватарки - покажем инициалы
+
           avatarUrl = null;
         }
 
@@ -125,8 +121,7 @@ export default function StudentProfileScreen() {
         };
 
         setProfile(profileData);
-        
-        // Сохраняем в кэш
+
         profileCache.set(id, { data: profileData, timestamp: Date.now() });
       } else {
         setError('Данные студента не найдены');
@@ -139,7 +134,6 @@ export default function StudentProfileScreen() {
     }
   };
 
-  // Мемоизация для оптимизации
   const initials = useMemo(() => {
     if (!profile) return '?';
     return (profile.first_name[0] || profile.username[0] || '?').toUpperCase();
@@ -152,11 +146,11 @@ export default function StudentProfileScreen() {
   };
 
   const handleBack = () => {
-    // Проверяем можем ли вернуться назад
+
     if (router.canGoBack()) {
       router.back();
     } else {
-      // Если нет истории (например, после перезагрузки страницы) - переходим на список студентов
+
       router.push('/(tabs)/students');
     }
   };
@@ -165,7 +159,7 @@ export default function StudentProfileScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <LinearGradient
-          colors={isDarkMode 
+          colors={isDarkMode
             ? ['#0F172A', '#1E293B', '#334155']
             : ['#FAFAFA', '#F8FAFC', '#EEF2F7']
           }
@@ -185,7 +179,7 @@ export default function StudentProfileScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <LinearGradient
-          colors={isDarkMode 
+          colors={isDarkMode
             ? ['#0F172A', '#1E293B', '#334155']
             : ['#FAFAFA', '#F8FAFC', '#EEF2F7']
           }
@@ -217,9 +211,9 @@ export default function StudentProfileScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* Градиентный фон */}
+      {}
       <LinearGradient
-        colors={isDarkMode 
+        colors={isDarkMode
           ? ['#0F172A', '#1E293B', '#334155']
           : ['#FAFAFA', '#F8FAFC', '#EEF2F7']
         }
@@ -234,8 +228,8 @@ export default function StudentProfileScreen() {
           paddingBottom: insets.bottom + spacing.xl,
         }}
       >
-        {/* Хедер с кнопкой назад */}
-        <Animated.View 
+        {}
+        <Animated.View
           entering={FadeInUp.duration(400)}
           style={{
             paddingTop: insets.top + spacing.sm,
@@ -263,8 +257,8 @@ export default function StudentProfileScreen() {
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Аватар и имя */}
-        <Animated.View 
+        {}
+        <Animated.View
           entering={FadeInDown.delay(200).duration(600)}
           style={{
             alignItems: 'center',
@@ -272,7 +266,7 @@ export default function StudentProfileScreen() {
             marginBottom: spacing.xl,
           }}
         >
-          {/* Большой аватар */}
+          {}
           <View style={{
             width: isVerySmallScreen ? 100 : 120,
             height: isVerySmallScreen ? 100 : 120,
@@ -289,9 +283,9 @@ export default function StudentProfileScreen() {
           }}>
             {profile.avatar ? (
               <Image
-                source={{ 
+                source={{
                   uri: profile.avatar,
-                  cache: 'force-cache' // Кэширование изображений
+                  cache: 'force-cache'
                 }}
                 style={{ width: '100%', height: '100%' }}
                 resizeMode="cover"
@@ -322,7 +316,7 @@ export default function StudentProfileScreen() {
             )}
           </View>
 
-          {/* Имя */}
+          {}
           <ThemedText style={{
             fontSize: fontSize.title + 4,
             fontWeight: '800',
@@ -333,7 +327,7 @@ export default function StudentProfileScreen() {
             {profile.first_name} {profile.last_name}
           </ThemedText>
 
-          {/* Username */}
+          {}
           <View style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -356,12 +350,12 @@ export default function StudentProfileScreen() {
           </View>
         </Animated.View>
 
-        {/* Информационные карточки */}
+        {}
         <View style={{ paddingHorizontal: horizontalPadding, gap: spacing.md }}>
-          
-          {/* Группа */}
+
+          {}
           {profile.student?.group && (
-            <Animated.View 
+            <Animated.View
               entering={FadeInDown.delay(400).duration(600)}
               style={{
                 backgroundColor: colors.surface,
@@ -410,9 +404,9 @@ export default function StudentProfileScreen() {
             </Animated.View>
           )}
 
-          {/* Email */}
+          {}
           {profile.email && (
-            <Animated.View 
+            <Animated.View
               entering={FadeInDown.delay(500).duration(600)}
             >
               <TouchableOpacity
@@ -466,9 +460,9 @@ export default function StudentProfileScreen() {
             </Animated.View>
           )}
 
-          {/* Department */}
+          {}
           {profile.student?.department && (
-            <Animated.View 
+            <Animated.View
               entering={FadeInDown.delay(600).duration(600)}
               style={{
                 backgroundColor: colors.surface,
@@ -517,9 +511,9 @@ export default function StudentProfileScreen() {
             </Animated.View>
           )}
 
-          {/* Student ID */}
+          {}
           {profile.student?.student_id && (
-            <Animated.View 
+            <Animated.View
               entering={FadeInDown.delay(700).duration(600)}
               style={{
                 backgroundColor: colors.surface,
@@ -569,9 +563,9 @@ export default function StudentProfileScreen() {
             </Animated.View>
           )}
 
-          {/* Status */}
+          {}
           {profile.student?.status && (
-            <Animated.View 
+            <Animated.View
               entering={FadeInDown.delay(800).duration(600)}
               style={{
                 backgroundColor: colors.surface,
@@ -620,8 +614,8 @@ export default function StudentProfileScreen() {
             </Animated.View>
           )}
 
-          {/* Username как отдельная карточка */}
-          <Animated.View 
+          {}
+          <Animated.View
             entering={FadeInDown.delay(900).duration(600)}
             style={{
               backgroundColor: colors.surface,
@@ -670,10 +664,8 @@ export default function StudentProfileScreen() {
             </View>
           </Animated.View>
 
-
-
-          {/* Информация о TIUE */}
-          <Animated.View 
+          {}
+          <Animated.View
             entering={FadeInDown.delay(1100).duration(600)}
             style={{
               backgroundColor: colors.surface,

@@ -20,12 +20,10 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>('light');
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Загружаем сохраненную тему при старте
   useEffect(() => {
     loadSavedTheme();
   }, []);
 
-  // Определяем текущую тему (включая системную)
   useEffect(() => {
     updateTheme();
   }, [theme]);
@@ -43,7 +41,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   const updateTheme = () => {
     if (theme === 'system') {
-      // Для системной темы пока используем светлую тему
+
       setIsDarkMode(false);
     } else {
       const newIsDarkMode = theme === 'dark';
@@ -77,15 +75,14 @@ export function useTheme() {
   if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
-  
-  // Убеждаемся что theme всегда имеет правильное значение
+
   const { theme, isDarkMode, setTheme, toggleTheme } = context;
   const safeTheme = theme || 'light';
-  
-  return { 
-    theme: safeTheme, 
-    isDarkMode: isDarkMode || false, 
-    setTheme, 
-    toggleTheme 
+
+  return {
+    theme: safeTheme,
+    isDarkMode: isDarkMode || false,
+    setTheme,
+    toggleTheme
   };
 }

@@ -9,15 +9,13 @@ class Command(BaseCommand):
         admin_email = settings.DEFAULT_ADMIN_EMAIL
         admin_password = settings.DEFAULT_ADMIN_PASSWORD
         admin_name = settings.DEFAULT_ADMIN_NAME
-        
-        # Проверяем, существует ли администратор
+
         if CustomUser.objects.filter(role='admin').exists():
             self.stdout.write(
                 self.style.WARNING('Администратор уже существует')
             )
             return
-        
-        # Создаем пользователя-администратора
+
         admin_user = CustomUser.objects.create_user(
             username='admin',
             email=admin_email,
@@ -28,13 +26,12 @@ class Command(BaseCommand):
             is_staff=True,
             is_superuser=True
         )
-        
-        # Создаем профиль администратора
+
         Admin.objects.create(
             user=admin_user,
             permissions=['all']
         )
-        
+
         self.stdout.write(
             self.style.SUCCESS(
                 f'Администратор создан успешно!\n'

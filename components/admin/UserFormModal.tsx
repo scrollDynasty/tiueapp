@@ -27,26 +27,24 @@ interface UserFormModalProps {
   onSave: (userData: any) => Promise<void>;
 }
 
-// Определяем тип для ref
 interface UserFormModalRef {
-  // Добавьте методы, которые должны быть доступны через ref
+
   resetForm?: () => void;
   focusFirstInput?: () => void;
 }
 
 const UserFormModal = React.forwardRef<UserFormModalRef, UserFormModalProps>(
   ({ isVisible, editingUser, onClose, onSave }, ref) => {
-    // Имплементируем ref методы
+
     React.useImperativeHandle(ref, () => ({
       resetForm: () => {
-        // логика сброса формы
+
       },
       focusFirstInput: () => {
-        // логика фокуса на первый input
+
       },
     }));
 
-    // Остальная логика компонента
     return (
       <Modal visible={isVisible} animationType="slide" presentationStyle="pageSheet">
         <View style={styles.container}>
@@ -59,11 +57,11 @@ const UserFormModal = React.forwardRef<UserFormModalRef, UserFormModalProps>(
             </ThemedText>
             <View style={styles.placeholder} />
           </View>
-          
+
           <ScrollView style={styles.content}>
-            {/* Форма будет здесь */}
+            {}
           </ScrollView>
-          
+
           <View style={styles.footer}>
             <Pressable style={styles.saveButton} onPress={() => onSave({})}>
               <ThemedText style={styles.saveButtonText}>Сохранить</ThemedText>

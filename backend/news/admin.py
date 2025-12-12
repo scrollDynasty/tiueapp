@@ -1,7 +1,6 @@
 from django.contrib import admin
 from .models import News, Event, EventRegistration
 
-
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
     list_display = ['title', 'author', 'category', 'is_important', 'created_at']
@@ -10,7 +9,7 @@ class NewsAdmin(admin.ModelAdmin):
     list_editable = ['is_important']
     ordering = ['-created_at']
     readonly_fields = ['created_at', 'updated_at']
-    
+
     fieldsets = (
         ('Основная информация', {
             'fields': ('title', 'subtitle', 'content', 'author')
@@ -24,7 +23,6 @@ class NewsAdmin(admin.ModelAdmin):
         })
     )
 
-
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
     list_display = ['title', 'date', 'time', 'location', 'category', 'current_participants', 'max_participants', 'created_by']
@@ -32,7 +30,7 @@ class EventAdmin(admin.ModelAdmin):
     search_fields = ['title', 'description', 'location']
     ordering = ['date', 'time']
     readonly_fields = ['created_at', 'updated_at', 'current_participants']
-    
+
     fieldsets = (
         ('Основная информация', {
             'fields': ('title', 'description', 'location', 'date', 'time')
@@ -45,7 +43,6 @@ class EventAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         })
     )
-
 
 @admin.register(EventRegistration)
 class EventRegistrationAdmin(admin.ModelAdmin):

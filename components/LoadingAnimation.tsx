@@ -22,7 +22,7 @@ export function LoadingAnimation({ size = 40, color = '#2563EB' }: LoadingAnimat
   const progress3 = useSharedValue(0);
 
   useEffect(() => {
-    // Создаем волновую анимацию с задержками
+
     progress1.value = withRepeat(
       withSequence(
         withTiming(1, { duration: 600 }),
@@ -57,7 +57,7 @@ export function LoadingAnimation({ size = 40, color = '#2563EB' }: LoadingAnimat
     );
 
     return () => {
-      // Правильная остановка анимаций при размонтировании
+
       cancelAnimation(progress1);
       cancelAnimation(progress2);
       cancelAnimation(progress3);
@@ -67,7 +67,7 @@ export function LoadingAnimation({ size = 40, color = '#2563EB' }: LoadingAnimat
   const animatedStyle1 = useAnimatedStyle(() => {
     const scale = interpolate(progress1.value, [0, 1], [0.3, 1]);
     const opacity = interpolate(progress1.value, [0, 0.5, 1], [0.3, 1, 0.3]);
-    
+
     return {
       transform: [{ scale }],
       opacity,
@@ -77,7 +77,7 @@ export function LoadingAnimation({ size = 40, color = '#2563EB' }: LoadingAnimat
   const animatedStyle2 = useAnimatedStyle(() => {
     const scale = interpolate(progress2.value, [0, 1], [0.3, 1]);
     const opacity = interpolate(progress2.value, [0, 0.5, 1], [0.3, 1, 0.3]);
-    
+
     return {
       transform: [{ scale }],
       opacity,
@@ -87,7 +87,7 @@ export function LoadingAnimation({ size = 40, color = '#2563EB' }: LoadingAnimat
   const animatedStyle3 = useAnimatedStyle(() => {
     const scale = interpolate(progress3.value, [0, 1], [0.3, 1]);
     const opacity = interpolate(progress3.value, [0, 0.5, 1], [0.3, 1, 0.3]);
-    
+
     return {
       transform: [{ scale }],
       opacity,

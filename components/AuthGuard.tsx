@@ -15,45 +15,42 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   const dispatch = useAppDispatch();
   const { isAuthenticated, loading } = useAppSelector((state) => state.auth);
   const segments = useSegments();
-  
-  // Используем ref для предотвращения дублированных вызовов
+
   const initializingRef = React.useRef(false);
-  
-  // Публичные маршруты, которые не требуют аутентификации
+
   const publicRoutes = ['login', 'debug'];
-  const currentRoute = segments[0]; // Получаем первый сегмент маршрута
+  const currentRoute = segments[0];
   const isPublicRoute = publicRoutes.includes(currentRoute);
 
   const initializeAuth = useCallback(async () => {
     if (initializingRef.current) {
-      return; // Предотвращаем дублированные вызовы
+      return;
     }
-    
+
     initializingRef.current = true;
     try {
-      // ОПТИМИЗАЦИЯ: Если пользователь уже аутентифицирован в Redux, пропускаем все проверки
+
       if (isAuthenticated) {
         setIsInitializing(false);
         return;
       }
 
-      // ОПТИМИЗАЦИЯ: Параллельно проверяем токен и валидность
       const token = await AsyncStorage.getItem('authToken');
 
       if (token) {
-        // Запускаем проверку статуса, но не ждем её завершения для быстрой загрузки
+
         dispatch(checkAuthStatus()).then((result) => {
-          // Если проверка провалилась, перенаправляем на логин
+
           if (checkAuthStatus.rejected.match(result)) {
             router.replace('/login');
           }
         });
       } else {
-        // Токена нет, перенаправляем на логин
+
         router.replace('/login');
       }
     } catch (error) {
-      // При ошибке просто перенаправляем на логин
+
       router.replace('/login');
     } finally {
       initializingRef.current = false;
@@ -61,12 +58,10 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     }
   }, [dispatch, isAuthenticated]);
 
-
   useEffect(() => {
-    // Запускаем только один раз при первой загрузке
+
     if (!isInitializing) return;
 
-    // Если это публичный маршрут, не проверяем аутентификацию
     if (isPublicRoute) {
       setIsInitializing(false);
       return;
@@ -81,8 +76,6 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     }
   }, [isAuthenticated, isInitializing, loading, isPublicRoute]);
 
-
-  // Для публичных маршрутов всегда показываем контент
   if (isPublicRoute) {
     return <>{children}</>;
   }
@@ -96,7 +89,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   }
 
   if (!isAuthenticated && !isPublicRoute) {
-    return null; // Роутер автоматически перенаправит на логин
+    return null;
   }
 
   return <>{children}</>;
